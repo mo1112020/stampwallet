@@ -72,9 +72,9 @@ export async function DELETE(_request: Request, { params }: Ctx) {
 
   const { data, error } = await auth.supabase
     .from("loyalty_programs")
-    .update({ is_active: false })
+    .delete()
     .eq("id", id)
-    .select("*")
+    .select("id")
     .single();
 
   if (error) return jsonError(error.message, "delete_failed", 500);

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { PhoneMockup, EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
+import type { ProgramConfig, ProgramType } from "@/types";
 
 export default async function DashboardHome({
   params,
@@ -34,63 +36,71 @@ export default async function DashboardHome({
     .order("created_at", { ascending: false });
 
   return (
-    <div>
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
-        {t("welcome")}
-        {merchant?.business_name ? `, ${merchant.business_name}` : ""}
-      </h1>
-      <p className="mt-2 text-[var(--muted)]">Plan: {merchant?.plan ?? "free"}</p>
+    <div className="mx-auto max-w-6xl">
+      <header className="mb-10 animate-stagger-1">
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">
+          {t("welcome")}
+          <span className="text-[var(--brand)]">
+            {merchant?.business_name ? `, ${merchant.business_name}` : ""}
+          </span>
+        </h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          Plan: <span className="font-medium capitalize text-[var(--ink)]">{merchant?.plan ?? "free"}</span>
+        </p>
+      </header>
 
-      <div className="mt-8 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold">{t("createProgram").replace("Create ", "")}</h2>
+      {/* Section header */}
+      <div className="flex items-center justify-between gap-4 animate-stagger-2 mb-8">
+        <h2 className="text-xl font-semibold tracking-tight text-[var(--ink)]">Your Programs</h2>
         <Link
-          href={`/${locale}/dashboard/programs/new`}
-          className="rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white"
+          href={`/${locale}/dashboard/templates`}
+          className="rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md active:scale-95"
         >
           {t("createProgram")}
         </Link>
       </div>
 
-      {!programs?.length ? (
-        <p className="mt-10 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] p-10 text-[var(--muted)]">
-          {t("emptyPrograms")}
-        </p>
-      ) : (
-        <ul className="mt-6 grid gap-4 md:grid-cols-2">
-          {programs.map((program) => (
-            <li key={program.id} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-lg font-semibold text-[var(--ink)]">{program.name}</p>
-                  <p className="text-sm capitalize text-[var(--muted)]">{program.type}</p>
-                </div>
-                <span className="text-xs font-medium uppercase tracking-wide text-[var(--brand)]">
-                  {program.is_active ? t("active") : t("inactive")}
-                </span>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  href={`/${locale}/dashboard/programs/${program.id}`}
-                  className="rounded-lg border border-[var(--line)] px-3 py-1.5 text-sm"
-                >
-                  Edit
-                </Link>
-                <Link
-                  href={`/${locale}/dashboard/programs/${program.id}/scan`}
-                  className="rounded-lg bg-[var(--brand)] px-3 py-1.5 text-sm text-white"
-                >
-                  {t("scan")}
-                </Link>
-                <Link
-                  href={`/${locale}/dashboard/programs/${program.id}/customers`}
-                  className="rounded-lg border border-[var(--line)] px-3 py-1.5 text-sm"
-                >
-                  {t("customers")}
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ul>
+      {/* Programs displayed as phone mockups */}
+      <div className="animate-stagger-3 flex flex-wrap gap-8">
+        {programs?.map((program) => {
+          const config = program.config as any;
+          const iconName = config?.icon && /^[A-Z]/.test(config.icon) ? config.icon : "Coffee";
+          return (
+            <PhoneMockup
+              key={program.id}
+              name={program.name}
+              primaryColor={config?.primary_color ?? merchant?.brand_color_primary ?? "#3E0856"}
+              secondaryColor={config?.secondary_color ?? merchant?.brand_color_secondary ?? "#FAAE62"}
+              iconName={iconName}
+              backgroundImage={config?.background_image_url}
+              programType={program.type as ProgramType}
+              programConfig={program.config as ProgramConfig}
+              stampsRequired={config?.stamps_required ?? 10}
+              stampsCollected={0}
+              actionHref={`/${locale}/dashboard/programs/${program.id}`}
+              actionText="Manage"
+            />
+          );
+        })}
+
+        {/* Always show "create" card at the end */}
+        <EmptyPhoneMockup locale={locale} />
+      </div>
+
+      {/* Empty state when no programs */}
+      {!programs?.length && (
+        <div className="mt-4 flex flex-col items-center justify-center rounded-3xl bg-white p-12 text-center shadow-sm ring-1 ring-black/5">
+          <h3 className="text-lg font-semibold text-[var(--ink)]">No programs yet</h3>
+          <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
+            {t("emptyPrograms")}
+          </p>
+          <Link
+            href={`/${locale}/dashboard/templates`}
+            className="mt-6 rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-transform active:scale-95"
+          >
+            Browse Templates
+          </Link>
+        </div>
       )}
     </div>
   );

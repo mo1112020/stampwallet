@@ -1,18 +1,29 @@
 import { z } from "zod";
 
-export const stampConfigSchema = z.object({
-  stamps_required: z.number().int().min(1).max(50),
+const cardAppearanceSchema = z.object({
+  primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  secondary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  background_image_url: z.string().url().optional(),
+  details: z.object({
+    description: z.string().max(500).optional(),
+    terms: z.string().max(1000).optional(),
+    website: z.string().url().optional(),
+  }).optional(),
+});
+
+export const stampConfigSchema = cardAppearanceSchema.extend({
+  stamps_required: z.number().int().min(1).max(25),
   reward_description: z.string().min(1).max(200),
   icon: z.string().min(1).max(16),
 });
 
-export const pointsConfigSchema = z.object({
+export const pointsConfigSchema = cardAppearanceSchema.extend({
   points_per_reward: z.number().int().min(1),
   reward_description: z.string().min(1).max(200),
   points_label: z.string().min(1).max(20),
 });
 
-export const stepsConfigSchema = z.object({
+export const stepsConfigSchema = cardAppearanceSchema.extend({
   stages: z
     .array(
       z.object({

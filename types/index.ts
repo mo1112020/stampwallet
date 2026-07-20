@@ -2,13 +2,26 @@ export type Plan = "free" | "starter" | "pro" | "enterprise";
 export type ProgramType = "stamp" | "points" | "steps";
 export type Locale = "en" | "ar";
 
-export type StampConfig = {
+export type CardDetails = {
+  description?: string;
+  terms?: string;
+  website?: string;
+};
+
+export type CardAppearance = {
+  primary_color?: string;
+  secondary_color?: string;
+  background_image_url?: string;
+  details?: CardDetails;
+};
+
+export type StampConfig = CardAppearance & {
   stamps_required: number;
   reward_description: string;
   icon: string;
 };
 
-export type PointsConfig = {
+export type PointsConfig = CardAppearance & {
   points_per_reward: number;
   reward_description: string;
   points_label: string;
@@ -20,7 +33,7 @@ export type StepStage = {
   threshold: number;
 };
 
-export type StepsConfig = {
+export type StepsConfig = CardAppearance & {
   stages: StepStage[];
 };
 

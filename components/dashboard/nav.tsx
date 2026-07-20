@@ -5,13 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { Home, Smartphone, Users, MessageSquare, Route, MapPin, Settings } from "lucide-react";
 
 const links = [
-  { href: "dashboard", key: "dashboard" },
-  { href: "dashboard/programs", key: "programs" },
-  { href: "dashboard/analytics", key: "analytics" },
-  { href: "dashboard/billing", key: "billing" },
-  { href: "dashboard/settings", key: "settings" },
+  { href: "dashboard", key: "dashboard", icon: Home },
+  { href: "dashboard/programs", key: "programs", icon: Smartphone },
+  { href: "dashboard/analytics", key: "analytics", icon: Users },
+  { href: "dashboard/billing", key: "billing", icon: Route },
+  { href: "dashboard/settings", key: "settings", icon: Settings },
 ] as const;
 
 export function DashboardNav({ locale }: { locale: string }) {
@@ -27,36 +28,59 @@ export function DashboardNav({ locale }: { locale: string }) {
   }
 
   return (
-    <aside className="flex w-full flex-col gap-6 border-b border-[var(--line)] bg-white p-5 md:min-h-screen md:w-60 md:border-b-0 md:border-e">
-      <Link href={`/${locale}/dashboard`} className="font-brand text-lg text-[var(--ink)]">
-        StampWallet
-      </Link>
-      <nav className="flex flex-wrap gap-1 md:flex-col">
+    <aside className="relative flex w-16 shrink-0 flex-col items-center border-r border-[#e5e5e5] bg-white py-6">
+      <nav className="flex flex-col gap-4">
         {links.map((link) => {
           const href = `/${locale}/${link.href}`;
           const active = pathname === href || pathname.startsWith(`${href}/`);
+          const Icon = link.icon;
           return (
             <Link
               key={link.href}
               href={href}
+              title={t(link.key)}
               className={cn(
-                "rounded-full px-3 py-2 text-sm",
+                "group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                 active
-                  ? "bg-[var(--primary)] font-medium text-white"
-                  : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
+                  ? "bg-[#2b2b2b] text-white"
+                  : "text-gray-400 hover:bg-gray-100 hover:text-gray-900"
               )}
             >
-              {t(link.key)}
+              <Icon className="h-5 w-5" />
             </Link>
           );
         })}
       </nav>
+      
+      {/* Other icons like chat and map pin which were in screenshot but not necessarily in our routes yet */}
+      <div className="mt-4 flex flex-col gap-4">
+        <button className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+          <MessageSquare className="h-5 w-5" />
+        </button>
+        <button className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+          <MapPin className="h-5 w-5" />
+        </button>
+      </div>
+
       <button
         type="button"
         onClick={logout}
-        className="mt-auto text-start text-sm text-[var(--muted)] hover:text-[var(--ink)]"
+        title={t("logout")}
+        className="mt-auto flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
       >
-        {t("logout")}
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          />
+        </svg>
       </button>
     </aside>
   );

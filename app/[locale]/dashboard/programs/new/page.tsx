@@ -4,10 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function NewProgramPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { locale } = await params;
+  const { name, primaryColor, secondaryColor, iconName, backgroundImage } = await searchParams;
   setRequestLocale(locale);
   const supabase = await createClient();
   const {
@@ -21,14 +24,17 @@ export default async function NewProgramPage({
 
   return (
     <div>
-      <h1 className="mb-8 font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+      <h1 className="mb-8 text-3xl font-bold tracking-tight text-[var(--ink)]">
         Create program
       </h1>
       <ProgramForm
         mode="create"
+        initialName={typeof name === "string" ? name : undefined}
         businessName={merchant?.business_name}
-        primaryColor={merchant?.brand_color_primary}
-        secondaryColor={merchant?.brand_color_secondary}
+        primaryColor={typeof primaryColor === "string" ? primaryColor : merchant?.brand_color_primary}
+        secondaryColor={typeof secondaryColor === "string" ? secondaryColor : merchant?.brand_color_secondary}
+        initialIconName={typeof iconName === "string" ? iconName : "Coffee"}
+        initialBackgroundImage={typeof backgroundImage === "string" ? backgroundImage : undefined}
       />
     </div>
   );

@@ -2,47 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Local brand fonts — files in /public/fonts */
-@font-face {
-  font-family: "Barnule";
-  src: url("/fonts/Barnule-Regular.ttf") format("truetype"),
-    url("/fonts/Barnule-Regular.otf") format("opentype");
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Flexing";
-  src: url("/fonts/Flexing-Regular.ttf") format("truetype"),
-    url("/fonts/Flexing-Regular.otf") format("opentype");
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Avona";
-  src: url("/fonts/Avona-Regular.ttf") format("truetype");
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   /* Simple product UI — white + ink + primary blue */
-  --primary: #2f6bff;
+  --primary: #1f57e7; /* Richer, slightly desaturated blue */
   --primary-soft: #e8efff;
   --white: #ffffff;
-  --ink: #0f0f0f;
-  --muted: #737373;
-  --line: #e8e8e8;
-  --line-strong: #d4d4d4;
-  --background: #ffffff;
+  --ink: #1c1c1c;
+  --muted: #6b7280; /* Softer gray */
+  --line: #e5e7eb; /* Softer border */
+  --line-strong: #d1d5db;
+  --background: #f6f6f6; /* Off-white for depth */
   --foreground: var(--ink);
   --surface: #ffffff;
-  --surface-2: #f7f7f7;
-  --surface-3: #f0f0f0;
+  --surface-2: #f3f4f6;
+  --surface-3: #e5e7eb;
 
   /* Kept for wallet / legacy class names */
   --purple: #3e0856;
@@ -50,11 +23,12 @@
   --brand: var(--primary);
   --brand-soft: var(--primary-soft);
   --accent: var(--primary);
-  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* Springier ease-out */
+  --ease-spring: cubic-bezier(0.25, 1, 0.5, 1);
 
-  --font-brand: "Barnule", system-ui, sans-serif;
-  --font-display: "Flexing", system-ui, -apple-system, sans-serif;
-  --font-body: "Avona", system-ui, -apple-system, sans-serif;
+  --font-brand: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 html {
@@ -64,7 +38,7 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -74,9 +48,9 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display), system-ui, sans-serif;
+  font-family: var(--font-display);
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   text-wrap: balance;
   color: var(--ink);
 }
@@ -98,7 +72,8 @@ h4 {
 a,
 button {
   transition: opacity 180ms var(--ease-out), background-color 180ms var(--ease-out),
-    border-color 180ms var(--ease-out), color 180ms var(--ease-out);
+    border-color 180ms var(--ease-out), color 180ms var(--ease-out), transform 180ms var(--ease-spring),
+    box-shadow 180ms var(--ease-out);
 }
 
 @layer utilities {
@@ -107,5 +82,25 @@ button {
   }
   .text-pretty {
     text-wrap: pretty;
+  }
+  .animate-stagger-1 {
+    animation: slideUpFade 0.5s var(--ease-spring) 0.1s both;
+  }
+  .animate-stagger-2 {
+    animation: slideUpFade 0.5s var(--ease-spring) 0.2s both;
+  }
+  .animate-stagger-3 {
+    animation: slideUpFade 0.5s var(--ease-spring) 0.3s both;
+  }
+}
+
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
