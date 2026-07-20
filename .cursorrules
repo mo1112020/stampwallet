@@ -1,0 +1,26 @@
+# Cursor Rules — StampWallet
+
+Before writing any code, read `/docs/00-overview.md` through `/docs/07-roadmap.md` in order (place these files in a `/docs` folder at the project root). These define the product, schema, features, API contracts, wallet integration, design system, and build order. Do not deviate from them without asking Ahmed.
+
+## General
+- Stack is fixed: Next.js 16.3 (App Router) + TypeScript + Supabase + Stripe + Apple/Google Wallet. Do not introduce a different database, auth provider, or framework without explicit approval.
+- Build strictly in the phase order defined in `07-roadmap.md`.
+- Prefer small, scoped, reviewable changes over large multi-feature commits.
+- When a requirement is ambiguous or a credential/decision is missing (see the "Open Questions" sections across the docs), stop and ask rather than inventing an answer and building on top of it.
+
+## Code Conventions
+- All API request/response validation goes through zod schemas in `/lib/validators` — no inline ad-hoc validation.
+- All merchant-scoped data access must respect Supabase RLS; never bypass with the service role key except in the specific public-facing routes documented in `04-api-endpoints.md` (`/pass/[passId]`, wallet webhook callbacks).
+- No hardcoded secrets or certificates. If a feature needs a new environment variable, add it to `.env.example` and flag it — do not fabricate a placeholder value and silently proceed as if it works.
+- Every new merchant-auth'd API route must handle both the unauthenticated (401) and wrong-owner (403) cases.
+
+## Wallet Integration
+- Never skip the pass push-update step to "simplify" a task — instant pass updates after a scan are a core product requirement, not optional polish (see `05-wallet-integration.md`).
+- Keep pass-field rendering logic (what displays on the pass) in one shared function used by both Apple and Google generators, so the two never visually diverge.
+
+## i18n
+- All customer- and merchant-facing strings go through the i18n layer (en + ar, with RTL support for Arabic) from the start — do not hardcode English strings "to fix later."
+
+## Testing / Verification
+- After implementing a feature, check it against the "Done when" criteria in `03-mvp-features.md` for that feature before considering it complete.
+- Wallet-related changes should be manually verified on a real device where possible — simulators are not sufficient to confirm push-update behavior.

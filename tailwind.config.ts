@@ -11,6 +11,13 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        purple: "#3E0856",
+        orange: "#FAAE62",
+      },
+      fontFamily: {
+        brand: ["Barnule", "Flexing", "Georgia", "serif"],
+        display: ["Flexing", "Barnule", "system-ui", "sans-serif"],
+        body: ["Avona", "Georgia", "serif"],
       },
     },
   },

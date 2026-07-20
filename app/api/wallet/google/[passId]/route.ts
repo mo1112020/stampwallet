@@ -1,0 +1,37 @@
+import { jsonError, jsonOk } from "@/lib/api";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { generateGoogleWalletLink } from "@/lib/wallet/google";
+import type { LoyaltyProgram, Merchant, Progress } from "@/types";
+
+type Ctx = { params: Promise<{ passId: string }> };
+
+export async function GET(_request: Request, { params }: Ctx) {
+  const { passId } = await params;
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return jsonError("Misconfigured", "misconfigured", 503);
+  }
+
+  const { data: row } = await admin
+    .from("customer_progress")
+    .select("*, loyalty_programs(*, merchants(*))")
+    .eq("pass_id", passId)
+    .maybeSingle();
+
+  if (!row) return jsonError("Pass not found", "not_found", 404);
+
+  const programRaw = row.loyalty_programs as unknown as LoyaltyProgram & {
+    merchants: Merchant;
+  };
+
+  const link = await generateGoogleWalletLink({
+    passId: passId,
+    program: programRaw,
+    merchant: programRaw.merchants,
+    progress: row.progress as Progress,
+  });
+
+  return jsonOk(link);
+}

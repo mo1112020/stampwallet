@@ -1,0 +1,283 @@
+{
+  "meta": {
+    "title": "StampWallet",
+    "tagline": "Customer retention that lives in the wallet."
+  },
+  "nav": {
+    "login": "Log in",
+    "signup": "Start free",
+    "dashboard": "Dashboard",
+    "programs": "Programs",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "billing": "Billing",
+    "logout": "Log out"
+  },
+  "site": {
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "features": "Features",
+      "industries": "Industries",
+      "infrastructure": "Infrastructure",
+      "pricing": "Pricing",
+      "faq": "FAQ"
+    },
+    "footer": {
+      "tagline": "Customer retention that lives in the wallet.",
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal",
+      "start": "Start now",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "copyright": "© 2026 StampWallet. All rights reserved."
+    },
+    "common": {
+      "getStarted": "Get started",
+      "learnMore": "Learn more",
+      "startFree": "Start free"
+    },
+    "home": {
+      "heroTitle": "Turn casual guests into regulars",
+      "heroSub": "Boost visit frequency with a wallet-native loyalty engine. No app download — just Apple Wallet and Google Wallet.",
+      "heroCta": "Get started",
+      "heroSecondary": "See features",
+      "pocketTitle": "Your brand, in their pocket.",
+      "pocketSub": "No app needed — a simple, powerful loyalty card for Apple and Google Wallet.",
+      "exploreTitle": "Explore StampWallet",
+      "exploreFeatures": "Features",
+      "exploreFeaturesBody": "Wallet passes, stamp and points programs, live updates, and analytics.",
+      "exploreIndustries": "Industries",
+      "exploreIndustriesBody": "Built for cafés, salons, gyms, restaurants, and more.",
+      "explorePricing": "Pricing",
+      "explorePricingBody": "Start free. Upgrade when your loyalty program grows."
+    },
+    "about": {
+      "eyebrow": "About",
+      "title": "We sell customer retention, not wallet technology.",
+      "description": "StampWallet helps small and medium businesses launch digital loyalty in minutes — bilingual Arabic and English, MENA/GCC first.",
+      "missionTitle": "Our mission",
+      "missionBody": "Make loyalty as simple as a paper stamp card, with the reach of Apple Wallet and Google Wallet. Merchants get a dashboard. Customers never download an app.",
+      "valuesTitle": "What we believe",
+      "v1Title": "Frictionless for customers",
+      "v1Body": "No accounts, no apps — just a pass in the wallet they already use.",
+      "v2Title": "Fast for merchants",
+      "v2Body": "Signup to a live enrollment QR in under two minutes.",
+      "v3Title": "Honest progress",
+      "v3Body": "Every scan updates the pass instantly. No lost cards, no fake stamps."
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "Everything you need for wallet loyalty",
+      "description": "Programs, enrollment, scanning, live pass updates, and analytics — in one platform.",
+      "walletTitle": "Mobile wallet",
+      "walletBody": "Apple Wallet and Google Wallet passes branded to your business.",
+      "programsTitle": "Loyalty programs",
+      "programsBody": "Stamp cards, point cards, and multi-stage reward journeys.",
+      "updatesTitle": "Live updates",
+      "updatesBody": "Progress pushes to the customer’s phone after every staff scan.",
+      "analyticsTitle": "Analytics",
+      "analyticsBody": "Enrollments, redemptions, and return activity at a glance."
+    },
+    "featuresWallet": {
+      "eyebrow": "Mobile wallet",
+      "title": "Your loyalty card lives in their wallet",
+      "description": "Customers add a pass with one tap. No app store, no login after enrollment.",
+      "b1Title": "Apple Wallet",
+      "b1Body": "Signed .pkpass cards with your brand colors, reward copy, and QR.",
+      "b2Title": "Google Wallet",
+      "b2Body": "Loyalty objects that update when progress changes.",
+      "b3Title": "Shared design",
+      "b3Body": "One source of truth for what the pass shows on both platforms."
+    },
+    "featuresPrograms": {
+      "eyebrow": "Programs",
+      "title": "Three program types, one dashboard",
+      "description": "Pick the loyalty style that fits your business — all included in StampWallet.",
+      "stampTitle": "Stamp cards",
+      "stampBody": "Buy 10, get 1 free style grids. Visual and familiar.",
+      "pointsTitle": "Point cards",
+      "pointsBody": "Accumulate points toward a reward threshold.",
+      "stepsTitle": "Reward journey",
+      "stepsBody": "Unlock stages in sequence — Welcome to VIP."
+    },
+    "featuresUpdates": {
+      "eyebrow": "Live updates",
+      "title": "The right update at the right time",
+      "description": "When staff scan a pass, progress updates and the wallet pass refreshes — often with a lock-screen nudge.",
+      "b1Title": "Instant after scan",
+      "b1Body": "Award stamps or points and push the new pass state immediately.",
+      "b2Title": "Reward unlocked",
+      "b2Body": "Customers see when a reward is ready to redeem.",
+      "b3Title": "No manual refresh",
+      "b3Body": "They don’t reopen an app to see new progress."
+    },
+    "featuresAnalytics": {
+      "eyebrow": "Analytics",
+      "title": "Track success and see them come back",
+      "description": "Simple numbers that match your scan and redemption history.",
+      "stat1": "Enrolled customers",
+      "stat2": "Rewards redeemed",
+      "stat3": "Weekly return visits",
+      "exportTitle": "Export when you need it",
+      "exportBody": "Download customer lists as CSV for your own reporting."
+    },
+    "industries": {
+      "eyebrow": "Industries",
+      "title": "Built for how you actually operate",
+      "description": "From cafés to clinics — wallet loyalty that fits the counter, not a complex CRM.",
+      "cafes": "Cafés & bakeries",
+      "cafesBody": "Classic stamp cards customers finish in a few visits.",
+      "salons": "Salons & barbers",
+      "salonsBody": "Points or journeys that reward regular appointments.",
+      "gyms": "Gyms & wellness",
+      "gymsBody": "Stage-based paths that celebrate consistency.",
+      "restaurants": "Restaurants",
+      "restaurantsBody": "Fast scans at the till without changing your POS.",
+      "retail": "Retail & services",
+      "retailBody": "Car washes, pet shops, pharmacies, and more."
+    },
+    "infrastructure": {
+      "eyebrow": "Infrastructure",
+      "title": "Built for wallet passes that update live",
+      "description": "Issuing, storing progress, and pushing Apple and Google updates — without enterprise complexity.",
+      "b1Title": "Secure multi-tenant data",
+      "b1Body": "Every merchant only sees their own programs and customers.",
+      "b2Title": "Pass generation",
+      "b2Body": "Apple PassKit and Google Wallet payloads from one shared field model.",
+      "b3Title": "Scan API",
+      "b3Body": "Authenticated award and redeem endpoints with rate limits and audit logs."
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Simple plans that scale with you",
+      "description": "Start free. Upgrade when you need more programs or customers.",
+      "freeName": "Free",
+      "freePrice": "$0",
+      "freeDesc": "1 active program, up to 100 customers",
+      "freeCta": "Start free",
+      "starterName": "Starter",
+      "starterPrice": "Custom",
+      "starterDesc": "More programs, higher customer caps, custom branding",
+      "starterCta": "Upgrade",
+      "proName": "Pro",
+      "proPrice": "Custom",
+      "proDesc": "Higher limits for growing multi-program businesses",
+      "proCta": "Talk to us",
+      "note": "Stripe billing unlocks when your keys are configured. Until then, Free plan works for development."
+    },
+    "faqPage": {
+      "eyebrow": "FAQ",
+      "title": "Questions, answered.",
+      "description": "Everything merchants ask before launching StampWallet."
+    }
+  },
+  "landing": {
+    "faq": {
+      "title": "Questions, answered.",
+      "items": {
+        "app": {
+          "q": "Do my customers need to download an app?",
+          "a": "No. Passes live in Apple Wallet and Google Wallet. Customers add their card in seconds — nothing to download, no account to create."
+        },
+        "paper": {
+          "q": "How does StampWallet replace a paper stamp card?",
+          "a": "Staff scan the customer’s QR. Stamps or points update on the pass in real time. Cards can’t be lost, forgotten, or faked."
+        },
+        "cost": {
+          "q": "What does it cost to start?",
+          "a": "Start on the free plan with one active program. Upgrade to Starter or Pro when you need more programs and customers."
+        },
+        "pos": {
+          "q": "Does it work with my POS?",
+          "a": "StampWallet runs independently of your POS — no till changes required. Staff scan from any phone on the dashboard."
+        },
+        "industries": {
+          "q": "Which businesses is it for?",
+          "a": "Cafés, bakeries, barbers, salons, gyms, restaurants, car washes, clinics, and more — bilingual Arabic and English for MENA/GCC first."
+        },
+        "launch": {
+          "q": "How long does it take to launch?",
+          "a": "Most merchants go from signup to a live enrollment QR in under two minutes."
+        }
+      }
+    }
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back!",
+    "loginTitle": "Welcome back",
+    "signupTitle": "Sign up",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "email": "Email",
+    "emailPlaceholder": "Your email address",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "businessName": "Business name",
+    "loginCta": "Sign in",
+    "signupCta": "Sign up",
+    "continue": "Continue",
+    "continueEmail": "Continue with email",
+    "continueGoogle": "Continue with Google",
+    "continueApple": "Continue with Apple",
+    "or": "OR",
+    "haveAccount": "Already have an account?",
+    "needAccount": "Don't have an account?",
+    "termsOfUse": "Terms of use",
+    "privacyPolicy": "Privacy policy",
+    "termsAndPrivacy": "Terms of Service and Privacy Policy",
+    "authError": "Authentication failed. Please try again."
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "emptyPrograms": "No programs yet. Create your first loyalty program.",
+    "createProgram": "Create program",
+    "scan": "Scan",
+    "customers": "Customers",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enrollQr": "Enrollment link",
+    "rewardAvailable": "Reward available — Redeem?",
+    "redeem": "Redeem",
+    "award": "Award",
+    "pointsAmount": "Points to add"
+  },
+  "onboarding": {
+    "title": "Set up your business",
+    "industry": "Industry",
+    "primaryColor": "Primary color",
+    "secondaryColor": "Secondary color",
+    "continue": "Continue",
+    "firstProgram": "Create your first program"
+  },
+  "enroll": {
+    "title": "Join the loyalty program",
+    "name": "Name (optional)",
+    "phone": "Phone (optional)",
+    "email": "Email (optional)",
+    "addApple": "Add to Apple Wallet",
+    "addGoogle": "Add to Google Wallet",
+    "submit": "Get your pass"
+  },
+  "pass": {
+    "progress": "Your progress",
+    "notFound": "Pass not found"
+  },
+  "billing": {
+    "title": "Billing",
+    "currentPlan": "Current plan",
+    "upgrade": "Upgrade",
+    "manage": "Manage subscription",
+    "notConfigured": "Stripe is not configured yet."
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "error": "Something went wrong",
+    "back": "Back"
+  }
+}
