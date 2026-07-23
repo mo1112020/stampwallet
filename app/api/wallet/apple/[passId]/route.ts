@@ -5,7 +5,7 @@ import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
 type Ctx = { params: Promise<{ passId: string }> };
 
-export async function GET(_request: Request, { params }: Ctx) {
+export async function GET(request: Request, { params }: Ctx) {
   const { passId } = await params;
   let admin;
   try {
@@ -21,6 +21,11 @@ export async function GET(_request: Request, { params }: Ctx) {
     .maybeSingle();
 
   if (!row) return jsonError("Pass not found", "not_found", 404);
+
+  const token = new URL(request.url).searchParams.get("token");
+  if (token !== row.apple_auth_token) {
+    return jsonError("Unauthorized", "unauthorized", 401);
+  }
 
   const programRaw = row.loyalty_programs as unknown as LoyaltyProgram & {
     merchants: Merchant;

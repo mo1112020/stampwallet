@@ -22,11 +22,11 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
   4. If `action === "redeem"`, write `redemptions` row.
   5. Trigger wallet push update (see `05-wallet-integration.md`).
   6. Return updated progress + whether a reward just became available.
-- Rate limit: reject repeat `award` scans on the same `pass_id` within a short window (e.g. 10 seconds) to prevent double-scans; make the window configurable.
+- Rate limit: both `award` and `redeem` are rate-limited per `pass_id` (10s / 3s windows respectively) via the Postgres-backed `check_rate_limit` function (`lib/rate-limit.ts`, migration 004) — not an in-process limiter, so it's correct across multiple serverless instances. Fails open (allows the request) if the rate-limit check itself errors.
 
 ## Wallet
-- `GET /api/wallet/apple/[passId]` — generates and streams a signed `.pkpass` file for the given pass (used by our own "Add to Apple Wallet" button, not by Apple's protocol).
-- `GET /api/wallet/google/[passId]` — generates the "Add to Google Wallet" JWT/link for the given pass.
+- `GET /api/wallet/apple/[passId]?token=<apple_auth_token>` — generates and streams a signed `.pkpass` file for the given pass (used by our own "Add to Apple Wallet" button, not by Apple's protocol). Requires the pass's `apple_auth_token` as a query param — this is a direct browser-navigated link (no custom headers possible), so the secret travels as `?token=` rather than an `Authorization` header like the real PassKit protocol below. 401s without a matching token.
+- `GET /api/wallet/google/[passId]?token=<google_auth_token>` — generates the "Add to Google Wallet" JWT/link for the given pass. Same `?token=` requirement, checked against `customer_progress.google_auth_token`.
 - `webServiceURL` in every generated pass points at `/api/wallet/apple`. Apple's own PassKit Web Service protocol appends `v1/...` to that, implemented under `app/api/wallet/apple/v1/`:
   - `POST /api/wallet/apple/v1/devices/[deviceLibraryIdentifier]/registrations/[passTypeIdentifier]/[serialNumber]` — device registers for push updates. Auth'd via `Authorization: ApplePass <token>` checked against `customer_progress.apple_auth_token`. Writes to `apple_device_registrations`.
   - `DELETE` same path — device unregisters.

@@ -65,7 +65,25 @@ One row per customer-per-program enrollment.
 | pass_id | uuid | unique, embedded in the wallet pass QR code — this is the "public key" for the pass |
 | progress | jsonb | shape depends on program type, see below |
 | apple_push_token | text | nullable, set when pass registers for updates |
+| apple_auth_token | text | per-pass secret; PassKit web service `Authorization: ApplePass <token>` header, also required as a `?token=` query param on the direct `.pkpass` download route |
 | google_object_id | text | nullable |
+| google_auth_token | text | per-pass secret; required as a `?token=` query param on the Google Wallet save-link route, same purpose as `apple_auth_token` |
+
+## `apple_device_registrations`
+One row per (device, pass) the Apple PassKit web service protocol has registered for push updates — a pass can be added on multiple devices.
+
+| column | type | notes |
+|---|---|---|
+| id | uuid | PK |
+| device_library_identifier | text | Apple's device identifier |
+| pass_type_identifier | text | |
+| serial_number | uuid | FK → customer_progress.pass_id |
+| push_token | text | APNs push token |
+
+Service-role only (RLS enabled, no policies) — accessed exclusively by the PassKit web service routes under `app/api/wallet/apple/v1/`.
+
+## `rate_limits`
+Postgres-backed replacement for an in-process rate limiter (which doesn't work across serverless instances). One row per rate-limit key (e.g. `scan:award:<pass_id>`, `enroll:<ip>`), checked/updated atomically via the `check_rate_limit(key, window_ms)` function. Service-role only (RLS enabled, no policies) — see `lib/rate-limit.ts`.
 
 **`progress` shape by type:**
 ```jsonc

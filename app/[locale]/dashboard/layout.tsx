@@ -23,13 +23,22 @@ export default async function DashboardLayout({
     redirect(`/${locale}/login`);
   }
 
-  // Example user data extraction. You'd normally fetch the user's name from a profiles table.
   const userInitial = user.email ? user.email.charAt(0).toUpperCase() : "U";
+  const { data: merchant } = await supabase
+    .from("merchants")
+    .select("business_name, logo_url")
+    .eq("id", user.id)
+    .maybeSingle();
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[var(--background)]">
       {/* Fixed top bar */}
-      <DashboardTopbar locale={locale} initial={userInitial} />
+      <DashboardTopbar
+        locale={locale}
+        initial={userInitial}
+        businessName={merchant?.business_name ?? null}
+        logoUrl={merchant?.logo_url ?? null}
+      />
 
       {/* Body below topbar — fills remaining height */}
       <div className="flex flex-1 overflow-hidden">

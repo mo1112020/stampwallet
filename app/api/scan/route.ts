@@ -15,11 +15,11 @@ export async function POST(request: Request) {
     return jsonError(parsed.error.message, "validation_error", 400);
   }
 
-  if (parsed.data.action === "award") {
-    const ok = checkRateLimit(`scan:${parsed.data.pass_id}`, 10_000);
-    if (!ok) {
-      return jsonError("Please wait a few seconds before scanning again", "rate_limited", 429);
-    }
+  const rateLimitKey = `scan:${parsed.data.action}:${parsed.data.pass_id}`;
+  const rateLimitWindowMs = parsed.data.action === "award" ? 10_000 : 3_000;
+  const ok = await checkRateLimit(rateLimitKey, rateLimitWindowMs);
+  if (!ok) {
+    return jsonError("Please wait a few seconds before scanning again", "rate_limited", 429);
   }
 
   const { data: row, error } = await auth.supabase

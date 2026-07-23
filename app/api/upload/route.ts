@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireMerchant } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireMerchant();
+  if ("error" in auth) return auth.error;
+  const { supabase, userId } = auth;
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
@@ -31,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const fileName = `${user.id}/${Date.now()}.${ext}`;
+  const fileName = `${userId}/${Date.now()}.${ext}`;
   const bytes = await file.arrayBuffer();
 
   // Upload through the server client when available. This avoids browser-session

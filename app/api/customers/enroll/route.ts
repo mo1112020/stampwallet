@@ -9,7 +9,8 @@ import { enrollSchema } from "@/lib/validators";
 import type { LoyaltyProgram, Merchant, ProgramType } from "@/types";
 
 export async function POST(request: Request) {
-  if (!checkRateLimit(`enroll:${request.headers.get("x-forwarded-for") || "anon"}`, 5_000)) {
+  const ip = request.headers.get("x-forwarded-for") || "anon";
+  if (!(await checkRateLimit(`enroll:${ip}`, 5_000))) {
     return jsonError("Too many enrollment attempts", "rate_limited", 429);
   }
 
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
   return jsonOk(
     {
       pass_id: cp.pass_id,
-      apple_pass_url: `${appUrl}/api/wallet/apple/${cp.pass_id}`,
+      apple_pass_url: `${appUrl}/api/wallet/apple/${cp.pass_id}?token=${cp.apple_auth_token}`,
       google_wallet_url: google.saveUrl.startsWith("http")
         ? google.saveUrl
         : `${appUrl}${google.saveUrl}`,

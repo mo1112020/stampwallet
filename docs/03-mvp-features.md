@@ -56,4 +56,6 @@ Scope: Stamp Cards + Point Cards + Reward Journey (Steps). Build in this file's 
 - **Done when**: upgrading/downgrading in Stripe test mode correctly changes what the merchant can do in the dashboard.
 
 ## Explicitly Deferred (do not build in MVP)
-Gamification badges/streaks, referral rewards, birthday rewards, location-triggered offers, VIP tiers beyond what "steps" already covers, AI insights/churn prediction, smart reward recommendations, white-label/enterprise multi-location. See `07-roadmap.md`.
+Gamification badges/streaks, referral rewards, VIP tiers beyond what "steps" already covers, AI insights/churn prediction, smart reward recommendations, white-label/reseller branding. See `07-roadmap.md`.
+
+Staff accounts/roles, push/wallet-native notifications (including birthday rewards), and location-triggered offers were deferred at MVP time but are now approved and in progress as `07-roadmap.md`'s Phase 6 production-readiness roadmap — no longer "explicitly deferred," just sequenced after MVP.
