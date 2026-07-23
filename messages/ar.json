@@ -444,7 +444,18 @@
     "currentPlan": "الخطة الحالية",
     "upgrade": "ترقية",
     "manage": "إدارة الاشتراك",
-    "notConfigured": "Stripe غير مُعد بعد."
+    "notConfigured": "Stripe غير مُعد بعد.",
+    "contactSales": "تواصل مع المبيعات",
+    "invoicesTitle": "سجل الدفعات",
+    "noInvoices": "لا توجد فواتير بعد.",
+    "viewInvoice": "عرض الفاتورة",
+    "usage": {
+      "title": "استخدام الخطة",
+      "programs": "البرامج النشطة",
+      "customers": "العملاء",
+      "seats": "مقاعد الفريق",
+      "unlimited": "غير محدود"
+    }
   },
   "common": {
     "loading": "جارٍ التحميل…",

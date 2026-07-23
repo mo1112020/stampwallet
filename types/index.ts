@@ -71,6 +71,7 @@ export type Merchant = {
   brand_color_secondary: string;
   plan: Plan;
   stripe_customer_id: string | null;
+  stripe_subscription_item_id: string | null;
   locale_default: Locale;
   onboarding_completed: boolean;
   currency: string | null;

@@ -1,10 +1,11 @@
-import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
+import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { STRIPE_PRICE_ENV, isStripeConfigured } from "@/lib/billing/plans";
 import { createStripeClient } from "@/lib/stripe";
+import { countSeats } from "@/lib/stripe/seats";
 import { checkoutSchema } from "@/lib/validators";
 
 export async function POST(request: Request) {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("billing");
   if ("error" in auth) return auth.error;
 
   if (!isStripeConfigured()) {
@@ -31,22 +32,24 @@ export async function POST(request: Request) {
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: (await auth.supabase.auth.getUser()).data.user?.email,
-      metadata: { merchant_id: auth.userId },
+      metadata: { merchant_id: auth.merchantId },
     });
     customerId = customer.id;
     await auth.supabase
       .from("merchants")
       .update({ stripe_customer_id: customerId })
-      .eq("id", auth.userId);
+      .eq("id", auth.merchantId);
   }
+
+  const seatCount = await countSeats(auth.merchantId);
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: seatCount }],
     success_url: `${appUrl}/${locale}/dashboard/billing?success=1`,
     cancel_url: `${appUrl}/${locale}/dashboard/billing?canceled=1`,
-    metadata: { merchant_id: auth.userId, plan: parsed.data.plan },
+    metadata: { merchant_id: auth.merchantId, plan: parsed.data.plan },
   });
 
   return jsonOk({ url: session.url });

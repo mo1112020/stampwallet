@@ -18,6 +18,7 @@ All tables use `uuid` primary keys (`gen_random_uuid()`). All tables have `creat
 | average_order_value | numeric | nullable, migration 008 — reserved for future ROI calculations, not yet consumed |
 | timezone | text | migration 009, default `'UTC'` — editable in Settings, used by Phase 8's campaign scheduling later |
 | notification_prefs | jsonb | migration 009, default `{}` — preference toggles (`reward_unlocked`/`birthday`/`expiring_reward`/`inactive_customer`), persisted now but not yet consumed by an actual send (Phase 8) |
+| stripe_subscription_item_id | text | nullable, migration 010 — the specific subscription line item Stripe seat-based billing updates the `quantity` of whenever staff are invited/revoked (`lib/stripe/seats.ts`). Set on `checkout.session.completed` and refreshed on `customer.subscription.updated`. |
 
 ## `loyalty_programs`
 | column | type | notes |

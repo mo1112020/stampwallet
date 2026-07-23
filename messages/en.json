@@ -444,7 +444,18 @@
     "currentPlan": "Current plan",
     "upgrade": "Upgrade",
     "manage": "Manage subscription",
-    "notConfigured": "Stripe is not configured yet."
+    "notConfigured": "Stripe is not configured yet.",
+    "contactSales": "Contact sales",
+    "invoicesTitle": "Payment history",
+    "noInvoices": "No invoices yet.",
+    "viewInvoice": "View invoice",
+    "usage": {
+      "title": "Plan usage",
+      "programs": "Active programs",
+      "customers": "Customers",
+      "seats": "Team seats",
+      "unlimited": "Unlimited"
+    }
   },
   "common": {
     "loading": "Loading…",

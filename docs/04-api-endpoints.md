@@ -54,9 +54,12 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
 - `GET /pass/[passId]` — (page, not API) server-renders current progress by looking up `customer_progress` via service role key.
 
 ## Billing
-- `POST /api/billing/checkout` — merchant-auth'd, creates a Stripe Checkout session for a given plan.
+- `POST /api/billing/checkout` — creates a Stripe Checkout session for a given plan (`starter`/`pro`; `enterprise` is Contact Sales only, no self-serve price). Line item quantity is the merchant's actual current seat count (`lib/stripe/seats.ts`), not a hardcoded 1.
 - `POST /api/billing/portal` — creates a Stripe Customer Portal session.
-- `POST /api/webhooks/stripe` — Stripe webhook handler. Verify signature with `STRIPE_WEBHOOK_SECRET`. Update `merchants.plan` on `checkout.session.completed` / `customer.subscription.updated` / `customer.subscription.deleted`.
+- `GET /api/billing/usage` — active programs/customers/seats used vs. `PLAN_LIMITS[plan]` (`null` limit = unlimited).
+- `GET /api/billing/invoices` — last 12 invoices from Stripe for the merchant's customer.
+- All billing routes require the `billing` capability (owner only).
+- `POST /api/webhooks/stripe` — Stripe webhook handler. Verify signature with `STRIPE_WEBHOOK_SECRET`. On `checkout.session.completed`: sets `merchants.plan` from the checkout session's own metadata and captures `stripe_subscription_item_id`. On `customer.subscription.updated`: derives the plan from the subscription's actual Stripe price id (matched against `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_PRO`) rather than trusting metadata, since Stripe Customer Portal plan-switches don't carry the checkout session's metadata — and refreshes `stripe_subscription_item_id`. On `customer.subscription.deleted`: resets to `free`.
 
 ## Conventions
 - All responses: `{ data: ... }` on success, `{ error: { message, code } }` on failure.

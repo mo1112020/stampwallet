@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { PLAN_LIMITS, isWithinLimit } from "@/lib/billing/plans";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { syncSeatQuantity } from "@/lib/stripe/seats";
 import { inviteStaffSchema } from "@/lib/validators";
 
 export async function GET() {
@@ -79,6 +80,8 @@ export async function POST(request: Request) {
   if (insertError || !staffRow) {
     return jsonError(insertError?.message ?? "Could not create staff record", "create_failed", 500);
   }
+
+  await syncSeatQuantity(auth.merchant);
 
   return jsonOk(staffRow, 201);
 }

@@ -1,9 +1,9 @@
-import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
+import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { isStripeConfigured } from "@/lib/billing/plans";
 import { createStripeClient } from "@/lib/stripe";
 
 export async function POST() {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("billing");
   if ("error" in auth) return auth.error;
 
   if (!isStripeConfigured()) {
