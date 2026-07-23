@@ -75,8 +75,18 @@ export type Merchant = {
   onboarding_completed: boolean;
   currency: string | null;
   average_order_value: number | null;
+  timezone: string;
+  notification_prefs: NotificationPrefs;
   created_at: string;
   updated_at: string;
+};
+
+/** Toggles a preference shell now — Phase 8 wires up the actual sends. */
+export type NotificationPrefs = {
+  reward_unlocked?: boolean;
+  birthday?: boolean;
+  expiring_reward?: boolean;
+  inactive_customer?: boolean;
 };
 
 export type LoyaltyProgram = {

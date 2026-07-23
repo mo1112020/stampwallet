@@ -1,7 +1,7 @@
-import { jsonOk, requireMerchant } from "@/lib/api";
+import { jsonOk, requireSession } from "@/lib/api";
 
 export async function GET() {
-  const auth = await requireMerchant();
+  const auth = await requireSession();
   if ("error" in auth) return auth.error;
   return jsonOk(auth.merchant);
 }

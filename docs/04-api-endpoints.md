@@ -45,6 +45,11 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
 - `DELETE /api/settings/team/[staffId]` — revoke access (soft: sets `status: "revoked"`, does not delete the underlying Supabase Auth user).
 - These routes use `requireCapability("manage_staff")` (`lib/api.ts`), not the older owner-only `requireMerchant()` — see `01-architecture.md`.
 
+## Settings
+- `PATCH /api/settings/merchant` — single endpoint for every settings section that's "just a field on the merchants row" (profile, branding, business metrics, locale/timezone, notification prefs) — each form PATCHes only the fields it owns. Requires the `manage_settings` capability (owner or admin).
+- `GET /api/settings/export` — full-account JSON bundle (merchant, programs, customers, customer_progress, scan_events, redemptions), distinct from the per-program CSV at `/api/customers/export`.
+- `DELETE /api/settings/account` — irreversible. Requires the `delete_account` capability (owner only) and a `confirm_business_name` body field matching the merchant's exact business name as a safety net on top of the UI's own confirmation dialog. Cascades via the existing FK chain (migrations 001/005) — nothing else to clean up.
+
 ## Public Customer Page
 - `GET /pass/[passId]` — (page, not API) server-renders current progress by looking up `customer_progress` via service role key.
 

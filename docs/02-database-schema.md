@@ -16,6 +16,8 @@ All tables use `uuid` primary keys (`gen_random_uuid()`). All tables have `creat
 | locale_default | text | "en" or "ar" |
 | currency | text | nullable, migration 008 — opt-in, powers the analytics revenue-impact KPI. Editing UI is Phase 6 (Settings); analytics (Phase 5) just reads it and hides the KPI when null. |
 | average_order_value | numeric | nullable, migration 008 — reserved for future ROI calculations, not yet consumed |
+| timezone | text | migration 009, default `'UTC'` — editable in Settings, used by Phase 8's campaign scheduling later |
+| notification_prefs | jsonb | migration 009, default `{}` — preference toggles (`reward_unlocked`/`birthday`/`expiring_reward`/`inactive_customer`), persisted now but not yet consumed by an actual send (Phase 8) |
 
 ## `loyalty_programs`
 | column | type | notes |

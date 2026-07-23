@@ -99,6 +99,26 @@ export const inviteStaffSchema = z.object({
   role: z.enum(["admin", "manager", "staff"]),
 });
 
+export const updateMerchantSettingsSchema = z.object({
+  business_name: z.string().min(1).max(100).optional(),
+  industry: z.string().min(1).max(100).optional(),
+  logo_url: z.string().url().optional().nullable(),
+  brand_color_primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  brand_color_secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  currency: z.union([z.string().length(3), z.null()]).optional(),
+  average_order_value: z.union([z.number().min(0), z.null()]).optional(),
+  locale_default: z.enum(["en", "ar"]).optional(),
+  timezone: z.string().min(1).max(100).optional(),
+  notification_prefs: z
+    .object({
+      reward_unlocked: z.boolean().optional(),
+      birthday: z.boolean().optional(),
+      expiring_reward: z.boolean().optional(),
+      inactive_customer: z.boolean().optional(),
+    })
+    .optional(),
+});
+
 export const updateStaffSchema = z
   .object({
     role: z.enum(["admin", "manager", "staff"]).optional(),

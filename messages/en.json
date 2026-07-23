@@ -292,6 +292,131 @@
       "90d": "90 days"
     }
   },
+  "settings": {
+    "title": "Settings",
+    "noAccess": "You don't have access to settings. Ask an owner or admin.",
+    "nav": {
+      "profile": "Profile",
+      "branding": "Branding",
+      "business": "Business",
+      "team": "Team",
+      "security": "Security",
+      "notifications": "Notifications",
+      "integrations": "Integrations",
+      "data": "Data"
+    },
+    "profile": {
+      "loading": "Loading…",
+      "businessName": "Business name",
+      "industry": "Industry",
+      "language": "Language",
+      "timezone": "Timezone",
+      "saved": "Saved.",
+      "saveFailed": "Could not save. Try again.",
+      "saving": "Saving…",
+      "save": "Save"
+    },
+    "branding": {
+      "loading": "Loading…",
+      "intro": "These colors and logo are used across your dashboard and on customers' wallet passes.",
+      "logo": "Logo",
+      "uploadLogo": "Upload logo",
+      "uploading": "Uploading…",
+      "primaryColor": "Primary color",
+      "secondaryColor": "Secondary color",
+      "saved": "Saved.",
+      "saveFailed": "Could not save. Try again.",
+      "saving": "Saving…",
+      "save": "Save",
+      "previewLabel": "Wallet pass preview"
+    },
+    "business": {
+      "loading": "Loading…",
+      "intro": "Optional — powers the estimated revenue-impact KPI on Analytics. Left blank, that KPI stays hidden rather than showing a guess.",
+      "currency": "Currency",
+      "notSet": "Not set",
+      "averageOrderValue": "Average order value",
+      "optional": "Optional",
+      "rewardValueHint": "Set a reward's dollar value per program when editing that program.",
+      "saved": "Saved.",
+      "saveFailed": "Could not save. Try again.",
+      "saving": "Saving…",
+      "save": "Save"
+    },
+    "team": {
+      "inviteTitle": "Invite a team member",
+      "email": "Email",
+      "role": "Role",
+      "inviting": "Inviting…",
+      "invite": "Invite",
+      "inviteFailed": "Could not send that invite.",
+      "membersTitle": "Team members",
+      "loading": "Loading…",
+      "noMembers": "No team members yet.",
+      "revoke": "Revoke",
+      "roles": {
+        "admin": "Admin",
+        "manager": "Manager",
+        "staff": "Staff"
+      },
+      "status": {
+        "invited": "Invited — not yet signed in",
+        "active": "Active",
+        "revoked": "Revoked"
+      }
+    },
+    "security": {
+      "intro": "Change the password for this login.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "mismatch": "Passwords don't match.",
+      "updated": "Password updated.",
+      "saving": "Saving…",
+      "save": "Update password"
+    },
+    "notifications": {
+      "intro": "Choose which automated notifications go out to customers.",
+      "loading": "Loading…",
+      "saved": "Saved.",
+      "saveFailed": "Could not save. Try again.",
+      "comingSoonNote": "These toggles are saved now; the automated sends themselves are coming in a later update.",
+      "toggles": {
+        "reward_unlocked": {
+          "label": "Reward unlocked",
+          "description": "Notify a customer the moment they unlock a reward"
+        },
+        "birthday": {
+          "label": "Birthday rewards",
+          "description": "Send a birthday reward reminder"
+        },
+        "expiring_reward": {
+          "label": "Expiring rewards",
+          "description": "Remind customers before a reward expires"
+        },
+        "inactive_customer": {
+          "label": "Inactive customer reminders",
+          "description": "Nudge customers who haven't visited in a while"
+        }
+      }
+    },
+    "integrations": {
+      "title": "Integrations & API keys",
+      "description": "Coming soon — no public API exists yet for a key to authenticate against."
+    },
+    "data": {
+      "exportTitle": "Export your data",
+      "exportDescription": "Download a full JSON export of your programs, customers, and activity.",
+      "exportButton": "Export data",
+      "deleteTitle": "Delete account",
+      "deleteDescription": "Permanently deletes your account and all associated data. This cannot be undone.",
+      "deleteButton": "Delete account",
+      "confirmLabel": "Type \"{name}\" to confirm",
+      "deleting": "Deleting…",
+      "confirmDelete": "Permanently delete",
+      "cancel": "Cancel",
+      "deleteFailed": "Could not delete the account."
+    }
+  },
   "onboarding": {
     "title": "Set up your business",
     "industry": "Industry",
