@@ -1,5 +1,5 @@
 import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
-import { PLAN_LIMITS } from "@/lib/billing/plans";
+import { PLAN_LIMITS, isWithinLimit } from "@/lib/billing/plans";
 import { createProgramSchema } from "@/lib/validators";
 
 export async function GET() {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     .eq("merchant_id", auth.userId)
     .eq("is_active", true);
 
-  if ((count ?? 0) >= limits.maxActivePrograms) {
+  if (!isWithinLimit(count ?? 0, limits.maxActivePrograms)) {
     return jsonError(
       `Your ${auth.merchant.plan} plan allows ${limits.maxActivePrograms} active program(s). Upgrade to create more.`,
       "plan_limit",

@@ -1,18 +1,29 @@
 import type { Plan } from "@/types";
 
-export const PLAN_LIMITS: Record<
-  Plan,
-  { maxActivePrograms: number; maxActiveCustomers: number; customBranding: boolean }
-> = {
-  free: { maxActivePrograms: 1, maxActiveCustomers: 100, customBranding: false },
-  starter: { maxActivePrograms: 3, maxActiveCustomers: 1000, customBranding: true },
-  pro: { maxActivePrograms: 20, maxActiveCustomers: 10000, customBranding: true },
+export type PlanLimits = {
+  maxActivePrograms: number | null;
+  maxActiveCustomers: number | null;
+  maxSeats: number | null;
+  customBranding: boolean;
+};
+
+/** `null` means unlimited — prefer this over magic-number sentinels. */
+export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
+  free: { maxActivePrograms: 1, maxActiveCustomers: 100, maxSeats: 1, customBranding: false },
+  starter: { maxActivePrograms: 3, maxActiveCustomers: 1000, maxSeats: 3, customBranding: true },
+  pro: { maxActivePrograms: 20, maxActiveCustomers: 10000, maxSeats: 10, customBranding: true },
   enterprise: {
-    maxActivePrograms: 999,
-    maxActiveCustomers: 999999,
+    maxActivePrograms: null,
+    maxActiveCustomers: null,
+    maxSeats: null,
     customBranding: true,
   },
 };
+
+/** `limit === null` means unlimited, so the count is always within it. */
+export function isWithinLimit(count: number, limit: number | null): boolean {
+  return limit === null || count < limit;
+}
 
 export const STRIPE_PRICE_ENV: Record<"starter" | "pro", string> = {
   starter: "STRIPE_PRICE_STARTER",

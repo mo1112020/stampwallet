@@ -74,6 +74,8 @@
 
 **Multi-tenancy**: every table scoped by `merchant_id`. Row Level Security (RLS) in Supabase enforces merchants only ever see their own data. See `02-database-schema.md`.
 
+**Staff accounts & roles** (migration 005): a merchant (`merchants.id = auth.users.id`) is the implicit "owner." Non-owner team members get their own Supabase Auth login via `staff_accounts` (role: `admin`/`manager`/`staff`), invited through `supabase.auth.admin.inviteUserByEmail`. RLS extends every tenant-scoped table to also allow active staff of that merchant (`public.is_active_staff_of(merchant_id)`, a `SECURITY DEFINER` function — avoids recursive RLS on `staff_accounts` itself). RLS only controls row *visibility*; per-action authorization (can this role invite staff, redeem a reward, view billing) is a fixed capability matrix in `lib/auth/permissions.ts`, checked via `requireCapability()` in `lib/api.ts`. Existing routes built before staff accounts existed keep using the older owner-only `requireMerchant()` until deliberately reviewed for staff access.
+
 **Customer identity without login**: a customer is identified by a unique `pass_id` (UUID) embedded in their wallet pass's QR code. No customer account/password. This is intentional — friction-free is the core value prop.
 
 **Program types as one schema, not three tables**: `loyalty_programs.type` is an enum (`stamp` | `points` | `steps`). A single `customer_progress` table stores a JSON `progress` field whose shape depends on the parent program's type. This avoids duplicating enrollment/customer logic three times. Validate progress shape with a zod discriminated union based on `type`.

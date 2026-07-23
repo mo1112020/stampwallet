@@ -115,3 +115,17 @@ export type ApiError = {
 };
 
 export type ApiSuccess<T> = { data: T };
+
+export type StaffRole = "owner" | "admin" | "manager" | "staff";
+export type StaffStatus = "invited" | "active" | "revoked";
+
+export type StaffAccount = {
+  id: string;
+  user_id: string;
+  merchant_id: string;
+  role: Exclude<StaffRole, "owner">;
+  status: StaffStatus;
+  invited_email: string;
+  created_at: string;
+  updated_at: string;
+};

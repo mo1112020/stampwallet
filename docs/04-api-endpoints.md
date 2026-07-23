@@ -35,6 +35,13 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
   - `POST /api/wallet/apple/v1/log` — receives Apple's client-side error logs.
   - See `05-wallet-integration.md` for the full push flow.
 
+## Settings / Team
+- `GET /api/settings/team` — list active/invited staff for the authenticated merchant. Requires the `manage_staff` capability (owner or admin) via `requireCapability()`.
+- `POST /api/settings/team` — invite a staff member. Body: `{ email, role }` where `role` is `admin`/`manager`/`staff`. Enforces `PLAN_LIMITS[plan].maxSeats` (owner counts as one seat). Uses `auth.admin.inviteUserByEmail` (service role) to create the Supabase Auth identity, then a `staff_accounts` row with `status: "invited"`.
+- `PATCH /api/settings/team/[staffId]` — update `role` and/or `status` (`active`/`revoked`) for a staff member belonging to the caller's merchant.
+- `DELETE /api/settings/team/[staffId]` — revoke access (soft: sets `status: "revoked"`, does not delete the underlying Supabase Auth user).
+- These routes use `requireCapability("manage_staff")` (`lib/api.ts`), not the older owner-only `requireMerchant()` — see `01-architecture.md`.
+
 ## Public Customer Page
 - `GET /pass/[passId]` — (page, not API) server-renders current progress by looking up `customer_progress` via service role key.
 

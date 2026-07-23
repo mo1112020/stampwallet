@@ -1,5 +1,5 @@
 import { jsonError, jsonOk } from "@/lib/api";
-import { PLAN_LIMITS } from "@/lib/billing/plans";
+import { PLAN_LIMITS, isWithinLimit } from "@/lib/billing/plans";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { initialProgress } from "@/lib/wallet/renderPassFields";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     .select("*, loyalty_programs!inner(merchant_id)", { count: "exact", head: true })
     .eq("loyalty_programs.merchant_id", merchant.id);
 
-  if ((count ?? 0) >= limits.maxActiveCustomers) {
+  if (!isWithinLimit(count ?? 0, limits.maxActiveCustomers)) {
     return jsonError("This program has reached its customer cap", "plan_limit", 403);
   }
 

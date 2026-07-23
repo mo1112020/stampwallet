@@ -104,7 +104,7 @@ Audit log — every scan, whether it awarded progress or was rejected.
 |---|---|---|
 | id | uuid | PK |
 | customer_progress_id | uuid | FK |
-| scanned_by | uuid | FK → merchants.id (or a staff-user id if staff accounts are added later) |
+| scanned_by | uuid | the acting user's `auth.uid()` — either the merchant owner (`merchants.id`) or a staff member (`staff_accounts.user_id`), see `staff_accounts` below |
 | delta | jsonb | what changed, e.g. `{ "stamps_added": 1 }` |
 | resulted_in_reward | boolean | |
 
@@ -116,15 +116,29 @@ Audit log — every scan, whether it awarded progress or was rejected.
 | reward_description | text | snapshot at time of redemption |
 | redeemed_at | timestamp | |
 
+## `staff_accounts` (migration 005)
+Non-owner team members. The merchant (`merchants.id = auth.users.id`) stays the implicit "owner" — this table only holds staff.
+
+| column | type | notes |
+|---|---|---|
+| id | uuid | PK |
+| user_id | uuid | FK → auth.users.id, unique — the staff member's own login, created via `auth.admin.inviteUserByEmail` |
+| merchant_id | uuid | FK → merchants.id |
+| role | text | enum: `admin` \| `manager` \| `staff` |
+| status | text | enum: `invited` \| `active` \| `revoked` — flips `invited` → `active` on first authenticated request (see `requireSession()` in `lib/api.ts`) |
+| invited_email | text | |
+
 ## Row Level Security (RLS)
 Enable RLS on every merchant-scoped table. Core policy pattern:
 ```sql
 create policy "merchants access own data"
 on loyalty_programs
 for all
-using (merchant_id = auth.uid());
+using (merchant_id = auth.uid() or public.is_active_staff_of(merchant_id));
 ```
-Apply the equivalent pattern to `customers`, `customer_progress` (via join to program → merchant), `scan_events`, and `redemptions`. The public `/pass/[passId]` page and wallet webhook endpoints must use the Supabase **service role key** server-side (never the anon key) since they intentionally bypass merchant auth to look up a pass by its public `pass_id`.
+`is_active_staff_of(merchant_id)` (migration 005) is a `SECURITY DEFINER` function checking `staff_accounts` — using a function rather than an inline subquery avoids recursive RLS evaluation when the check itself needs to read a table that also has RLS. Applied to `merchants` (staff get read-only), `loyalty_programs`, `customers`, `customer_progress` (via join to program → merchant), `scan_events` (read via merchant/staff, write requires `scanned_by = auth.uid()`), and `redemptions`. RLS here only controls row *visibility* — per-action authorization (can this role redeem a reward, invite staff, etc.) is enforced in application code, see `01-architecture.md`'s "Staff accounts & roles" note.
+
+The public `/pass/[passId]` page and wallet webhook endpoints must use the Supabase **service role key** server-side (never the anon key) since they intentionally bypass merchant auth to look up a pass by its public `pass_id`.
 
 ## Indexes to add
 - `customer_progress.pass_id` (unique, already implied — used on every scan lookup)

@@ -92,3 +92,17 @@ export const onboardingSchema = z.object({
 export const checkoutSchema = z.object({
   plan: z.enum(["starter", "pro"]),
 });
+
+export const inviteStaffSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(["admin", "manager", "staff"]),
+});
+
+export const updateStaffSchema = z
+  .object({
+    role: z.enum(["admin", "manager", "staff"]).optional(),
+    status: z.enum(["active", "revoked"]).optional(),
+  })
+  .refine((data) => data.role !== undefined || data.status !== undefined, {
+    message: "Provide at least one of role or status",
+  });
