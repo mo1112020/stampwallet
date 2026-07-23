@@ -52,8 +52,12 @@ export async function POST(request: Request) {
     return jsonError("Server is not configured with Supabase service role", "misconfigured", 503);
   }
 
+  // is_staff_invite tells handle_new_user() (migration 001/007) to skip
+  // auto-creating a merchants "owner" row for this identity — this person
+  // is staff of auth.merchantId, not an owner of their own account.
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
-    parsed.data.email
+    parsed.data.email,
+    { data: { is_staff_invite: true } }
   );
 
   if (inviteError || !invited?.user) {
