@@ -1,0 +1,16 @@
+{
+  "name": "StampWallet Scanner",
+  "short_name": "Scanner",
+  "description": "Scan customer loyalty passes, award stamps/points, and redeem rewards.",
+  "start_url": "/en/scan-app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a1a",
+  "theme_color": "#3E0856",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

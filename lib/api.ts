@@ -51,6 +51,8 @@ export type SessionContext = {
   merchant: Merchant;
 };
 
+type ResolvedSession = { ok: true; session: SessionContext } | { ok: false; reason: string };
+
 /**
  * Resolves the current session as either the merchant owner
  * (merchants.id === auth.uid()) or an active staff member acting on
@@ -59,15 +61,20 @@ export type SessionContext = {
  * completed Supabase's invite-acceptance flow (that's how they got a
  * session at all), so this is the first authenticated request we see
  * from them, not a separate confirmation step to build.
+ *
+ * Shared core for requireSession() (API routes, wraps failures as a
+ * NextResponse) and getSessionOrNull() (server components/layouts, e.g.
+ * the Scanner PWA's auth-gated layout, where a redirect is more
+ * appropriate than a JSON error).
  */
-export async function requireSession(): Promise<SessionContext | { error: NextResponse }> {
+async function resolveSession(): Promise<ResolvedSession> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: jsonError("Unauthorized", "unauthorized", 401) };
+    return { ok: false, reason: "unauthorized" };
   }
 
   const { data: ownMerchant } = await supabase
@@ -78,11 +85,14 @@ export async function requireSession(): Promise<SessionContext | { error: NextRe
 
   if (ownMerchant) {
     return {
-      supabase,
-      userId: user.id,
-      merchantId: ownMerchant.id,
-      role: "owner",
-      merchant: ownMerchant as Merchant,
+      ok: true,
+      session: {
+        supabase,
+        userId: user.id,
+        merchantId: ownMerchant.id,
+        role: "owner",
+        merchant: ownMerchant as Merchant,
+      },
     };
   }
 
@@ -93,10 +103,10 @@ export async function requireSession(): Promise<SessionContext | { error: NextRe
     .maybeSingle();
 
   if (!staffRow) {
-    return { error: jsonError("No merchant account found for this session", "no_account", 401) };
+    return { ok: false, reason: "no_account" };
   }
   if (staffRow.status === "revoked") {
-    return { error: jsonError("This account has been revoked", "revoked", 403) };
+    return { ok: false, reason: "revoked" };
   }
 
   if (staffRow.status === "invited") {
@@ -104,12 +114,23 @@ export async function requireSession(): Promise<SessionContext | { error: NextRe
   }
 
   return {
-    supabase,
-    userId: user.id,
-    merchantId: staffRow.merchant_id,
-    role: staffRow.role as StaffRole,
-    merchant: staffRow.merchants as unknown as Merchant,
+    ok: true,
+    session: {
+      supabase,
+      userId: user.id,
+      merchantId: staffRow.merchant_id,
+      role: staffRow.role as StaffRole,
+      merchant: staffRow.merchants as unknown as Merchant,
+    },
   };
+}
+
+export async function requireSession(): Promise<SessionContext | { error: NextResponse }> {
+  const resolved = await resolveSession();
+  if (resolved.ok) return resolved.session;
+
+  const status = resolved.reason === "revoked" ? 403 : 401;
+  return { error: jsonError(resolved.reason, resolved.reason, status) };
 }
 
 export async function requireCapability(
@@ -123,4 +144,10 @@ export async function requireCapability(
   }
 
   return session;
+}
+
+/** For server components/layouts — no session (or an invalid one) is just `null`, not a thrown error. */
+export async function getSessionOrNull(): Promise<SessionContext | null> {
+  const resolved = await resolveSession();
+  return resolved.ok ? resolved.session : null;
 }

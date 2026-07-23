@@ -258,7 +258,14 @@
     "awardSuccess": "تمت الإضافة!",
     "redeemSuccess": "تم الاستبدال!",
     "recentScans": "عمليات المسح الأخيرة",
-    "noHistory": "لا توجد عمليات مسح بعد"
+    "noHistory": "لا توجد عمليات مسح بعد",
+    "staffLogin": "تسجيل دخول الموظفين",
+    "role": {
+      "owner": "المالك",
+      "admin": "مدير النظام",
+      "manager": "مدير",
+      "staff": "موظف"
+    }
   },
   "onboarding": {
     "title": "إعداد نشاطك",

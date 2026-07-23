@@ -258,7 +258,14 @@
     "awardSuccess": "Added!",
     "redeemSuccess": "Redeemed!",
     "recentScans": "Recent scans",
-    "noHistory": "No scans yet"
+    "noHistory": "No scans yet",
+    "staffLogin": "Staff login",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "manager": "Manager",
+      "staff": "Staff"
+    }
   },
   "onboarding": {
     "title": "Set up your business",
