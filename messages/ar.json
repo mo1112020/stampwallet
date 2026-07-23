@@ -10,6 +10,7 @@
     "programs": "البرامج",
     "scan": "مسح",
     "analytics": "التحليلات",
+    "notifications": "الإشعارات",
     "settings": "الإعدادات",
     "billing": "الفوترة",
     "logout": "تسجيل الخروج"
@@ -455,6 +456,58 @@
       "customers": "العملاء",
       "seats": "مقاعد الفريق",
       "unlimited": "غير محدود"
+    }
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "intro": "تُرسل مباشرة عبر بطاقة محفظة Apple/Google الخاصة بالعميل — بدون بريد إلكتروني أو رسائل نصية.",
+    "campaignTitle": "العنوان",
+    "message": "الرسالة",
+    "audience": "الجمهور المستهدف",
+    "scopes": {
+      "all": "جميع العملاء",
+      "program": "برنامج محدد",
+      "inactive_days": "غير نشط منذ N يوم",
+      "birthday_month": "عيد الميلاد هذا الشهر",
+      "progress_threshold": "التقدّم أعلى من نسبة %"
+    },
+    "inactiveDays": "غير نشط منذ (أيام)",
+    "minPercent": "الحد الأدنى للتقدّم (%)",
+    "sendNow": "إرسال الآن",
+    "schedule": "جدولة لاحقًا",
+    "scheduledFor": "الإرسال في",
+    "sending": "جارٍ الإرسال…",
+    "send": "إرسال",
+    "scheduleButton": "جدولة",
+    "sendFailed": "تعذر إنشاء هذه الحملة.",
+    "historyTitle": "سجل الحملات",
+    "loading": "جارٍ التحميل…",
+    "noCampaigns": "لا توجد حملات بعد.",
+    "notFound": "الحملة غير موجودة.",
+    "back": "رجوع",
+    "recipients": "مستلم",
+    "cancelCampaign": "إلغاء الحملة",
+    "sendsTitle": "المستلمون",
+    "noSends": "لا يوجد مستلمون بعد.",
+    "unknownCustomer": "عميل",
+    "status": {
+      "draft": "مسودة",
+      "scheduled": "مجدولة",
+      "sending": "قيد الإرسال",
+      "sent": "تم الإرسال",
+      "canceled": "ملغاة"
+    },
+    "sendStatus": {
+      "queued": "في الانتظار",
+      "sent": "تم الإرسال",
+      "failed": "فشل",
+      "stubbed": "تجريبي (لا توجد بيانات اعتماد للمحفظة)"
+    },
+    "triggers": {
+      "reward_unlocked": "فتح المكافأة",
+      "birthday": "عيد الميلاد",
+      "expiring_reward": "مكافأة على وشك الانتهاء",
+      "inactive_customer": "عميل غير نشط"
     }
   },
   "common": {

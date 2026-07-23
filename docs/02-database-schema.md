@@ -59,6 +59,7 @@ Every type also accepts a common set of optional `CardAppearance` keys (colors, 
 | name | text | nullable, collected optionally at signup |
 | phone | text | nullable — used for wallet pass push registration / notifications |
 | email | text | nullable |
+| birthday | date | nullable, migration 011 — powers the `birthday` automated notification trigger |
 
 ## `customer_progress`
 One row per customer-per-program enrollment.
@@ -74,6 +75,7 @@ One row per customer-per-program enrollment.
 | apple_auth_token | text | per-pass secret; PassKit web service `Authorization: ApplePass <token>` header, also required as a `?token=` query param on the direct `.pkpass` download route |
 | google_object_id | text | nullable |
 | google_auth_token | text | per-pass secret; required as a `?token=` query param on the Google Wallet save-link route, same purpose as `apple_auth_token` |
+| latest_notification_message | text | nullable, migration 011 — the current notification text embedded on the pass itself (Apple: a back field with `changeMessage: "%@"`; Google: appended to the loyalty object's `messages`). Persists beyond the single push so later pass fetches still carry it. |
 
 ## `apple_device_registrations`
 One row per (device, pass) the Apple PassKit web service protocol has registered for push updates — a pass can be added on multiple devices.
@@ -90,6 +92,37 @@ Service-role only (RLS enabled, no policies) — accessed exclusively by the Pas
 
 ## `rate_limits`
 Postgres-backed replacement for an in-process rate limiter (which doesn't work across serverless instances). One row per rate-limit key (e.g. `scan:award:<pass_id>`, `enroll:<ip>`), checked/updated atomically via the `check_rate_limit(key, window_ms)` function. Service-role only (RLS enabled, no policies) — see `lib/rate-limit.ts`.
+
+## `notification_campaigns` (migration 011)
+A "campaign" is one composed message + audience. Manual/scheduled campaigns are created once by a merchant and fan out to many `notification_sends`; automated campaigns (see below) get one campaign row per triggered event instead of a persistent per-trigger rule.
+
+| column | type | notes |
+|---|---|---|
+| id | uuid | PK |
+| merchant_id | uuid | FK → merchants.id |
+| type | text | enum: `manual` \| `scheduled` \| `automated` |
+| trigger | text | enum: `reward_unlocked` \| `birthday` \| `expiring_reward` \| `inactive_customer` — required when `type = 'automated'`, null otherwise |
+| program_id | uuid | nullable FK → loyalty_programs.id, set when the segment targets one program |
+| segment | jsonb | `{ scope, program_id?, inactive_days?, min_progress_percent? }` — see `SegmentDefinition` in `types/index.ts` and `lib/notifications/segments.ts` |
+| title / message | text | the notification content |
+| status | text | enum: `draft` \| `scheduled` \| `sending` \| `sent` \| `canceled` |
+| scheduled_for | timestamptz | nullable, set for `type = 'scheduled'`, picked up by the daily cron |
+
+## `notification_sends` (migration 011)
+Per-customer delivery log — one row per (campaign, pass) pair (`unique (campaign_id, customer_progress_id)`), which is why automated triggers create a fresh campaign per firing event rather than reusing one: a recurring automation notifying the same customer again later is a new event, not a duplicate send within one blast.
+
+| column | type | notes |
+|---|---|---|
+| id | uuid | PK |
+| campaign_id | uuid | FK → notification_campaigns.id |
+| customer_progress_id | uuid | FK → customer_progress.id |
+| platform | text | enum: `apple` \| `google` \| `both` |
+| status | text | enum: `queued` \| `sent` \| `failed` \| `stubbed` (no Wallet credentials configured in this environment) |
+| message | text | snapshot of what was sent |
+| error | text | nullable |
+| sent_at | timestamptz | nullable |
+
+Both tables: RLS via `merchant_id = auth.uid() or public.is_active_staff_of(merchant_id)`, same pattern as every other tenant-scoped table.
 
 **`progress` shape by type:**
 ```jsonc

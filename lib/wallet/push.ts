@@ -9,6 +9,9 @@ export async function pushWalletUpdate(params: {
   program: LoyaltyProgram;
   merchant: Merchant;
   progress: Progress;
+  /** Phase 8: set when this push is delivering a notification (campaign or
+   * automated trigger), not just a routine post-scan progress refresh. */
+  notification?: { title: string; message: string } | null;
 }) {
   let pushTokens: string[] = [];
   try {
@@ -29,7 +32,8 @@ export async function pushWalletUpdate(params: {
       params.googleObjectId,
       params.program,
       params.merchant,
-      params.progress
+      params.progress,
+      params.notification
     ),
   ]);
 }

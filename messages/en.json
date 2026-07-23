@@ -10,6 +10,7 @@
     "programs": "Programs",
     "scan": "Scan",
     "analytics": "Analytics",
+    "notifications": "Notifications",
     "settings": "Settings",
     "billing": "Billing",
     "logout": "Log out"
@@ -455,6 +456,58 @@
       "customers": "Customers",
       "seats": "Team seats",
       "unlimited": "Unlimited"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "intro": "Sent through the customer's Apple/Google Wallet pass directly — no email or SMS.",
+    "campaignTitle": "Title",
+    "message": "Message",
+    "audience": "Audience",
+    "scopes": {
+      "all": "All customers",
+      "program": "Specific program",
+      "inactive_days": "Inactive for N days",
+      "birthday_month": "Birthday this month",
+      "progress_threshold": "Progress above %"
+    },
+    "inactiveDays": "Inactive for (days)",
+    "minPercent": "Minimum progress (%)",
+    "sendNow": "Send now",
+    "schedule": "Schedule for later",
+    "scheduledFor": "Send at",
+    "sending": "Sending…",
+    "send": "Send",
+    "scheduleButton": "Schedule",
+    "sendFailed": "Could not create that campaign.",
+    "historyTitle": "Campaign history",
+    "loading": "Loading…",
+    "noCampaigns": "No campaigns yet.",
+    "notFound": "Campaign not found.",
+    "back": "Back",
+    "recipients": "recipients",
+    "cancelCampaign": "Cancel campaign",
+    "sendsTitle": "Recipients",
+    "noSends": "No recipients yet.",
+    "unknownCustomer": "Customer",
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "sending": "Sending",
+      "sent": "Sent",
+      "canceled": "Canceled"
+    },
+    "sendStatus": {
+      "queued": "Queued",
+      "sent": "Sent",
+      "failed": "Failed",
+      "stubbed": "Stubbed (no wallet credentials)"
+    },
+    "triggers": {
+      "reward_unlocked": "Reward unlocked",
+      "birthday": "Birthday",
+      "expiring_reward": "Expiring reward",
+      "inactive_customer": "Inactive customer"
     }
   },
   "common": {

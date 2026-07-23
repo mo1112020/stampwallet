@@ -107,6 +107,7 @@ export type Customer = {
   name: string | null;
   phone: string | null;
   email: string | null;
+  birthday: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -121,6 +122,7 @@ export type CustomerProgress = {
   apple_auth_token: string;
   google_object_id: string | null;
   google_auth_token: string;
+  latest_notification_message: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -141,6 +143,50 @@ export type StaffAccount = {
   role: Exclude<StaffRole, "owner">;
   status: StaffStatus;
   invited_email: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type NotificationCampaignType = "manual" | "scheduled" | "automated";
+export type NotificationTrigger = "reward_unlocked" | "birthday" | "expiring_reward" | "inactive_customer";
+export type NotificationCampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "canceled";
+
+export type SegmentScope = "all" | "program" | "inactive_days" | "birthday_month" | "progress_threshold";
+
+export type SegmentDefinition = {
+  scope: SegmentScope;
+  program_id?: string;
+  inactive_days?: number;
+  min_progress_percent?: number;
+};
+
+export type NotificationCampaign = {
+  id: string;
+  merchant_id: string;
+  type: NotificationCampaignType;
+  trigger: NotificationTrigger | null;
+  program_id: string | null;
+  segment: SegmentDefinition;
+  title: string;
+  message: string;
+  status: NotificationCampaignStatus;
+  scheduled_for: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type NotificationSendStatus = "queued" | "sent" | "failed" | "stubbed";
+export type NotificationPlatform = "apple" | "google" | "both";
+
+export type NotificationSend = {
+  id: string;
+  campaign_id: string;
+  customer_progress_id: string;
+  platform: NotificationPlatform;
+  status: NotificationSendStatus;
+  message: string;
+  error: string | null;
+  sent_at: string | null;
   created_at: string;
   updated_at: string;
 };

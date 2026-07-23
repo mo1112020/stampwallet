@@ -119,6 +119,25 @@ export const updateMerchantSettingsSchema = z.object({
     .optional(),
 });
 
+const segmentDefinitionSchema = z.object({
+  scope: z.enum(["all", "program", "inactive_days", "birthday_month", "progress_threshold"]),
+  program_id: z.string().uuid().optional(),
+  inactive_days: z.number().int().positive().optional(),
+  min_progress_percent: z.number().min(0).max(100).optional(),
+});
+
+export const createCampaignSchema = z
+  .object({
+    type: z.enum(["manual", "scheduled"]),
+    title: z.string().min(1).max(100),
+    message: z.string().min(1).max(500),
+    segment: segmentDefinitionSchema,
+    scheduled_for: z.string().datetime().optional(),
+  })
+  .refine((data) => data.type !== "scheduled" || data.scheduled_for !== undefined, {
+    message: "scheduled_for is required for scheduled campaigns",
+  });
+
 export const updateStaffSchema = z
   .object({
     role: z.enum(["admin", "manager", "staff"]).optional(),

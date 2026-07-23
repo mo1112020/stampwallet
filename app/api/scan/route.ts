@@ -2,6 +2,7 @@ import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { applyAward, applyRedeem } from "@/lib/scan/progress";
 import { pushWalletUpdate } from "@/lib/wallet/push";
+import { triggerAutomatedNotification } from "@/lib/notifications/campaigns";
 import { scanSchema } from "@/lib/validators";
 import type { Customer, LoyaltyProgram, Merchant, Progress } from "@/types";
 
@@ -89,13 +90,35 @@ export async function POST(request: Request) {
     });
   }
 
-  await pushWalletUpdate({
-    passId: row.pass_id,
-    googleObjectId: row.google_object_id,
-    program,
-    merchant,
-    progress: nextProgress,
-  });
+  const rewardUnlockedNotification =
+    parsed.data.action === "award" && resultedInReward && merchant.notification_prefs?.reward_unlocked;
+
+  if (rewardUnlockedNotification) {
+    // Delivers the routine progress refresh AND the notification in one
+    // push (triggerAutomatedNotification calls pushWalletUpdate itself) —
+    // avoids double-pushing the same pass.
+    await triggerAutomatedNotification({
+      trigger: "reward_unlocked",
+      title: "Reward unlocked!",
+      message: `🎁 ${rewardDescription || "You've unlocked a reward!"} Come redeem it.`,
+      target: {
+        customerProgressId: row.id,
+        passId: row.pass_id,
+        googleObjectId: row.google_object_id,
+        program,
+        merchant,
+        progress: nextProgress,
+      },
+    });
+  } else {
+    await pushWalletUpdate({
+      passId: row.pass_id,
+      googleObjectId: row.google_object_id,
+      program,
+      merchant,
+      progress: nextProgress,
+    });
+  }
 
   return jsonOk({
     progress: updated.progress,

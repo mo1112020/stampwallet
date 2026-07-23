@@ -134,7 +134,10 @@ export async function pushGooglePassUpdate(
   googleObjectId: string | null,
   program: LoyaltyProgram,
   merchant: Merchant,
-  progress: Progress
+  progress: Progress,
+  /** Phase 8: appends a real Google Wallet message (header/body banner
+   * shown in-app) rather than just refreshing the points/progress fields. */
+  notification?: { title: string; message: string } | null
 ) {
   if (!isGoogleWalletConfigured()) {
     console.info("[wallet:google] stub patch", passId, googleObjectId);
@@ -158,6 +161,17 @@ export async function pushGooglePassUpdate(
       data: {
         loyaltyPoints: { label: fields.primaryLabel, balance: { string: fields.primaryValue } },
         textModulesData: [{ header: fields.secondaryLabel, body: secondaryValue }],
+        ...(notification
+          ? {
+              messages: [
+                {
+                  header: notification.title,
+                  body: notification.message,
+                  id: `notif-${Date.now()}`,
+                },
+              ],
+            }
+          : {}),
       },
     });
     return { ok: true, stub: false };

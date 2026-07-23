@@ -33,6 +33,11 @@ export async function generateApplePass(params: {
   merchant: Merchant;
   progress: Progress;
   authenticationToken?: string;
+  /** Phase 8: latest notification text (customer_progress.latest_notification_message).
+   * Embedded on a back-of-card field with changeMessage: "%@" — when this
+   * value changes and the device re-fetches (after the APNs wake sent by
+   * pushApplePassUpdate), iOS shows it as the lock-screen notification. */
+  latestNotificationMessage?: string | null;
 }): Promise<{ buffer: Buffer; contentType: string; stub: boolean }> {
   const fields = renderPassFields(
     params.program.type,
@@ -100,9 +105,21 @@ export async function generateApplePass(params: {
         auxiliaryFields: [
           { key: "auxiliary", label: fields.auxiliaryLabel, value: fields.auxiliaryValue },
         ],
-        backFields: params.program.config.details?.description
-          ? [{ key: "details", label: "About", value: params.program.config.details.description }]
-          : [],
+        backFields: [
+          ...(params.program.config.details?.description
+            ? [{ key: "details", label: "About", value: params.program.config.details.description }]
+            : []),
+          ...(params.latestNotificationMessage
+            ? [
+                {
+                  key: "notification",
+                  label: "Latest update",
+                  value: params.latestNotificationMessage,
+                  changeMessage: "%@",
+                },
+              ]
+            : []),
+        ],
       },
     };
 
