@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { SkeletonRow } from "@/components/ui/skeleton";
 import type { StoreLocation } from "@/types";
 
 const LocationMap = dynamic(
@@ -134,7 +135,7 @@ export default function LocationsSettingsPage() {
               onChange={(e) => setForm({ ...form, radius_meters: e.target.value })}
             />
           </div>
-          {error && <p className="text-sm text-red-700">{error}</p>}
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <Button type="submit" disabled={saving}>
             {saving ? t("saving") : t("addLocation")}
           </Button>
@@ -154,7 +155,10 @@ export default function LocationsSettingsPage() {
       <div className="mt-8">
         <p className="text-sm font-semibold text-[var(--ink)]">{t("listTitle")}</p>
         {loading ? (
-          <p className="mt-2 text-sm text-[var(--muted)]">{t("loading")}</p>
+          <div className="mt-3 space-y-2">
+            <SkeletonRow />
+            <SkeletonRow />
+          </div>
         ) : locations.length === 0 ? (
           <p className="mt-2 text-sm text-[var(--muted)]">{t("noLocations")}</p>
         ) : (
@@ -174,7 +178,11 @@ export default function LocationsSettingsPage() {
                   <button
                     type="button"
                     onClick={() => toggleActive(loc)}
-                    className="rounded-full bg-[var(--surface-2)] px-3 py-1 text-xs font-semibold text-[var(--muted)]"
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                      loc.is_active
+                        ? "bg-[var(--success-soft)] text-[var(--success)]"
+                        : "bg-[var(--surface-2)] text-[var(--muted)]"
+                    }`}
                   >
                     {loc.is_active ? t("active") : t("inactive")}
                   </button>

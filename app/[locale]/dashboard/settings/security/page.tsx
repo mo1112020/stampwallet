@@ -5,19 +5,18 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { toast } from "@/components/ui/toaster";
 
 export default function SecuritySettingsPage() {
   const t = useTranslations("settings.security");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setMessage(null);
     if (password !== confirm) {
       setError(t("mismatch"));
       return;
@@ -30,7 +29,7 @@ export default function SecuritySettingsPage() {
       setError(err.message);
       return;
     }
-    setMessage(t("updated"));
+    toast.success(t("updated"));
     setPassword("");
     setConfirm("");
   }
@@ -60,8 +59,7 @@ export default function SecuritySettingsPage() {
           onChange={(e) => setConfirm(e.target.value)}
         />
       </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
-      {message && <p className="text-sm text-[var(--muted)]">{message}</p>}
+      {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
       <Button type="submit" disabled={saving}>
         {saving ? t("saving") : t("save")}
       </Button>

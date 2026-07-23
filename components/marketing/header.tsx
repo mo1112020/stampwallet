@@ -70,7 +70,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
       )}
 
       <div className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:pt-5">
-        <header className="mx-auto flex h-14 max-w-5xl items-center gap-3 rounded-full border border-[var(--line)] bg-white/90 px-3 shadow-sm backdrop-blur-xl md:h-14 md:px-4">
+        <header className="mx-auto flex h-14 max-w-5xl items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)]/90 px-3 shadow-sm backdrop-blur-xl md:h-14 md:px-4">
           <Link
             href={`/${locale}`}
             className="font-brand shrink-0 px-2 text-sm text-[var(--ink)] md:text-[15px]"
@@ -119,7 +119,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
 
           <button
             type="button"
-            className="ms-auto flex h-10 w-10 items-center justify-center rounded-full text-[var(--ink)] hover:bg-[var(--surface-2)] md:ms-0 lg:hidden"
+            className="ms-auto flex h-10 w-10 items-center justify-center rounded-full text-[var(--ink)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] touch-manipulation select-none outline-none [-webkit-tap-highlight-color:transparent] md:ms-0 lg:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
@@ -129,7 +129,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
         </header>
 
         {open && (
-          <div className="mx-auto mt-3 max-w-5xl rounded-[1.5rem] border border-[var(--line)] bg-white p-3 shadow-sm lg:hidden">
+          <div className="mx-auto mt-3 max-w-5xl rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-sm lg:hidden">
             <nav className="flex flex-col gap-0.5">
               <Link
                 href={`/${locale}`}

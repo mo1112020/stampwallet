@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toaster";
 import type { Merchant } from "@/types";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "EGP", "PKR"];
@@ -14,7 +16,6 @@ export default function BusinessMetricsPage() {
   const [currency, setCurrency] = useState("");
   const [aov, setAov] = useState("");
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/merchants/me")
@@ -30,7 +31,6 @@ export default function BusinessMetricsPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     const res = await fetch("/api/settings/merchant", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -40,29 +40,37 @@ export default function BusinessMetricsPage() {
       }),
     });
     setSaving(false);
-    setMessage(res.ok ? t("saved") : t("saveFailed"));
+    if (res.ok) {
+      toast.success(t("saved"));
+    } else {
+      toast.error(t("saveFailed"));
+    }
   }
 
-  if (!merchant) return <p className="text-sm text-[var(--muted)]">{t("loading")}</p>;
+  if (!merchant) {
+    return (
+      <div className="max-w-md space-y-4">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-10 w-28" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} className="max-w-md space-y-4">
       <p className="text-sm text-[var(--muted)]">{t("intro")}</p>
       <div>
         <Label htmlFor="currency">{t("currency")}</Label>
-        <select
-          id="currency"
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          className="flex h-12 w-full rounded-full border border-[var(--line)] bg-white px-4 text-[15px] text-[var(--ink)]"
-        >
+        <Select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
           <option value="">{t("notSet")}</option>
           {CURRENCIES.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       <div>
         <Label htmlFor="aov">{t("averageOrderValue")}</Label>
@@ -77,7 +85,6 @@ export default function BusinessMetricsPage() {
         />
       </div>
       <p className="text-xs text-[var(--muted)]">{t("rewardValueHint")}</p>
-      {message && <p className="text-sm text-[var(--muted)]">{message}</p>}
       <Button type="submit" disabled={saving}>
         {saving ? t("saving") : t("save")}
       </Button>

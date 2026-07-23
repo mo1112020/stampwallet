@@ -6,7 +6,7 @@ export async function MarketingFooter({ locale }: { locale: string }) {
   const nav = await getTranslations("site.nav");
 
   return (
-    <footer className="border-t border-[var(--line)] bg-white text-[var(--ink)]">
+    <footer className="border-t border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:grid-cols-4">
         <div>
           <p className="font-brand text-lg">StampWallet</p>

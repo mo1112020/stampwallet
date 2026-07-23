@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Reveal } from "@/components/motion/reveal";
 
 export function PageHero({
   eyebrow,
@@ -18,12 +19,12 @@ export function PageHero({
   secondaryLabel?: string;
 }) {
   return (
-    <section className="bg-white px-6 pb-16 pt-32 md:pb-24 md:pt-36">
-      <div className="mx-auto max-w-3xl">
+    <section className="bg-[var(--surface)] px-6 pb-16 pt-32 md:pb-24 md:pt-36">
+      <Reveal as="div" className="mx-auto max-w-3xl">
         {eyebrow && (
           <p className="text-[13px] font-medium text-[var(--primary)]">{eyebrow}</p>
         )}
-        <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">{title}</h1>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--ink)] md:text-5xl">{title}</h1>
         <p className="mt-5 max-w-2xl text-base text-[var(--muted)] md:text-lg">{description}</p>
         {(ctaHref || secondaryHref) && (
           <div className="mt-9 flex flex-wrap gap-3">
@@ -45,7 +46,7 @@ export function PageHero({
             )}
           </div>
         )}
-      </div>
+      </Reveal>
     </section>
   );
 }

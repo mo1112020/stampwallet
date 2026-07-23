@@ -309,7 +309,7 @@ export function ProgramForm({
         {mode === "create" && (
           <nav aria-label="Program creation steps" className="order-0 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {["Set up", "Rules", "Appearance", "Join page"].map((label, index) => (
-              <button key={label} type="button" onClick={() => setCreateStep(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-medium ${createStep === index ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]" : index < createStep ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}>
+              <button key={label} type="button" onClick={() => setCreateStep(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-medium ${createStep === index ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]" : index < createStep ? "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"}`}>
                 <span className="mr-1.5 text-xs">{index + 1}</span>{label}
               </button>
             ))}
@@ -317,7 +317,7 @@ export function ProgramForm({
         )}
 
         {/* Program setup */}
-        <div className={`order-1 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 0 ? "hidden" : ""}`}>
+        <div className={`order-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 0 ? "hidden" : ""}`}>
           <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Program setup</h2>
           <p className="mb-5 text-sm text-[var(--muted)]">Name the program, choose how members earn rewards, then set its rules below.</p>
           <div className="space-y-6">
@@ -345,8 +345,8 @@ export function ProgramForm({
                       onClick={() => switchType(t)}
                       className={`rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-all ${
                         type === t 
-                          ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)] shadow-sm" 
-                          : "border-[var(--line)] text-[var(--muted)] hover:border-gray-300 hover:bg-gray-50"
+                          ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] shadow-sm" 
+                          : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"
                       }`}
                     >
                       <span className="block capitalize">{t}</span>
@@ -362,10 +362,10 @@ export function ProgramForm({
         </div>
 
         {/* Appearance Section */}
-        <div className={`order-3 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 2 ? "hidden" : ""}`}>
+        <div className={`order-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 2 ? "hidden" : ""}`}>
           <h2 className="mb-4 text-lg font-semibold text-[var(--ink)]">Appearance</h2>
           
-          <div className="mb-6 flex flex-wrap items-center gap-6 rounded-xl border border-[var(--line)] bg-gray-50/50 p-4">
+          <div className="mb-6 flex flex-wrap items-center gap-6 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
             <div className="flex-1">
               <Label htmlFor="primaryColor" className="text-[var(--muted)]">Card Color</Label>
               <div className="mt-1.5 flex items-center gap-3">
@@ -405,12 +405,12 @@ export function ProgramForm({
             <p className="mt-1 mb-4 text-sm text-[var(--muted)]">Choose a photo for your card background.</p>
             
             <div className="flex items-center gap-4">
-              <div className="relative h-20 w-32 overflow-hidden rounded-lg border border-[var(--line)] bg-gray-100 shadow-sm flex items-center justify-center">
+              <div className="relative h-20 w-32 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-3)] shadow-sm flex items-center justify-center">
                 {backgroundImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={backgroundImage} alt="Background" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-xs font-medium text-gray-400">None</span>
+                  <span className="text-xs font-medium text-[var(--muted)]">None</span>
                 )}
               </div>
               <Button type="button" variant="outline" onClick={() => setShowAllPhotos(true)}>
@@ -421,11 +421,11 @@ export function ProgramForm({
           
           {/* Photo Selection Modal */}
           {showAllPhotos && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
-              <div className="relative flex max-h-[85vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 animate-in fade-in duration-200">
+              <div className="relative flex max-h-[85vh] w-full max-w-4xl flex-col rounded-2xl bg-[var(--surface)] shadow-2xl">
                 <div className="flex items-center justify-between border-b p-5">
                   <h3 className="text-lg font-semibold text-[var(--ink)]">Choose a photo</h3>
-                  <button type="button" onClick={() => setShowAllPhotos(false)} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                  <button type="button" onClick={() => setShowAllPhotos(false)} className="rounded-full p-2 text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)] transition-colors">
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -446,8 +446,8 @@ export function ProgramForm({
                           }}
                           className={`relative overflow-hidden rounded-xl border-2 transition-all ${
                             selected
-                              ? "border-[var(--brand)] ring-2 ring-[var(--brand)] ring-offset-2"
-                              : "border-transparent hover:border-gray-300 shadow-sm hover:shadow-md"
+                              ? "border-[var(--primary)] ring-2 ring-[var(--primary)] ring-offset-2"
+                              : "border-transparent hover:border-[var(--line-strong)] shadow-sm hover:shadow-md"
                           }`}
                         >
                           {img.url ? (
@@ -456,7 +456,7 @@ export function ProgramForm({
                               <img src={img.url} alt={img.label} className="h-full w-full object-cover" />
                             </div>
                           ) : (
-                            <div className="flex aspect-video w-full items-center justify-center bg-gray-100 text-sm font-medium text-[var(--muted)]">
+                            <div className="flex aspect-video w-full items-center justify-center bg-[var(--surface-3)] text-sm font-medium text-[var(--muted)]">
                               None
                             </div>
                           )}
@@ -464,8 +464,8 @@ export function ProgramForm({
                             <span className="text-[10px] font-semibold text-white tracking-wide uppercase">{img.label}</span>
                           </div>
                           {selected && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-[var(--brand)]/20">
-                              <div className="rounded-full bg-[var(--brand)] p-1 text-white">
+                            <div className="absolute inset-0 flex items-center justify-center bg-[var(--primary)]/20">
+                              <div className="rounded-full bg-[var(--primary)] p-1 text-white">
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
@@ -478,7 +478,7 @@ export function ProgramForm({
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between border-t bg-gray-50 p-5 rounded-b-2xl">
+                <div className="flex items-center justify-between border-t border-[var(--line)] bg-[var(--surface-2)] p-5 rounded-b-2xl">
                   <div className="flex items-center gap-3">
                     <input
                       ref={uploadInputRef}
@@ -498,7 +498,7 @@ export function ProgramForm({
                       <ImageUp className="mr-2 h-4 w-4" />
                       {uploadingImage ? "Uploading…" : "Upload your own"}
                     </Button>
-                    {uploadError && <span className="text-sm text-red-600">{uploadError}</span>}
+                    {uploadError && <span className="text-sm text-[var(--danger)]">{uploadError}</span>}
                   </div>
                   <Button type="button" onClick={() => setShowAllPhotos(false)}>Done</Button>
                 </div>
@@ -547,7 +547,7 @@ export function ProgramForm({
       </div>
 
         {/* Join page */}
-        <section id="join-page" className={`order-4 scroll-mt-8 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 3 ? "hidden" : ""}`}>
+        <section id="join-page" className={`order-4 scroll-mt-8 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 3 ? "hidden" : ""}`}>
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-[var(--ink)]">Customize join page</h2>
@@ -566,7 +566,7 @@ export function ProgramForm({
                 ["editorial", "Editorial", "Warm welcome with a strong story"],
                 ["spotlight", "Spotlight", "Bold color and a compact sign-up"],
               ] as [EnrollmentPageStyle, string, string][]).map(([style, title, detail]) => (
-                <button key={style} type="button" onClick={() => updateEnrollment({ style })} aria-pressed={(enrollment.style ?? "classic") === style} className={`rounded-xl border p-4 text-left ${((enrollment.style ?? "classic") === style) ? "border-[var(--brand)] bg-[var(--brand-soft)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}>
+                <button key={style} type="button" onClick={() => updateEnrollment({ style })} aria-pressed={(enrollment.style ?? "classic") === style} className={`rounded-xl border p-4 text-left ${((enrollment.style ?? "classic") === style) ? "border-[var(--primary)] bg-[var(--primary-soft)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}>
                   <span className="block text-sm font-semibold text-[var(--ink)]">{title}</span>
                   <span className="mt-1 block text-xs text-[var(--muted)]">{detail}</span>
                 </button>
@@ -578,14 +578,14 @@ export function ProgramForm({
             <div>
               <Label htmlFor="joinBackgroundColor" className="text-[var(--muted)]">Page background</Label>
               <div className="mt-1.5 flex items-center gap-3">
-                <input id="joinBackgroundColor" type="color" value={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")} onChange={(event) => updateEnrollment({ background_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-white p-1" />
+                <input id="joinBackgroundColor" type="color" value={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")} onChange={(event) => updateEnrollment({ background_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1" />
                 <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")}</span>
               </div>
             </div>
             <div>
               <Label htmlFor="joinButtonColor" className="text-[var(--muted)]">Join button color</Label>
               <div className="mt-1.5 flex items-center gap-3">
-                <input id="joinButtonColor" type="color" value={enrollment.button_color ?? primaryColor} onChange={(event) => updateEnrollment({ button_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-white p-1" />
+                <input id="joinButtonColor" type="color" value={enrollment.button_color ?? primaryColor} onChange={(event) => updateEnrollment({ button_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1" />
                 <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{enrollment.button_color ?? primaryColor}</span>
               </div>
             </div>
@@ -620,7 +620,7 @@ export function ProgramForm({
         </section>
 
         {/* Program rules */}
-      <div className={`order-2 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 1 ? "hidden" : ""}`}>
+      <div className={`order-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 1 ? "hidden" : ""}`}>
         <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Program rules</h2>
         <p className="mb-5 text-sm text-[var(--muted)]">
           {type === "stamp" && "Decide how many visits unlock the reward."}
@@ -675,8 +675,8 @@ export function ProgramForm({
                           onClick={() => pickIcon(iconName)}
                           className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
                             selectedIcon === iconName
-                              ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)] scale-110 shadow-sm"
-                              : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                              ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] scale-110 shadow-sm"
+                              : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
                           }`}
                         >
                           <IconComp className="h-4 w-4" />
@@ -740,7 +740,7 @@ export function ProgramForm({
         {type === "steps" && (
           <div className="space-y-5">
             <Label className="text-[var(--muted)]">Stages</Label>
-            <div className="rounded-xl border border-[var(--line)] p-4 bg-gray-50/50">
+            <div className="rounded-xl border border-[var(--line)] p-4 bg-[var(--surface-2)]">
               <div className="space-y-3">
                 {(config as StepsConfig).stages.map((stage, idx) => (
                   <div key={stage.key} className="grid grid-cols-[1fr_100px_auto] items-center gap-3">
@@ -767,7 +767,7 @@ export function ProgramForm({
                       type="button"
                       variant="outline"
                       disabled={(config as StepsConfig).stages.length === 1}
-                      className="h-11 w-11 px-0 text-red-500 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-35"
+                      className="h-11 w-11 px-0 text-[var(--danger)] hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-35"
                       onClick={() => {
                         const stages = (config as StepsConfig).stages.filter((_, i) => i !== idx);
                         setConfig({ stages });
@@ -805,13 +805,13 @@ export function ProgramForm({
       </div>
 
       {mode === "edit" && (
-        <div className="order-4 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm">
+        <div className="order-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
           <label className="flex items-center gap-3 text-sm font-medium text-[var(--ink)] cursor-pointer">
             <input 
               type="checkbox" 
               checked={isActive} 
               onChange={(e) => setIsActive(e.target.checked)} 
-              className="h-5 w-5 rounded border-gray-300 text-[var(--brand)] focus:ring-[var(--brand)]"
+              className="h-5 w-5 rounded border-[var(--line-strong)] text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             Program is Active
           </label>
@@ -819,7 +819,7 @@ export function ProgramForm({
       )}
 
       {error && (
-        <div className="order-5 rounded-xl bg-red-50 p-4 text-sm text-red-700 border border-red-100">
+        <div className="order-5 rounded-xl bg-[var(--danger-soft)] p-4 text-sm text-[var(--danger)] border border-[var(--danger)]/20">
           {error}
         </div>
       )}
@@ -853,8 +853,8 @@ export function ProgramForm({
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Live preview</p>
         </div>
         <div className="flex w-full rounded-lg bg-[var(--surface-2)] p-1 text-xs font-semibold">
-          <button type="button" onClick={() => setPreviewMode("join")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "join" ? "bg-white text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Join page</button>
-          <button type="button" onClick={() => setPreviewMode("card")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "card" ? "bg-white text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Wallet card</button>
+          <button type="button" onClick={() => setPreviewMode("join")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "join" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Join page</button>
+          <button type="button" onClick={() => setPreviewMode("card")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "card" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Wallet card</button>
         </div>
         
         <div className="relative flex h-[532px] w-full justify-center overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] p-4 shadow-sm">

@@ -20,7 +20,7 @@ export default async function SettingsLayout({
   if (!roleHasCapability(session.role, "manage_settings")) {
     return (
       <div>
-        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
           {t("title")}
         </h1>
         <p className="mt-4 text-sm text-[var(--muted)]">{t("noAccess")}</p>
@@ -30,7 +30,7 @@ export default async function SettingsLayout({
 
   return (
     <div className="max-w-3xl">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
         {t("title")}
       </h1>
       <div className="mt-6">

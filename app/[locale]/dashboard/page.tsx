@@ -41,7 +41,7 @@ export default async function DashboardHome({
       <header className="mb-10 animate-stagger-1">
         <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">
           {t("welcome")}
-          <span className="text-[var(--brand)]">
+          <span className="text-[var(--primary)]">
             {merchant?.business_name ? `, ${merchant.business_name}` : ""}
           </span>
         </h1>
@@ -55,7 +55,7 @@ export default async function DashboardHome({
         <h2 className="text-xl font-semibold tracking-tight text-[var(--ink)]">Your Programs</h2>
         <Link
           href={`/${locale}/dashboard/templates`}
-          className="rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md active:scale-95"
+          className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md active:scale-95"
         >
           {t("createProgram")}
         </Link>
@@ -89,7 +89,7 @@ export default async function DashboardHome({
       </div>
 
       {!!programs?.length && (
-        <section className="mt-12 rounded-2xl border border-[var(--line)] bg-white p-5 sm:p-6">
+        <section className="mt-12 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-6">
           <div className="mb-5">
             <h2 className="text-lg font-semibold text-[var(--ink)]">Join pages</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">Open, share, or customize the page customers use to join each program.</p>
@@ -101,7 +101,7 @@ export default async function DashboardHome({
                 <div key={program.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-semibold text-[var(--ink)]">{program.name}</p>
-                    <p className={`mt-1 text-sm ${program.is_active ? "text-emerald-700" : "text-[var(--muted)]"}`}>{program.is_active ? "Live and ready to share" : "Paused — join page is unavailable"}</p>
+                    <p className={`mt-1 text-sm ${program.is_active ? "text-[var(--success)]" : "text-[var(--muted)]"}`}>{program.is_active ? "Live and ready to share" : "Paused — join page is unavailable"}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/${locale}/dashboard/programs/${program.id}#join-page`} className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--line)] px-4 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--surface-2)]">Edit join page</Link>
@@ -116,14 +116,14 @@ export default async function DashboardHome({
 
       {/* Empty state when no programs */}
       {!programs?.length && (
-        <div className="mt-4 flex flex-col items-center justify-center rounded-3xl bg-white p-12 text-center shadow-sm ring-1 ring-black/5">
+        <div className="mt-4 flex flex-col items-center justify-center rounded-3xl bg-[var(--surface)] p-12 text-center shadow-sm ring-1 ring-black/5 dark:ring-white/10">
           <h3 className="text-lg font-semibold text-[var(--ink)]">No programs yet</h3>
           <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
             {t("emptyPrograms")}
           </p>
           <Link
             href={`/${locale}/dashboard/templates`}
-            className="mt-6 rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-transform active:scale-95"
+            className="mt-6 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white transition-transform active:scale-95"
           >
             Browse Templates
           </Link>

@@ -32,7 +32,7 @@ export default async function AnalyticsPage({
   if (!roleHasCapability(session.role, "view_analytics")) {
     return (
       <div>
-        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
           {t("title")}
         </h1>
         <p className="mt-4 text-sm text-[var(--muted)]">{t("noAccess")}</p>
@@ -59,7 +59,7 @@ export default async function AnalyticsPage({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
           {t("title")}
         </h1>
         <AnalyticsFilters programs={programs ?? []} />

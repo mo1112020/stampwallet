@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { AnalyticsOverview } from "@/lib/analytics/queries";
+import { Card } from "@/components/ui/card";
+import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export async function KpiGrid({ overview }: { overview: AnalyticsOverview }) {
   const t = await getTranslations("analytics");
@@ -29,13 +31,13 @@ export async function KpiGrid({ overview }: { overview: AnalyticsOverview }) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StaggerGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => (
-        <div key={card.label} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
+        <Card key={card.label} className="p-5">
           <p className="text-sm text-[var(--muted)]">{card.label}</p>
           <p className="mt-2 text-3xl font-semibold text-[var(--ink)]">{card.value}</p>
-        </div>
+        </Card>
       ))}
-    </div>
+    </StaggerGroup>
   );
 }

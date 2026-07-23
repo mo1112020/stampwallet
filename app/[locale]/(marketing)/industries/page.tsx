@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export default async function IndustriesPage({
   params,
@@ -30,14 +31,14 @@ export default async function IndustriesPage({
         ctaLabel={common("getStarted")}
       />
       <section className="px-6 py-20">
-        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerGroup className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <article key={item.title} className="border border-[var(--line)] p-7">
-              <h2 className="text-xl font-semibold">{item.title}</h2>
+              <h2 className="text-xl font-semibold text-[var(--ink)]">{item.title}</h2>
               <p className="mt-3 text-[var(--muted)]">{item.body}</p>
             </article>
           ))}
-        </div>
+        </StaggerGroup>
       </section>
       <CtaBand
         title={t("title")}

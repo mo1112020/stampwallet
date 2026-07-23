@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 type UsageMetric = { used: number; limit: number | null };
 type Usage = {
@@ -17,7 +18,7 @@ function Bar({ used, limit }: UsageMetric) {
   return (
     <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-2)]">
       <div
-        className={`h-full rounded-full ${nearLimit ? "bg-red-500" : "bg-[var(--brand)]"}`}
+        className={`h-full rounded-full transition-[width] ${nearLimit ? "bg-[var(--danger)]" : "bg-[var(--primary)]"}`}
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -35,9 +36,11 @@ export function UsagePanel({ usage }: { usage: Usage }) {
   ];
 
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
-      <p className="text-sm font-semibold text-[var(--ink)]">{t("title")}</p>
-      <div className="mt-4 space-y-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("title")}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         {rows.map(({ key, label }) => {
           const metric = usage[key];
           return (
@@ -53,7 +56,7 @@ export function UsagePanel({ usage }: { usage: Usage }) {
             </div>
           );
         })}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,11 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import type { ActivityEntry } from "@/lib/analytics/queries";
+import { Card } from "@/components/ui/card";
 
 export async function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
   const t = await getTranslations("analytics");
 
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
+    <Card className="p-5">
       <p className="text-sm font-semibold text-[var(--ink)]">{t("recentActivity")}</p>
       {entries.length === 0 ? (
         <p className="mt-3 text-sm text-[var(--muted)]">{t("noActivity")}</p>
@@ -19,7 +20,7 @@ export async function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
               <div>
                 <p className="font-medium text-[var(--ink)]">
                   {entry.customerName || t("unknownCustomer")}
-                  {entry.type === "redemption" && <span className="ml-2">🎁</span>}
+                  {entry.type === "redemption" && <span className="ms-2">🎁</span>}
                 </p>
                 <p className="text-[var(--muted)]">
                   {entry.programName} · {entry.detail}
@@ -37,6 +38,6 @@ export async function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }

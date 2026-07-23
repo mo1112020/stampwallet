@@ -36,7 +36,7 @@ export default async function ProgramsPage({
         <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">Programs</h1>
         <Link
           href={`/${locale}/dashboard/templates`}
-          className="rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-95"
+          className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-95"
         >
           {t("createProgram")}
         </Link>
@@ -77,7 +77,7 @@ export default async function ProgramsPage({
           <p className="text-[var(--muted)]">No programs yet. Start by browsing templates.</p>
           <Link
             href={`/${locale}/dashboard/templates`}
-            className="mt-4 rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white"
+            className="mt-4 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white"
           >
             Browse Templates
           </Link>

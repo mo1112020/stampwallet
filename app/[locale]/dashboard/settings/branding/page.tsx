@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toaster";
 import { WalletPreview } from "@/components/wallet-preview/wallet-preview";
 import type { Merchant, StampConfig } from "@/types";
 
@@ -21,7 +23,6 @@ export default function BrandingSettingsPage() {
   const [secondary, setSecondary] = useState("#FAAE62");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -43,13 +44,16 @@ export default function BrandingSettingsPage() {
     const res = await fetch("/api/upload", { method: "POST", body: formData });
     const json = await res.json();
     setUploading(false);
-    if (res.ok) setLogoUrl(json.url);
+    if (res.ok) {
+      setLogoUrl(json.url);
+    } else {
+      toast.error(json.error?.message ?? t("saveFailed"));
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     const res = await fetch("/api/settings/merchant", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -60,10 +64,26 @@ export default function BrandingSettingsPage() {
       }),
     });
     setSaving(false);
-    setMessage(res.ok ? t("saved") : t("saveFailed"));
+    if (res.ok) {
+      toast.success(t("saved"));
+    } else {
+      toast.error(t("saveFailed"));
+    }
   }
 
-  if (!merchant) return <p className="text-sm text-[var(--muted)]">{t("loading")}</p>;
+  if (!merchant) {
+    return (
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-12 w-40" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
@@ -117,7 +137,6 @@ export default function BrandingSettingsPage() {
             <Input id="secondary" value={secondary} onChange={(e) => setSecondary(e.target.value)} />
           </div>
         </div>
-        {message && <p className="text-sm text-[var(--muted)]">{message}</p>}
         <Button type="submit" disabled={saving}>
           {saving ? t("saving") : t("save")}
         </Button>

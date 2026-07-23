@@ -71,7 +71,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
         {t("title")}
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">{t("intro")}</p>
@@ -101,7 +101,7 @@ export default function NotificationsPage() {
             id="scope"
             value={scope}
             onChange={(e) => setScope(e.target.value as SegmentScope)}
-            className="flex h-12 w-full rounded-full border border-[var(--line)] bg-white px-4 text-[15px] text-[var(--ink)]"
+            className="flex h-12 w-full rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-[15px] text-[var(--ink)]"
           >
             {SCOPES.map((s) => (
               <option key={s} value={s}>
@@ -170,7 +170,7 @@ export default function NotificationsPage() {
           </div>
         )}
 
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         <Button type="submit" disabled={sending}>
           {sending ? t("sending") : sendType === "manual" ? t("send") : t("scheduleButton")}
         </Button>

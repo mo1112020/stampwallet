@@ -134,8 +134,12 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
         )}
 
         {stage === "error" && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-            <p className="text-sm text-red-700">{errorMessage}</p>
+          <div
+            className={`rounded-2xl border p-6 text-center ${
+              dark ? "border-red-400/20 bg-red-500/10" : "border-[var(--danger)]/20 bg-[var(--danger-soft)]"
+            }`}
+          >
+            <p className={`text-sm ${dark ? "text-red-300" : "text-[var(--danger)]"}`}>{errorMessage}</p>
             <Button className="mt-4" onClick={reset}>
               {t("scanAgain")}
             </Button>
@@ -152,7 +156,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
               <p className={`mt-1 text-sm ${mutedClass}`}>{lookup.program.name}</p>
             </div>
 
-            <div className={dark ? "rounded-xl bg-white/10 p-4 text-sm" : "rounded-xl bg-white p-4 text-sm"}>
+            <div className={dark ? "rounded-xl bg-white/10 p-4 text-sm" : "rounded-xl bg-[var(--surface-2)] p-4 text-sm"}>
               <p className={mutedClass}>{fields.primaryLabel}</p>
               <p className="text-lg font-semibold">{fields.primaryValue}</p>
               {fields.rewardAvailable && (
@@ -161,7 +165,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
             </div>
 
             {!lookup.program.is_active && (
-              <p className="text-sm text-red-400">{t("programInactive")}</p>
+              <p className={`text-sm ${dark ? "text-red-400" : "text-[var(--danger)]"}`}>{t("programInactive")}</p>
             )}
 
             {showAmountInput && (
@@ -238,7 +242,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
                 </div>
                 <div className={`text-right ${mutedClass}`}>
                   {entry.resulted_in_reward && (
-                    <span className="mr-2 text-[var(--accent)]">🎁</span>
+                    <span className="me-2 text-[var(--accent)]">🎁</span>
                   )}
                   {new Date(entry.created_at).toLocaleTimeString()}
                 </div>

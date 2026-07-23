@@ -42,11 +42,11 @@ export default async function DashboardLayout({
 
       {/* Body below topbar — fills remaining height */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sticky sidebar — never scrolls */}
+        {/* Sticky sidebar (desktop) / bottom tab bar (mobile) — never scrolls */}
         <DashboardNav locale={locale} />
 
-        {/* Scrollable main content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-10 xl:p-12">
+        {/* Scrollable main content — bottom padding on mobile clears the fixed tab bar */}
+        <main className="flex-1 overflow-y-auto p-6 pb-24 md:p-10 md:pb-10 xl:p-12">
           {children}
         </main>
       </div>

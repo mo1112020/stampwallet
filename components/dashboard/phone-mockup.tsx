@@ -63,9 +63,9 @@ export function PhoneMockup({
       {isActive !== undefined && (
         <div className={cn(
           "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-          isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-500"
+          isActive ? "bg-[var(--success-soft)] text-[var(--success)]" : "bg-[var(--danger-soft)] text-[var(--danger)]"
         )}>
-          <div className={cn("h-2 w-2 rounded-full", isActive ? "bg-green-500" : "bg-red-400")} />
+          <div className={cn("h-2 w-2 rounded-full", isActive ? "bg-[var(--success)]" : "bg-[var(--danger)]")} />
           {isActive ? "Active" : "Inactive"}
         </div>
       )}
@@ -213,8 +213,8 @@ export function PhoneMockup({
             className={cn(
               "mt-2 block w-full rounded-xl px-4 py-2 text-center text-sm font-semibold transition-colors active:scale-95",
               isTemplate
-                ? "bg-[#1a1a1a] text-white hover:bg-black"
-                : "border border-[var(--line)] bg-white text-[var(--ink)] hover:bg-gray-50"
+                ? "bg-[var(--ink)] text-[var(--surface)] hover:opacity-90"
+                : "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)]"
             )}
           >
             {actionText}
@@ -230,10 +230,10 @@ export function EmptyPhoneMockup({ locale }: { locale: string }) {
     <div className="flex flex-col items-center gap-3">
       <Link
         href={`/${locale}/dashboard/templates`}
-        className="relative flex h-[480px] w-[235px] shrink-0 items-center justify-center rounded-[42px] border-[10px] border-dashed border-gray-200 bg-gray-50 shadow-sm transition-all hover:-translate-y-1 hover:border-gray-300 hover:shadow-lg"
+        className="relative flex h-[480px] w-[235px] shrink-0 items-center justify-center rounded-[42px] border-[10px] border-dashed border-[var(--line-strong)] bg-[var(--surface-2)] shadow-sm transition-all hover:-translate-y-1 hover:border-[var(--muted)] hover:shadow-lg"
       >
-        <div className="absolute top-3 left-1/2 h-5 w-24 -translate-x-1/2 rounded-full bg-gray-200" />
-        <div className="flex flex-col items-center gap-2 text-gray-300">
+        <div className="absolute top-3 left-1/2 h-5 w-24 -translate-x-1/2 rounded-full bg-[var(--surface-3)]" />
+        <div className="flex flex-col items-center gap-2 text-[var(--muted)]">
           <LucideIcons.Plus className="h-12 w-12" strokeWidth={1.5} />
           <span className="text-sm font-medium">New card</span>
         </div>
@@ -242,13 +242,13 @@ export function EmptyPhoneMockup({ locale }: { locale: string }) {
         <h3 className="text-center text-sm font-semibold text-[var(--ink)]">Create card</h3>
         <Link
           href={`/${locale}/dashboard/templates`}
-          className="block w-full rounded-xl bg-[#1a1a1a] px-4 py-2 text-center text-sm font-semibold text-white hover:bg-black active:scale-95"
+          className="block w-full rounded-xl bg-[var(--ink)] px-4 py-2 text-center text-sm font-semibold text-[var(--surface)] hover:opacity-90 active:scale-95"
         >
           Browse templates
         </Link>
         <Link
           href={`/${locale}/dashboard/programs/new`}
-          className="block w-full rounded-xl border border-[var(--line)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] hover:bg-gray-50 active:scale-95"
+          className="block w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] hover:bg-[var(--surface-2)] active:scale-95"
         >
           From scratch
         </Link>

@@ -59,15 +59,15 @@ export default function DataSettingsPage() {
         </a>
       </div>
 
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
-        <p className="text-sm font-semibold text-red-900">{t("deleteTitle")}</p>
-        <p className="mt-1 text-sm text-red-800">{t("deleteDescription")}</p>
+      <div className="rounded-2xl border border-[var(--danger)]/30 bg-[var(--danger-soft)] p-5">
+        <p className="text-sm font-semibold text-[var(--danger)]">{t("deleteTitle")}</p>
+        <p className="mt-1 text-sm text-[var(--danger)]/80">{t("deleteDescription")}</p>
 
         {!showConfirm ? (
           <Button
             type="button"
             variant="outline"
-            className="mt-4 border-red-300 text-red-800 hover:bg-red-100"
+            className="mt-4 border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
             onClick={() => setShowConfirm(true)}
           >
             {t("deleteButton")}
@@ -76,12 +76,12 @@ export default function DataSettingsPage() {
           <div className="mt-4 space-y-3">
             <Label htmlFor="confirm">{t("confirmLabel", { name: merchant?.business_name ?? "" })}</Label>
             <Input id="confirm" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} />
-            {error && <p className="text-sm text-red-700">{error}</p>}
+            {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
             <div className="flex gap-2">
               <Button
                 type="button"
                 disabled={deleting || confirmText !== merchant?.business_name}
-                className="bg-red-700 hover:bg-red-800"
+                className="bg-[var(--danger)] hover:opacity-90"
                 onClick={deleteAccount}
               >
                 {deleting ? t("deleting") : t("confirmDelete")}

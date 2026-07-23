@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Select } from "@/components/ui/input";
 
 const PRESETS = [
   { key: "7d", days: 7 },
@@ -57,10 +58,10 @@ export function AnalyticsFilters({
       </div>
 
       {programs.length > 0 && (
-        <select
+        <Select
           value={activeProgram}
           onChange={(e) => setProgram(e.target.value)}
-          className="rounded-full border border-[var(--line)] bg-white px-4 py-2 text-xs font-semibold text-[var(--ink)]"
+          className="h-auto w-auto rounded-full px-4 py-2 text-xs font-semibold"
         >
           <option value="">{t("allPrograms")}</option>
           {programs.map((p) => (
@@ -68,7 +69,7 @@ export function AnalyticsFilters({
               {p.name}
             </option>
           ))}
-        </select>
+        </Select>
       )}
     </div>
   );

@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
+import { SkeletonRow } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toaster";
 import type { StaffAccount, StaffRole } from "@/types";
 
 const ROLES: Exclude<StaffRole, "owner">[] = ["admin", "manager", "staff"];
@@ -48,16 +50,24 @@ export default function TeamSettingsPage() {
   }
 
   async function updateRole(staffId: string, newRole: Exclude<StaffRole, "owner">) {
-    await fetch(`/api/settings/team/${staffId}`, {
+    const res = await fetch(`/api/settings/team/${staffId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: newRole }),
     });
+    if (!res.ok) {
+      toast.error(t("actionFailed"));
+      return;
+    }
     load();
   }
 
   async function revoke(staffId: string) {
-    await fetch(`/api/settings/team/${staffId}`, { method: "DELETE" });
+    const res = await fetch(`/api/settings/team/${staffId}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast.error(t("actionFailed"));
+      return;
+    }
     load();
   }
 
@@ -78,30 +88,33 @@ export default function TeamSettingsPage() {
           </div>
           <div>
             <Label htmlFor="role">{t("role")}</Label>
-            <select
+            <Select
               id="role"
               value={role}
               onChange={(e) => setRole(e.target.value as Exclude<StaffRole, "owner">)}
-              className="flex h-12 rounded-full border border-[var(--line)] bg-white px-4 text-[15px] text-[var(--ink)]"
+              className="w-auto"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
                   {t(`roles.${r}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <Button type="submit" disabled={inviting}>
             {inviting ? t("inviting") : t("invite")}
           </Button>
         </div>
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
       </form>
 
       <div>
         <p className="mb-3 text-sm font-semibold text-[var(--ink)]">{t("membersTitle")}</p>
         {loading ? (
-          <p className="text-sm text-[var(--muted)]">{t("loading")}</p>
+          <div className="space-y-2">
+            <SkeletonRow />
+            <SkeletonRow />
+          </div>
         ) : staff.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">{t("noMembers")}</p>
         ) : (
@@ -118,17 +131,17 @@ export default function TeamSettingsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select
+                  <Select
                     value={member.role}
                     onChange={(e) => updateRole(member.id, e.target.value as Exclude<StaffRole, "owner">)}
-                    className="h-9 rounded-full border border-[var(--line)] bg-white px-3 text-sm text-[var(--ink)]"
+                    className="h-9 w-auto"
                   >
                     {ROLES.map((r) => (
                       <option key={r} value={r}>
                         {t(`roles.${r}`)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <Button type="button" variant="ghost" size="sm" onClick={() => revoke(member.id)}>
                     {t("revoke")}
                   </Button>

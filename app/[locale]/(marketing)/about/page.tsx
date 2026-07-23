@@ -1,6 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { Reveal } from "@/components/motion/reveal";
+import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export default async function AboutPage({
   params,
@@ -28,22 +30,22 @@ export default async function AboutPage({
         ctaLabel={common("getStarted")}
       />
       <section className="px-6 py-20">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-3xl font-semibold">{t("missionTitle")}</h2>
+        <Reveal as="div" className="mx-auto max-w-3xl">
+          <h2 className="text-3xl font-semibold text-[var(--ink)]">{t("missionTitle")}</h2>
           <p className="mt-4 text-lg text-[var(--muted)]">{t("missionBody")}</p>
-        </div>
+        </Reveal>
       </section>
       <section className="border-y border-[var(--line)] bg-[var(--surface-2)] px-6 py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-semibold">{t("valuesTitle")}</h2>
-          <div className="mt-10 grid gap-8 md:grid-cols-3">
+          <h2 className="text-3xl font-semibold text-[var(--ink)]">{t("valuesTitle")}</h2>
+          <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
             {values.map((v) => (
-              <div key={v.title} className="bg-white p-7">
-                <h3 className="text-xl font-semibold">{v.title}</h3>
+              <div key={v.title} className="rounded-[24px] bg-[var(--surface)] p-7">
+                <h3 className="text-xl font-semibold text-[var(--ink)]">{v.title}</h3>
                 <p className="mt-3 text-[var(--muted)]">{v.body}</p>
               </div>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
       <CtaBand

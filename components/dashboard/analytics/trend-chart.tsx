@@ -12,11 +12,12 @@ import {
   Legend,
 } from "recharts";
 import type { TrendPoint } from "@/lib/analytics/queries";
+import { Reveal } from "@/components/motion/reveal";
 
 const SCANS_COLOR = "#2a78d6";
 const REDEMPTIONS_COLOR = "#eb6834";
-const GRIDLINE = "#e1e0d9";
-const AXIS_INK = "#898781";
+const GRIDLINE = "var(--line)";
+const AXIS_INK = "var(--muted)";
 
 function formatDay(value: string) {
   const d = new Date(value);
@@ -35,7 +36,7 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
+    <Reveal className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
       <p className="text-sm font-semibold text-[var(--ink)]">{t("trendTitle")}</p>
       <div className="mt-4 h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -89,6 +90,6 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Reveal>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   AuthLegalFooter,
@@ -13,6 +14,7 @@ import {
   AuthSocialButtons,
 } from "@/components/auth/auth-ui";
 import { Input, Label } from "@/components/ui/input";
+import { mapAuthErrorKey } from "@/lib/auth/error-messages";
 
 function LoginContent() {
   const t = useTranslations("auth");
@@ -38,7 +40,8 @@ function LoginContent() {
     const { error: err } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (err) {
-      setError(err.message);
+      const key = mapAuthErrorKey(err.message);
+      setError(key ? t(key) : err.message);
       return;
     }
     router.push(`/${locale}/dashboard`);
@@ -57,13 +60,14 @@ function LoginContent() {
     });
     if (err) {
       setLoading(false);
-      setError(err.message);
+      const key = mapAuthErrorKey(err.message);
+      setError(key ? t(key) : err.message);
     }
   }
 
   if (step === "welcome") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white px-4 py-6 md:px-6">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--surface)] px-4 py-6 md:px-6">
         <div className="mx-auto grid w-full max-w-[920px] overflow-hidden rounded-[28px] border border-[var(--line)] lg:grid-cols-2 lg:min-h-[560px]">
           <div className="hidden p-3 lg:block">
             <AuthMediaPanel />
@@ -95,7 +99,7 @@ function LoginContent() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-10">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--surface)] px-4 py-10">
       <div className="absolute end-4 top-4 md:end-6 md:top-6">
         <AuthLocaleSelect locale={locale} />
       </div>
@@ -104,7 +108,7 @@ function LoginContent() {
         {t("signIn")}
       </h1>
 
-      <div className="w-full max-w-[380px] rounded-[24px] border border-[var(--line)] bg-white p-6 md:p-7">
+      <div className="w-full max-w-[380px] rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-6 md:p-7">
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">{t("email")}</Label>
@@ -131,12 +135,13 @@ function LoginContent() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
           >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("continueEmail")}
           </button>
         </form>
@@ -166,7 +171,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-white" />}>
+    <Suspense fallback={<main className="min-h-screen bg-[var(--surface)]" />}>
       <LoginContent />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
+import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export default async function PricingPage({
   params,
@@ -46,14 +47,14 @@ export default async function PricingPage({
         description={t("description")}
       />
       <section className="px-6 py-20">
-        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+        <StaggerGroup className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {plans.map((plan) => (
             <article
               key={plan.name}
               className={
                 plan.featured
-                  ? "rounded-[24px] border-2 border-[var(--primary)] bg-white p-8"
-                  : "rounded-[24px] border border-[var(--line)] bg-white p-8"
+                  ? "rounded-[24px] border-2 border-[var(--primary)] bg-[var(--surface)] p-8"
+                  : "rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-8"
               }
             >
               <h2 className="text-xl font-semibold">{plan.name}</h2>
@@ -69,7 +70,7 @@ export default async function PricingPage({
               </Link>
             </article>
           ))}
-        </div>
+        </StaggerGroup>
         <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--muted)]">
           {t("note")}
         </p>

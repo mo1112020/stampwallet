@@ -44,7 +44,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
         {t("title")}
       </h1>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
@@ -66,7 +66,7 @@ export default function OnboardingPage() {
             <Input id="secondary" type="color" value={secondary} onChange={(e) => setSecondary(e.target.value)} />
           </div>
         </div>
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         <Button type="submit" disabled={loading}>
           {t("continue")}
         </Button>

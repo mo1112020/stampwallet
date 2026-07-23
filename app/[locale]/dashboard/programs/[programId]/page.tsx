@@ -48,10 +48,10 @@ export default async function EditProgramPage({
 
   return (
     <div>
-      <h1 className="mb-2 font-[family-name:var(--font-display)] text-4xl text-[var(--brand)]">
+      <h1 className="mb-2 font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
         {program.name}
       </h1>
-      <section className="mb-8 rounded-xl border border-[var(--line)] bg-white p-4 sm:flex sm:items-center sm:justify-between sm:gap-5">
+      <section className="mb-8 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-[var(--ink)]">Your join page is live</p>
           <p className="mt-1 truncate text-sm text-[var(--muted)]">{enrollUrl}</p>

@@ -6,9 +6,11 @@
   /* Simple product UI — white + ink + primary blue */
   --primary: #1f57e7; /* Richer, slightly desaturated blue */
   --primary-soft: #e8efff;
+  --primary-foreground: #ffffff;
   --white: #ffffff;
   --ink: #1c1c1c;
   --muted: #6b7280; /* Softer gray */
+  --muted-foreground: #6b7280;
   --line: #e5e7eb; /* Softer border */
   --line-strong: #d1d5db;
   --background: #f6f6f6; /* Off-white for depth */
@@ -16,6 +18,16 @@
   --surface: #ffffff;
   --surface-2: #f3f4f6;
   --surface-3: #e5e7eb;
+  --overlay: rgba(15, 15, 20, 0.4);
+  --shadow-color: 220deg 40% 20%;
+
+  /* Semantic status colors — same family in both themes, tuned per theme below */
+  --success: #16a34a;
+  --success-soft: #eafaf0;
+  --danger: #dc2626;
+  --danger-soft: #fdecec;
+  --warning: #d97706;
+  --warning-soft: #fef4e6;
 
   /* Kept for wallet / legacy class names */
   --purple: #3e0856;
@@ -31,8 +43,39 @@
   --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+.dark {
+  --primary: #4f7dfb; /* Lighter/more saturated so it still pops on dark surfaces */
+  --primary-soft: rgba(79, 125, 251, 0.16);
+  --primary-foreground: #ffffff;
+  --white: #ffffff;
+  --ink: #f2f3f5;
+  --muted: #9aa1ac;
+  --muted-foreground: #9aa1ac;
+  --line: #2a2c31;
+  --line-strong: #3a3d44;
+  --background: #101113;
+  --foreground: var(--ink);
+  --surface: #17181b;
+  --surface-2: #1d1f23;
+  --surface-3: #26292e;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-color: 220deg 60% 2%;
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.14);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.14);
+}
+
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -42,6 +85,7 @@ body {
   font-size: 1rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 
 h1,
@@ -124,6 +168,67 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .preview-screen-swap {
+    animation: none;
+  }
+}
+
+/* Radix overlay primitives (Dialog/DropdownMenu/Popover) key their enter/exit
+   animation off data-state, driven from components/ui/{dialog,dropdown-menu,popover}.tsx. */
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes content-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+[data-radix-overlay][data-state="open"] {
+  animation: overlay-in 180ms var(--ease-out) both;
+}
+[data-radix-overlay][data-state="closed"] {
+  animation: overlay-out 150ms var(--ease-out) both;
+}
+[data-radix-content][data-state="open"] {
+  animation: content-in 180ms var(--ease-spring) both;
+}
+[data-radix-content][data-state="closed"] {
+  animation: content-out 120ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-radix-overlay][data-state="open"],
+  [data-radix-overlay][data-state="closed"],
+  [data-radix-content][data-state="open"],
+  [data-radix-content][data-state="closed"] {
     animation: none;
   }
 }

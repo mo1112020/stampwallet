@@ -45,7 +45,7 @@ export default function CampaignDetailPage() {
         ← {t("back")}
       </Button>
 
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl text-[var(--brand)]">
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl text-[var(--primary)]">
         {campaign.title}
       </h1>
       <p className="mt-2 text-[var(--muted)]">{campaign.message}</p>

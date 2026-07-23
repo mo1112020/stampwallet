@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "StampWallet",
@@ -13,7 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html suppressHydrationWarning>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased" suppressHydrationWarning>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

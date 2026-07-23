@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   AuthLocaleSelect,
@@ -11,6 +12,7 @@ import {
   AuthSocialButtons,
 } from "@/components/auth/auth-ui";
 import { Input, Label } from "@/components/ui/input";
+import { mapAuthErrorKey } from "@/lib/auth/error-messages";
 
 export default function SignupPage() {
   const t = useTranslations("auth");
@@ -21,13 +23,20 @@ export default function SignupPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError(t("passwordMismatch"));
+      return;
+    }
+
+    setLoading(true);
     const businessName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const supabase = createClient();
     const { data, error: err } = await supabase.auth.signUp({
@@ -43,7 +52,8 @@ export default function SignupPage() {
     });
     if (err) {
       setLoading(false);
-      setError(err.message);
+      const key = mapAuthErrorKey(err.message);
+      setError(key ? t(key) : err.message);
       return;
     }
     if (data.user) {
@@ -66,12 +76,13 @@ export default function SignupPage() {
     });
     if (err) {
       setLoading(false);
-      setError(err.message);
+      const key = mapAuthErrorKey(err.message);
+      setError(key ? t(key) : err.message);
     }
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-10">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--surface)] px-4 py-10">
       <div className="absolute end-4 top-4 md:end-6 md:top-6">
         <AuthLocaleSelect locale={locale} />
       </div>
@@ -84,7 +95,7 @@ export default function SignupPage() {
         {t("signUp")}
       </h1>
 
-      <div className="w-full max-w-[380px] rounded-[24px] border border-[var(--line)] bg-white p-6 md:p-7">
+      <div className="w-full max-w-[380px] rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-6 md:p-7">
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -135,12 +146,26 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div>
+            <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              placeholder={t("confirmPasswordPlaceholder")}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="h-11 w-full rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
           >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("continue")}
           </button>
         </form>

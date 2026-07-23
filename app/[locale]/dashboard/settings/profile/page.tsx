@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/toaster";
 import type { Merchant } from "@/types";
 
 const TIMEZONES = [
@@ -28,7 +30,6 @@ export default function ProfileSettingsPage() {
   const [locale, setLocaleField] = useState<"en" | "ar">("en");
   const [timezone, setTimezone] = useState("UTC");
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/merchants/me")
@@ -46,22 +47,38 @@ export default function ProfileSettingsPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
-    const res = await fetch("/api/settings/merchant", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        business_name: businessName,
-        industry,
-        locale_default: locale,
-        timezone,
-      }),
-    });
-    setSaving(false);
-    setMessage(res.ok ? t("saved") : t("saveFailed"));
+    try {
+      const res = await fetch("/api/settings/merchant", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          business_name: businessName,
+          industry,
+          locale_default: locale,
+          timezone,
+        }),
+      });
+      if (res.ok) {
+        toast.success(t("saved"));
+      } else {
+        toast.error(t("saveFailed"));
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
-  if (!merchant) return <p className="text-sm text-[var(--muted)]">{t("loading")}</p>;
+  if (!merchant) {
+    return (
+      <div className="max-w-md space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-10 w-28" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} className="max-w-md space-y-4">
@@ -80,32 +97,25 @@ export default function ProfileSettingsPage() {
       </div>
       <div>
         <Label htmlFor="locale">{t("language")}</Label>
-        <select
+        <Select
           id="locale"
           value={locale}
           onChange={(e) => setLocaleField(e.target.value as "en" | "ar")}
-          className="flex h-12 w-full rounded-full border border-[var(--line)] bg-white px-4 text-[15px] text-[var(--ink)]"
         >
           <option value="en">English</option>
           <option value="ar">العربية</option>
-        </select>
+        </Select>
       </div>
       <div>
         <Label htmlFor="timezone">{t("timezone")}</Label>
-        <select
-          id="timezone"
-          value={timezone}
-          onChange={(e) => setTimezone(e.target.value)}
-          className="flex h-12 w-full rounded-full border border-[var(--line)] bg-white px-4 text-[15px] text-[var(--ink)]"
-        >
+        <Select id="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
           {TIMEZONES.map((tz) => (
             <option key={tz} value={tz}>
               {tz}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
-      {message && <p className="text-sm text-[var(--muted)]">{message}</p>}
       <Button type="submit" disabled={saving}>
         {saving ? t("saving") : t("save")}
       </Button>

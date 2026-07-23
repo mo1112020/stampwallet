@@ -220,7 +220,7 @@ export default async function TemplatesPage({
             Pick a template to get started quickly, or build from scratch.
           </p>
         </div>
-        <span className="rounded-xl border border-[var(--line)] bg-white px-4 py-2 text-sm font-semibold text-[var(--muted)]">
+        <span className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--muted)]">
           {templates.length} templates
         </span>
       </div>

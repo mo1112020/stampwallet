@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Reveal } from "@/components/motion/reveal";
 
 export function CtaBand({
   title,
@@ -13,7 +14,10 @@ export function CtaBand({
 }) {
   return (
     <section className="px-6 py-20 md:py-28">
-      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 rounded-[28px] border border-[var(--line)] bg-[var(--surface-2)] px-8 py-12 md:flex-row md:items-center md:px-12">
+      <Reveal
+        as="div"
+        className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 rounded-[28px] border border-[var(--line)] bg-[var(--surface-2)] px-8 py-12 md:flex-row md:items-center md:px-12"
+      >
         <div className="max-w-xl">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h2>
           <p className="mt-4 text-[var(--muted)]">{description}</p>
@@ -24,7 +28,7 @@ export function CtaBand({
         >
           {label}
         </Link>
-      </div>
+      </Reveal>
     </section>
   );
 }

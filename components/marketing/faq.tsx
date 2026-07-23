@@ -34,9 +34,16 @@ export function FaqSection() {
                 size={18}
               />
             </button>
-            {isOpen && (
-              <p className="pb-5 pr-8 text-[var(--muted)]">{t(`items.${key}.a`)}</p>
-            )}
+            <div
+              className={cn(
+                "grid transition-[grid-template-rows] duration-300 ease-[var(--ease-out)]",
+                isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+              )}
+            >
+              <div className="overflow-hidden">
+                <p className="pb-5 pe-8 text-[var(--muted)]">{t(`items.${key}.a`)}</p>
+              </div>
+            </div>
           </div>
         );
       })}

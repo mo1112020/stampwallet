@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function localeHref(pathname: string, nextLocale: string) {
@@ -24,7 +24,7 @@ export function AuthLocaleSelect({ locale }: { locale: string }) {
     <Link
       href={localeHref(pathname, other)}
       hrefLang={other}
-      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-white px-3.5 py-1.5 text-[13px] text-[var(--ink)] hover:border-[var(--ink)]/20"
+      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3.5 py-1.5 text-[13px] text-[var(--ink)] hover:border-[var(--ink)]/20"
     >
       {label}
       <ChevronDown size={14} className="opacity-50" />
@@ -77,19 +77,19 @@ export function AuthSocialButtons({
         disabled={loading}
         onClick={onGoogle}
         className={cn(
-          "flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-white text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+          "flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
         )}
       >
-        <GoogleIcon />
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
         {t("continueGoogle")}
       </button>
       <button
         type="button"
         disabled={loading}
         onClick={onApple}
-        className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-white text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
       >
-        <AppleIcon />
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <AppleIcon />}
         {t("continueApple")}
       </button>
     </div>
