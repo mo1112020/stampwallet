@@ -1,26 +1,32 @@
-import { jsonError } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateApplePass } from "@/lib/wallet/apple";
 import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
-type Ctx = { params: Promise<{ passId: string }> };
+type Ctx = { params: Promise<{ passTypeIdentifier: string; serialNumber: string }> };
 
 export async function GET(request: Request, { params }: Ctx) {
-  const { passId } = await params;
+  const { serialNumber } = await params;
+
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    return jsonError("Misconfigured", "misconfigured", 503);
+    return new Response(null, { status: 503 });
   }
 
   const { data: row } = await admin
     .from("customer_progress")
     .select("*, loyalty_programs(*, merchants(*))")
-    .eq("pass_id", passId)
+    .eq("pass_id", serialNumber)
     .maybeSingle();
 
-  if (!row) return jsonError("Pass not found", "not_found", 404);
+  if (!row) return new Response(null, { status: 404 });
+
+  const authHeader = request.headers.get("authorization") ?? "";
+  const token = authHeader.startsWith("ApplePass ") ? authHeader.slice("ApplePass ".length) : null;
+  if (token !== row.apple_auth_token) {
+    return new Response(null, { status: 401 });
+  }
 
   const ifModifiedSince = request.headers.get("if-modified-since");
   if (ifModifiedSince) {
@@ -31,15 +37,14 @@ export async function GET(request: Request, { params }: Ctx) {
     }
   }
 
-  const programRaw = row.loyalty_programs as unknown as LoyaltyProgram & {
-    merchants: Merchant;
-  };
+  const programRaw = row.loyalty_programs as unknown as LoyaltyProgram & { merchants: Merchant };
 
   const result = await generateApplePass({
-    passId: passId,
+    passId: serialNumber,
     program: programRaw,
     merchant: programRaw.merchants,
     progress: row.progress as Progress,
+    authenticationToken: row.apple_auth_token,
   });
 
   return new Response(new Uint8Array(result.buffer), {

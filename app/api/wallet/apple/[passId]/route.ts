@@ -31,6 +31,7 @@ export async function GET(_request: Request, { params }: Ctx) {
     program: programRaw,
     merchant: programRaw.merchants,
     progress: row.progress as Progress,
+    authenticationToken: row.apple_auth_token,
   });
 
   return new Response(new Uint8Array(result.buffer), {

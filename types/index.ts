@@ -103,6 +103,7 @@ export type CustomerProgress = {
   pass_id: string;
   progress: Progress;
   apple_push_token: string | null;
+  apple_auth_token: string;
   google_object_id: string | null;
   created_at: string;
   updated_at: string;

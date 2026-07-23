@@ -25,10 +25,15 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
 - Rate limit: reject repeat `award` scans on the same `pass_id` within a short window (e.g. 10 seconds) to prevent double-scans; make the window configurable.
 
 ## Wallet
-- `GET /api/wallet/apple/[passId]` — generates and streams a signed `.pkpass` file for the given pass.
-- `POST /api/wallet/apple/register` — Apple's PassKit web service callback: device registers for push updates on a pass. Store `apple_push_token`.
-- `POST /api/wallet/apple/webservice/[passId]` — Apple's polling/push endpoint for pass updates (implements the PassKit Web Service protocol — see `05-wallet-integration.md`).
+- `GET /api/wallet/apple/[passId]` — generates and streams a signed `.pkpass` file for the given pass (used by our own "Add to Apple Wallet" button, not by Apple's protocol).
 - `GET /api/wallet/google/[passId]` — generates the "Add to Google Wallet" JWT/link for the given pass.
+- `webServiceURL` in every generated pass points at `/api/wallet/apple`. Apple's own PassKit Web Service protocol appends `v1/...` to that, implemented under `app/api/wallet/apple/v1/`:
+  - `POST /api/wallet/apple/v1/devices/[deviceLibraryIdentifier]/registrations/[passTypeIdentifier]/[serialNumber]` — device registers for push updates. Auth'd via `Authorization: ApplePass <token>` checked against `customer_progress.apple_auth_token`. Writes to `apple_device_registrations`.
+  - `DELETE` same path — device unregisters.
+  - `GET /api/wallet/apple/v1/devices/[deviceLibraryIdentifier]/registrations/[passTypeIdentifier]?passesUpdatedSince=` — returns serial numbers of that device's passes updated since the given tag.
+  - `GET /api/wallet/apple/v1/passes/[passTypeIdentifier]/[serialNumber]` — returns the current signed `.pkpass` (or 304 via `If-Modified-Since`).
+  - `POST /api/wallet/apple/v1/log` — receives Apple's client-side error logs.
+  - See `05-wallet-integration.md` for the full push flow.
 
 ## Public Customer Page
 - `GET /pass/[passId]` — (page, not API) server-renders current progress by looking up `customer_progress` via service role key.

@@ -95,6 +95,7 @@ export async function POST(request: Request) {
     program: loyaltyProgram,
     merchant,
     progress,
+    authenticationToken: cp.apple_auth_token,
   });
   const google = await generateGoogleWalletLink({
     passId: cp.pass_id,

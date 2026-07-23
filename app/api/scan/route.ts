@@ -3,7 +3,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { applyAward, applyRedeem } from "@/lib/scan/progress";
 import { pushWalletUpdate } from "@/lib/wallet/push";
 import { scanSchema } from "@/lib/validators";
-import type { ProgramConfig, ProgramType, Progress } from "@/types";
+import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
 export async function POST(request: Request) {
   const auth = await requireMerchant();
@@ -24,19 +24,14 @@ export async function POST(request: Request) {
 
   const { data: row, error } = await auth.supabase
     .from("customer_progress")
-    .select("*, loyalty_programs(*)")
+    .select("*, loyalty_programs(*, merchants(*))")
     .eq("pass_id", parsed.data.pass_id)
     .single();
 
   if (error || !row) return jsonError("Pass not found", "not_found", 404);
 
-  const program = row.loyalty_programs as unknown as {
-    id: string;
-    merchant_id: string;
-    type: ProgramType;
-    config: ProgramConfig;
-    is_active: boolean;
-  };
+  const program = row.loyalty_programs as unknown as LoyaltyProgram & { merchants: Merchant };
+  const merchant = program.merchants;
 
   if (program.merchant_id !== auth.userId) {
     return jsonError("Forbidden", "forbidden", 403);
@@ -95,8 +90,10 @@ export async function POST(request: Request) {
 
   await pushWalletUpdate({
     passId: row.pass_id,
-    applePushToken: row.apple_push_token,
     googleObjectId: row.google_object_id,
+    program,
+    merchant,
+    progress: nextProgress,
   });
 
   return jsonOk({
