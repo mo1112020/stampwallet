@@ -18,6 +18,7 @@ const cardAppearanceSchema = z.object({
     background_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
     button_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   }).optional(),
+  reward_value: z.number().min(0).optional(),
 });
 
 export const stampConfigSchema = cardAppearanceSchema.extend({

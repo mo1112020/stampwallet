@@ -14,6 +14,8 @@ All tables use `uuid` primary keys (`gen_random_uuid()`). All tables have `creat
 | plan | text | enum: free / starter / pro / enterprise |
 | stripe_customer_id | text | nullable |
 | locale_default | text | "en" or "ar" |
+| currency | text | nullable, migration 008 — opt-in, powers the analytics revenue-impact KPI. Editing UI is Phase 6 (Settings); analytics (Phase 5) just reads it and hides the KPI when null. |
+| average_order_value | numeric | nullable, migration 008 — reserved for future ROI calculations, not yet consumed |
 
 ## `loyalty_programs`
 | column | type | notes |
@@ -44,6 +46,7 @@ All tables use `uuid` primary keys (`gen_random_uuid()`). All tables have `creat
   ]
 }
 ```
+Every type also accepts a common set of optional `CardAppearance` keys (colors, background image, join-page config, and as of Phase 5 an optional `reward_value` number — the dollar value of one reward, used by the analytics revenue-impact KPI alongside `merchants.currency`; no schema change needed since `config` is jsonb).
 
 ## `customers`
 | column | type | notes |

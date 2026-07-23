@@ -267,6 +267,31 @@
       "staff": "موظف"
     }
   },
+  "analytics": {
+    "title": "التحليلات",
+    "noAccess": "ليس لديك صلاحية الوصول إلى التحليلات.",
+    "totalCustomers": "إجمالي العملاء",
+    "activeCustomers": "العملاء النشطون",
+    "totalCards": "إجمالي بطاقات الولاء",
+    "activeCards": "البطاقات النشطة",
+    "rewardsRedeemed": "المكافآت المستبدلة",
+    "totalScans": "إجمالي عمليات المسح",
+    "pointsEarned": "النقاط المكتسبة",
+    "pointsRedeemed": "النقاط المستبدلة",
+    "retentionRate": "معدل الاحتفاظ بالعملاء",
+    "repeatVisits": "الزيارات المتكررة",
+    "revenueImpact": "الأثر التقديري على الإيرادات",
+    "trendTitle": "عمليات المسح والاستبدال عبر الزمن",
+    "recentActivity": "النشاط الأخير",
+    "noActivity": "لا يوجد نشاط في هذه الفترة بعد",
+    "unknownCustomer": "عميل",
+    "allPrograms": "كل البرامج",
+    "range": {
+      "7d": "7 أيام",
+      "30d": "30 يومًا",
+      "90d": "90 يومًا"
+    }
+  },
   "onboarding": {
     "title": "إعداد نشاطك",
     "industry": "القطاع",

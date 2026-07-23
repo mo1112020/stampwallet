@@ -267,6 +267,31 @@
       "staff": "Staff"
     }
   },
+  "analytics": {
+    "title": "Analytics",
+    "noAccess": "You don't have access to analytics.",
+    "totalCustomers": "Total customers",
+    "activeCustomers": "Active customers",
+    "totalCards": "Total loyalty cards",
+    "activeCards": "Active cards",
+    "rewardsRedeemed": "Rewards redeemed",
+    "totalScans": "Total scans",
+    "pointsEarned": "Points earned",
+    "pointsRedeemed": "Points redeemed",
+    "retentionRate": "Retention rate",
+    "repeatVisits": "Repeat visits",
+    "revenueImpact": "Estimated revenue impact",
+    "trendTitle": "Scans & redemptions over time",
+    "recentActivity": "Recent activity",
+    "noActivity": "No activity in this range yet",
+    "unknownCustomer": "Customer",
+    "allPrograms": "All programs",
+    "range": {
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days"
+    }
+  },
   "onboarding": {
     "title": "Set up your business",
     "industry": "Industry",

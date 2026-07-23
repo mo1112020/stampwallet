@@ -26,6 +26,8 @@ export type CardAppearance = {
   background_image_url?: string;
   details?: CardDetails;
   enrollment_page?: EnrollmentPageConfig;
+  /** Optional — powers the analytics revenue-impact KPI when set. Never estimated if absent. */
+  reward_value?: number;
 };
 
 export type StampConfig = CardAppearance & {
@@ -71,6 +73,8 @@ export type Merchant = {
   stripe_customer_id: string | null;
   locale_default: Locale;
   onboarding_completed: boolean;
+  currency: string | null;
+  average_order_value: number | null;
   created_at: string;
   updated_at: string;
 };
