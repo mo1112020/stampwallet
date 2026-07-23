@@ -8,6 +8,7 @@
     "signup": "Start free",
     "dashboard": "Dashboard",
     "programs": "Programs",
+    "scan": "Scan",
     "analytics": "Analytics",
     "settings": "Settings",
     "billing": "Billing",
@@ -244,6 +245,20 @@
     "redeem": "Redeem",
     "award": "Award",
     "pointsAmount": "Points to add"
+  },
+  "scanner": {
+    "title": "Scanner",
+    "subtitle": "Point the camera at a customer's wallet pass QR code",
+    "lookingUp": "Looking up pass…",
+    "notFound": "Pass not found",
+    "unknownCustomer": "Customer",
+    "programInactive": "This program is inactive",
+    "cancel": "Cancel",
+    "scanAgain": "Scan next",
+    "awardSuccess": "Added!",
+    "redeemSuccess": "Redeemed!",
+    "recentScans": "Recent scans",
+    "noHistory": "No scans yet"
   },
   "onboarding": {
     "title": "Set up your business",

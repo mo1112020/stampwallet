@@ -5,11 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { Home, Smartphone, Users, MessageSquare, Route, MapPin, Settings } from "lucide-react";
+import { Home, Smartphone, Users, QrCode, Route, Settings } from "lucide-react";
 
 const links = [
   { href: "dashboard", key: "dashboard", icon: Home },
   { href: "dashboard/programs", key: "programs", icon: Smartphone },
+  { href: "dashboard/scan", key: "scan", icon: QrCode },
   { href: "dashboard/analytics", key: "analytics", icon: Users },
   { href: "dashboard/billing", key: "billing", icon: Route },
   { href: "dashboard/settings", key: "settings", icon: Settings },
@@ -51,16 +52,6 @@ export function DashboardNav({ locale }: { locale: string }) {
           );
         })}
       </nav>
-      
-      {/* Other icons like chat and map pin which were in screenshot but not necessarily in our routes yet */}
-      <div className="mt-4 flex flex-col gap-4">
-        <button className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
-          <MessageSquare className="h-5 w-5" />
-        </button>
-        <button className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors">
-          <MapPin className="h-5 w-5" />
-        </button>
-      </div>
 
       <button
         type="button"

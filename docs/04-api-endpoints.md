@@ -23,6 +23,9 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
   5. Trigger wallet push update (see `05-wallet-integration.md`).
   6. Return updated progress + whether a reward just became available.
 - Rate limit: both `award` and `redeem` are rate-limited per `pass_id` (10s / 3s windows respectively) via the Postgres-backed `check_rate_limit` function (`lib/rate-limit.ts`, migration 004) — not an in-process limiter, so it's correct across multiple serverless instances. Fails open (allows the request) if the rate-limit check itself errors.
+- Uses `requireCapability("scan")` (owner or any staff role) — not the owner-only `requireMerchant()`.
+- `GET /api/scan/lookup?pass_id=` — read-only peek at a pass (customer info, program type/config, current progress) before committing an award/redeem. Used by the scanner UI to show a confirm screen (e.g. prompt for a points amount) without mutating anything.
+- `GET /api/scan/history?program_id=&limit=` — recent `scan_events` for the authenticated merchant/staff, joined to customer + program names, for the scanner's "recent scans" panel.
 
 ## Wallet
 - `GET /api/wallet/apple/[passId]?token=<apple_auth_token>` — generates and streams a signed `.pkpass` file for the given pass (used by our own "Add to Apple Wallet" button, not by Apple's protocol). Requires the pass's `apple_auth_token` as a query param — this is a direct browser-navigated link (no custom headers possible), so the secret travels as `?token=` rather than an `Authorization` header like the real PassKit protocol below. 401s without a matching token.

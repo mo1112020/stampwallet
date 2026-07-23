@@ -24,7 +24,7 @@ Scope: Stamp Cards + Point Cards + Reward Journey (Steps). Build in this file's 
 - **Done when**: a real Apple and Android device can each complete this flow and see the pass appear in Wallet/Google Wallet.
 
 ## F4. Merchant Scan-to-Award
-- Staff-facing scan page (`/dashboard/programs/[id]/scan`) using device camera to scan a customer's pass QR.
+- Staff-facing scan page (`/dashboard/scan` — a primary nav item, not nested under a specific program since a pass's `pass_id` already identifies its program) using device camera (`@zxing/browser`, via `components/dashboard/scanner/camera-scanner.tsx`) to scan a customer's pass QR.
 - On scan: look up `customer_progress` by `pass_id`, confirm it belongs to a program owned by the authenticated merchant, then increment progress per program type:
   - Stamp: +1 stamp (cap at `stamps_required`; if it completes the card, mark reward available and reset or flag for redemption per merchant preference).
   - Points: merchant enters or taps a preset point value to add.

@@ -1,12 +1,12 @@
-import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
+import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { applyAward, applyRedeem } from "@/lib/scan/progress";
 import { pushWalletUpdate } from "@/lib/wallet/push";
 import { scanSchema } from "@/lib/validators";
-import type { LoyaltyProgram, Merchant, Progress } from "@/types";
+import type { Customer, LoyaltyProgram, Merchant, Progress } from "@/types";
 
 export async function POST(request: Request) {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("scan");
   if ("error" in auth) return auth.error;
 
   const body = await request.json();
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   const { data: row, error } = await auth.supabase
     .from("customer_progress")
-    .select("*, loyalty_programs(*, merchants(*))")
+    .select("*, loyalty_programs(*, merchants(*)), customers(*)")
     .eq("pass_id", parsed.data.pass_id)
     .single();
 
@@ -32,8 +32,9 @@ export async function POST(request: Request) {
 
   const program = row.loyalty_programs as unknown as LoyaltyProgram & { merchants: Merchant };
   const merchant = program.merchants;
+  const customer = row.customers as unknown as Customer;
 
-  if (program.merchant_id !== auth.userId) {
+  if (program.merchant_id !== auth.merchantId) {
     return jsonError("Forbidden", "forbidden", 403);
   }
   if (!program.is_active) {
@@ -101,5 +102,9 @@ export async function POST(request: Request) {
     reward_available: resultedInReward || parsed.data.action === "redeem",
     reward_description: rewardDescription,
     pass_id: row.pass_id,
+    program: { id: program.id, name: program.name, type: program.type },
+    customer: customer
+      ? { name: customer.name, phone: customer.phone, email: customer.email }
+      : null,
   });
 }

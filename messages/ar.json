@@ -8,6 +8,7 @@
     "signup": "ابدأ مجاناً",
     "dashboard": "لوحة التحكم",
     "programs": "البرامج",
+    "scan": "مسح",
     "analytics": "التحليلات",
     "settings": "الإعدادات",
     "billing": "الفوترة",
@@ -244,6 +245,20 @@
     "redeem": "استبدال",
     "award": "إضافة",
     "pointsAmount": "النقاط للإضافة"
+  },
+  "scanner": {
+    "title": "الماسح الضوئي",
+    "subtitle": "وجّه الكاميرا نحو رمز QR الخاص ببطاقة محفظة العميل",
+    "lookingUp": "جارٍ البحث عن البطاقة…",
+    "notFound": "لم يتم العثور على البطاقة",
+    "unknownCustomer": "عميل",
+    "programInactive": "هذا البرنامج غير نشط",
+    "cancel": "إلغاء",
+    "scanAgain": "مسح التالي",
+    "awardSuccess": "تمت الإضافة!",
+    "redeemSuccess": "تم الاستبدال!",
+    "recentScans": "عمليات المسح الأخيرة",
+    "noHistory": "لا توجد عمليات مسح بعد"
   },
   "onboarding": {
     "title": "إعداد نشاطك",
