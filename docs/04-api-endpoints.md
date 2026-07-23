@@ -58,6 +58,11 @@ All routes under `/app/api/`. Auth'd merchant routes read the Supabase session s
 - All require the `manage_settings` capability.
 - `GET /api/cron/notifications` — daily job (see `vercel.json`), requires `Authorization: Bearer <CRON_SECRET>`. Sends any due `scheduled` campaigns, then evaluates `birthday`/`expiring_reward`/`inactive_customer` for every merchant with that `notification_prefs` toggle on. `reward_unlocked` is NOT here — it fires immediately from `/api/scan` when a reward is unlocked, not on the daily sweep.
 
+## Store Locations (Phase 9)
+- `GET /api/settings/locations` / `POST /api/settings/locations` — list/create. Enforces `PLAN_LIMITS[plan].maxLocations`.
+- `PATCH /api/settings/locations/[id]` / `DELETE /api/settings/locations/[id]` — update (including toggling `is_active`) or remove.
+- All require `manage_settings`. No separate "trigger" endpoint — proximity detection is entirely native to Apple/Google Wallet once a location is embedded on the pass (see `05-wallet-integration.md`), not something this app polls for.
+
 ## Public Customer Page
 - `GET /pass/[passId]` — (page, not API) server-renders current progress by looking up `customer_progress` via service role key.
 

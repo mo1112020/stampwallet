@@ -9,6 +9,7 @@ const SECTIONS = [
   "profile",
   "branding",
   "business",
+  "locations",
   "team",
   "security",
   "notifications",

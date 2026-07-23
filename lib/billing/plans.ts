@@ -4,18 +4,38 @@ export type PlanLimits = {
   maxActivePrograms: number | null;
   maxActiveCustomers: number | null;
   maxSeats: number | null;
+  maxLocations: number | null;
   customBranding: boolean;
 };
 
 /** `null` means unlimited — prefer this over magic-number sentinels. */
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  free: { maxActivePrograms: 1, maxActiveCustomers: 100, maxSeats: 1, customBranding: false },
-  starter: { maxActivePrograms: 3, maxActiveCustomers: 1000, maxSeats: 3, customBranding: true },
-  pro: { maxActivePrograms: 20, maxActiveCustomers: 10000, maxSeats: 10, customBranding: true },
+  free: {
+    maxActivePrograms: 1,
+    maxActiveCustomers: 100,
+    maxSeats: 1,
+    maxLocations: 1,
+    customBranding: false,
+  },
+  starter: {
+    maxActivePrograms: 3,
+    maxActiveCustomers: 1000,
+    maxSeats: 3,
+    maxLocations: 3,
+    customBranding: true,
+  },
+  pro: {
+    maxActivePrograms: 20,
+    maxActiveCustomers: 10000,
+    maxSeats: 10,
+    maxLocations: 20,
+    customBranding: true,
+  },
   enterprise: {
     maxActivePrograms: null,
     maxActiveCustomers: null,
     maxSeats: null,
+    maxLocations: null,
     customBranding: true,
   },
 };

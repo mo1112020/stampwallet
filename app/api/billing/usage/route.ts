@@ -17,6 +17,11 @@ export async function GET() {
     .select("*, loyalty_programs!inner(merchant_id)", { count: "exact", head: true })
     .eq("loyalty_programs.merchant_id", auth.merchantId);
 
+  const { count: locationCount } = await auth.supabase
+    .from("store_locations")
+    .select("*", { count: "exact", head: true })
+    .eq("merchant_id", auth.merchantId);
+
   const seats = await countSeats(auth.merchantId);
   const limits = PLAN_LIMITS[auth.merchant.plan];
 
@@ -25,5 +30,6 @@ export async function GET() {
     programs: { used: programCount ?? 0, limit: limits.maxActivePrograms },
     customers: { used: customerCount ?? 0, limit: limits.maxActiveCustomers },
     seats: { used: seats, limit: limits.maxSeats },
+    locations: { used: locationCount ?? 0, limit: limits.maxLocations },
   });
 }

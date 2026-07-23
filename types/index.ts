@@ -178,6 +178,20 @@ export type NotificationCampaign = {
 export type NotificationSendStatus = "queued" | "sent" | "failed" | "stubbed";
 export type NotificationPlatform = "apple" | "google" | "both";
 
+export type StoreLocation = {
+  id: string;
+  merchant_id: string;
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  relevant_text: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotificationSend = {
   id: string;
   campaign_id: string;

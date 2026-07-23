@@ -3,6 +3,7 @@ import type { JWT } from "google-auth-library";
 import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 import { renderPassFields, type PassFields } from "@/lib/wallet/renderPassFields";
 import { getServiceAccount, getWalletClient } from "@/lib/wallet/googleAuth";
+import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const WALLET_API = "https://walletobjects.googleapis.com/walletobjects/v1";
@@ -33,10 +34,11 @@ async function upsertResource(client: JWT, collection: "loyaltyClass" | "loyalty
   }
 }
 
-function loyaltyObjectFields(passId: string, classId: string, fields: PassFields) {
+async function loyaltyObjectFields(passId: string, classId: string, fields: PassFields, merchantId: string) {
   const secondaryValue = fields.rewardAvailable
     ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
     : fields.secondaryValue;
+  const locations = await getActiveStoreLocations(merchantId);
 
   return {
     classId,
@@ -49,6 +51,11 @@ function loyaltyObjectFields(passId: string, classId: string, fields: PassFields
     },
     textModulesData: [{ header: fields.secondaryLabel, body: secondaryValue }],
     barcode: { type: "QR_CODE", value: passId, alternateText: passId },
+    // Phase 9: no customer app needed — Google Wallet natively surfaces
+    // the pass when the device is physically near these coordinates.
+    ...(locations.length > 0
+      ? { locations: locations.map((l) => ({ latitude: l.latitude, longitude: l.longitude })) }
+      : {}),
   };
 }
 
@@ -96,7 +103,7 @@ export async function generateGoogleWalletLink(params: {
       client,
       "loyaltyObject",
       objectId,
-      { id: objectId, ...loyaltyObjectFields(params.passId, classId, fields) }
+      { id: objectId, ...(await loyaltyObjectFields(params.passId, classId, fields, params.merchant.id)) }
     );
 
     try {
@@ -154,6 +161,7 @@ export async function pushGooglePassUpdate(
     const secondaryValue = fields.rewardAvailable
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
       : fields.secondaryValue;
+    const locations = await getActiveStoreLocations(merchant.id);
 
     await client.request({
       url: `${WALLET_API}/loyaltyObject/${googleObjectId}`,
@@ -161,6 +169,9 @@ export async function pushGooglePassUpdate(
       data: {
         loyaltyPoints: { label: fields.primaryLabel, balance: { string: fields.primaryValue } },
         textModulesData: [{ header: fields.secondaryLabel, body: secondaryValue }],
+        ...(locations.length > 0
+          ? { locations: locations.map((l) => ({ latitude: l.latitude, longitude: l.longitude })) }
+          : {}),
         ...(notification
           ? {
               messages: [

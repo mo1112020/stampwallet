@@ -10,6 +10,7 @@ type Usage = {
   programs: { used: number; limit: number | null };
   customers: { used: number; limit: number | null };
   seats: { used: number; limit: number | null };
+  locations: { used: number; limit: number | null };
 };
 type Invoice = {
   id: string;

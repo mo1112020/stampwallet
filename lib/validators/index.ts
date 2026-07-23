@@ -138,6 +138,18 @@ export const createCampaignSchema = z
     message: "scheduled_for is required for scheduled campaigns",
   });
 
+export const storeLocationSchema = z.object({
+  name: z.string().min(1).max(100),
+  address: z.string().max(300).optional().nullable(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radius_meters: z.number().int().min(20).max(5000).default(150),
+  relevant_text: z.string().max(200).optional().nullable(),
+  is_active: z.boolean().optional(),
+});
+
+export const updateStoreLocationSchema = storeLocationSchema.partial();
+
 export const updateStaffSchema = z
   .object({
     role: z.enum(["admin", "manager", "staff"]).optional(),

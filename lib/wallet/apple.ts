@@ -3,6 +3,7 @@ import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 import { renderPassFields } from "@/lib/wallet/renderPassFields";
 import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
 import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib/wallet/assets";
+import { getActiveStoreLocations } from "@/lib/wallet/locations";
 
 export function isAppleWalletConfigured() {
   return Boolean(
@@ -69,6 +70,7 @@ export async function generateApplePass(params: {
     const certs = loadAppleCertificates();
     const passTypeIdentifier = process.env.APPLE_PASS_TYPE_IDENTIFIER!;
     const teamIdentifier = process.env.APPLE_TEAM_IDENTIFIER!;
+    const locations = await getActiveStoreLocations(params.merchant.id);
 
     const secondaryValue = fields.rewardAvailable
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
@@ -94,6 +96,10 @@ export async function generateApplePass(params: {
           messageEncoding: "iso-8859-1",
         },
       ],
+      // Phase 9: no customer app needed for proximity — PassKit natively
+      // shows the pass on the lock screen when the device is physically
+      // near these coordinates.
+      ...(locations.length > 0 ? { locations } : {}),
       storeCard: {
         headerFields: [],
         primaryFields: [

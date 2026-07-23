@@ -77,6 +77,18 @@ One row per customer-per-program enrollment.
 | google_auth_token | text | per-pass secret; required as a `?token=` query param on the Google Wallet save-link route, same purpose as `apple_auth_token` |
 | latest_notification_message | text | nullable, migration 011 — the current notification text embedded on the pass itself (Apple: a back field with `changeMessage: "%@"`; Google: appended to the loyalty object's `messages`). Persists beyond the single push so later pass fetches still carry it. |
 
+**`progress` shape by type:**
+```jsonc
+// stamp
+{ "stamps_collected": 4 }
+
+// points
+{ "points": 560 }
+
+// steps
+{ "current_value": 7, "completed_stage_keys": ["welcome", "free_drink"] }
+```
+
 ## `apple_device_registrations`
 One row per (device, pass) the Apple PassKit web service protocol has registered for push updates — a pass can be added on multiple devices.
 
@@ -124,18 +136,6 @@ Per-customer delivery log — one row per (campaign, pass) pair (`unique (campai
 
 Both tables: RLS via `merchant_id = auth.uid() or public.is_active_staff_of(merchant_id)`, same pattern as every other tenant-scoped table.
 
-**`progress` shape by type:**
-```jsonc
-// stamp
-{ "stamps_collected": 4 }
-
-// points
-{ "points": 560 }
-
-// steps
-{ "current_value": 7, "completed_stage_keys": ["welcome", "free_drink"] }
-```
-
 ## `scan_events`
 Audit log — every scan, whether it awarded progress or was rejected.
 
@@ -166,6 +166,20 @@ Non-owner team members. The merchant (`merchants.id = auth.users.id`) stays the 
 | role | text | enum: `admin` \| `manager` \| `staff` |
 | status | text | enum: `invited` \| `active` \| `revoked` — flips `invited` → `active` on first authenticated request (see `requireSession()` in `lib/api.ts`) |
 | invited_email | text | |
+
+## `store_locations` (migration 012)
+Phase 9. Delivered the same wallet-native way as notifications — no separate customer app or polling service. Both PassKit and Google Wallet natively show a pass on the lock screen when the device is physically near coordinates embedded on the pass itself, so this table just needs to exist and get read by `lib/wallet/apple.ts`/`google.ts` at pass-generation time (`lib/wallet/locations.ts`'s `getActiveStoreLocations()`).
+
+| column | type | notes |
+|---|---|---|
+| id | uuid | PK |
+| merchant_id | uuid | FK → merchants.id |
+| name | text | |
+| address | text | nullable, display only |
+| latitude / longitude | double precision | |
+| radius_meters | integer | default 150 |
+| relevant_text | text | nullable — shown by iOS alongside the pass when triggered by proximity |
+| is_active | boolean | default true — inactive locations are kept but excluded from generated passes |
 
 ## Row Level Security (RLS)
 Enable RLS on every merchant-scoped table. Core policy pattern:

@@ -3,7 +3,12 @@
 import { useTranslations } from "next-intl";
 
 type UsageMetric = { used: number; limit: number | null };
-type Usage = { programs: UsageMetric; customers: UsageMetric; seats: UsageMetric };
+type Usage = {
+  programs: UsageMetric;
+  customers: UsageMetric;
+  seats: UsageMetric;
+  locations: UsageMetric;
+};
 
 function Bar({ used, limit }: UsageMetric) {
   if (limit === null) return null;
@@ -26,6 +31,7 @@ export function UsagePanel({ usage }: { usage: Usage }) {
     { key: "programs", label: t("programs") },
     { key: "customers", label: t("customers") },
     { key: "seats", label: t("seats") },
+    { key: "locations", label: t("locations") },
   ];
 
   return (

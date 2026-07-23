@@ -300,6 +300,7 @@
       "profile": "Profile",
       "branding": "Branding",
       "business": "Business",
+      "locations": "Locations",
       "team": "Team",
       "security": "Security",
       "notifications": "Notifications",
@@ -343,6 +344,24 @@
       "saveFailed": "Could not save. Try again.",
       "saving": "Saving…",
       "save": "Save"
+    },
+    "locations": {
+      "intro": "Store locations are embedded directly on customers' wallet passes — no app needed, Apple and Google Wallet natively show the pass on the lock screen when a customer is nearby.",
+      "name": "Location name",
+      "address": "Address",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "radius": "Radius (meters)",
+      "addLocation": "Add location",
+      "saving": "Saving…",
+      "saveFailed": "Could not save that location.",
+      "previewHint": "Enter coordinates to preview on the map",
+      "listTitle": "Your locations",
+      "loading": "Loading…",
+      "noLocations": "No locations yet.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "remove": "Remove"
     },
     "team": {
       "inviteTitle": "Invite a team member",
@@ -455,6 +474,7 @@
       "programs": "Active programs",
       "customers": "Customers",
       "seats": "Team seats",
+      "locations": "Store locations",
       "unlimited": "Unlimited"
     }
   },
