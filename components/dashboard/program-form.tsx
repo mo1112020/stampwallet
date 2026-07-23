@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { PhoneMockup } from "@/components/dashboard/phone-mockup";
-import type { ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { JoinPagePhonePreview } from "@/components/dashboard/join-page-phone-preview";
+import type { EnrollmentPageConfig, EnrollmentPageStyle, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import {
   Coffee, Pizza, Scissors, ShoppingBag, Gift, Star,
   Dumbbell, Music, BookOpen, Bike, Car, Smile,
@@ -126,6 +127,7 @@ type Props = {
   };
   initialName?: string;
   businessName?: string;
+  businessLogo?: string | null;
   primaryColor?: string;
   secondaryColor?: string;
   initialIconName?: string;
@@ -137,6 +139,7 @@ export function ProgramForm({
   initial,
   initialName = "",
   businessName = "Your business",
+  businessLogo,
   primaryColor: initPrimaryColor = "#3E0856",
   secondaryColor: initSecondaryColor = "#FAAE62",
   initialIconName = "Coffee",
@@ -156,6 +159,7 @@ export function ProgramForm({
   const [primaryColor, setPrimaryColor] = useState((initial?.config as any)?.primary_color ?? initPrimaryColor);
   const [secondaryColor, setSecondaryColor] = useState((initial?.config as any)?.secondary_color ?? initSecondaryColor);
   const [createStep, setCreateStep] = useState(0);
+  const [previewMode, setPreviewMode] = useState<"join" | "card">("join");
   const [selectedIcon, setSelectedIcon] = useState(
     (initial?.config as any)?.icon ?? initialIconName
   );
@@ -167,6 +171,8 @@ export function ProgramForm({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const logoUploadInputRef = useRef<HTMLInputElement>(null);
+  const enrollment = ((config as any).enrollment_page ?? {}) as EnrollmentPageConfig;
 
   const stampsRequired = (config as any).stamps_required ?? 10;
 
@@ -177,6 +183,7 @@ export function ProgramForm({
       secondary_color: secondaryColor,
       ...(backgroundImage ? { background_image_url: backgroundImage } : {}),
       ...((config as any).details ? { details: (config as any).details } : {}),
+      ...((config as any).enrollment_page ? { enrollment_page: (config as any).enrollment_page } : {}),
     };
     setConfig(
       next === "stamp"
@@ -214,7 +221,14 @@ export function ProgramForm({
       return;
     }
     setError(null);
-    setCreateStep((step) => Math.min(step + 1, 2));
+    setCreateStep((step) => Math.min(step + 1, 3));
+  }
+
+  function updateEnrollment(next: Partial<EnrollmentPageConfig>) {
+    setConfig((prev) => ({
+      ...(prev as any),
+      enrollment_page: { ...((prev as any).enrollment_page ?? {}), ...next },
+    } as ProgramConfig));
   }
 
   async function uploadBackground(file: File) {
@@ -230,6 +244,21 @@ export function ProgramForm({
       return;
     }
     setBackground(result.url);
+  }
+
+  async function uploadJoinLogo(file: File) {
+    setUploadingImage(true);
+    setUploadError(null);
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch("/api/upload", { method: "POST", body: formData });
+    const result = await response.json();
+    setUploadingImage(false);
+    if (!response.ok) {
+      setUploadError(result.error ?? "Could not upload that logo.");
+      return;
+    }
+    updateEnrollment({ logo_url: result.url });
   }
 
 
@@ -278,8 +307,8 @@ export function ProgramForm({
       <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-8 pb-10">
 
         {mode === "create" && (
-          <nav aria-label="Program creation steps" className="order-0 grid grid-cols-3 gap-2">
-            {["Set up", "Rules", "Appearance"].map((label, index) => (
+          <nav aria-label="Program creation steps" className="order-0 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {["Set up", "Rules", "Appearance", "Join page"].map((label, index) => (
               <button key={label} type="button" onClick={() => setCreateStep(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-medium ${createStep === index ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]" : index < createStep ? "border-[var(--line)] bg-white text-[var(--ink)]" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}>
                 <span className="mr-1.5 text-xs">{index + 1}</span>{label}
               </button>
@@ -336,114 +365,146 @@ export function ProgramForm({
         <div className={`order-3 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 2 ? "hidden" : ""}`}>
           <h2 className="mb-4 text-lg font-semibold text-[var(--ink)]">Appearance</h2>
           
-          <div className="mb-6 grid grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="primaryColor" className="text-[var(--muted)]">Card Color</Label>
-            <div className="mt-1.5 flex items-center gap-3">
-              <div className="relative h-10 w-14 overflow-hidden rounded-lg border border-[var(--line)] shadow-sm">
-                <input
-                  type="color"
-                  id="primaryColor"
-                  value={primaryColor}
-                  onChange={(e) => setCardColor("primary_color", e.target.value)}
-                  className="absolute -inset-2 h-16 w-20 cursor-pointer"
-                />
+          <div className="mb-6 flex flex-wrap items-center gap-6 rounded-xl border border-[var(--line)] bg-gray-50/50 p-4">
+            <div className="flex-1">
+              <Label htmlFor="primaryColor" className="text-[var(--muted)]">Card Color</Label>
+              <div className="mt-1.5 flex items-center gap-3">
+                <div className="relative h-10 w-14 overflow-hidden rounded-lg border border-[var(--line)] shadow-sm">
+                  <input
+                    type="color"
+                    id="primaryColor"
+                    value={primaryColor}
+                    onChange={(e) => setCardColor("primary_color", e.target.value)}
+                    className="absolute -inset-2 h-16 w-20 cursor-pointer"
+                  />
+                </div>
+                <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{primaryColor}</span>
               </div>
-              <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{primaryColor}</span>
+            </div>
+            
+            <div className="flex-1">
+              <Label htmlFor="secondaryColor" className="text-[var(--muted)]">Accent Color</Label>
+              <div className="mt-1.5 flex items-center gap-3">
+                <div className="relative h-10 w-14 overflow-hidden rounded-lg border border-[var(--line)] shadow-sm">
+                  <input
+                    type="color"
+                    id="secondaryColor"
+                    value={secondaryColor}
+                    onChange={(e) => setCardColor("secondary_color", e.target.value)}
+                    className="absolute -inset-2 h-16 w-20 cursor-pointer"
+                  />
+                </div>
+                <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{secondaryColor}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Background image selection */}
+          <div>
+            <Label className="text-[var(--muted)]">Background Image</Label>
+            <p className="mt-1 mb-4 text-sm text-[var(--muted)]">Choose a photo for your card background.</p>
+            
+            <div className="flex items-center gap-4">
+              <div className="relative h-20 w-32 overflow-hidden rounded-lg border border-[var(--line)] bg-gray-100 shadow-sm flex items-center justify-center">
+                {backgroundImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={backgroundImage} alt="Background" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-xs font-medium text-gray-400">None</span>
+                )}
+              </div>
+              <Button type="button" variant="outline" onClick={() => setShowAllPhotos(true)}>
+                Choose a photo
+              </Button>
             </div>
           </div>
           
-          <div>
-            <Label htmlFor="secondaryColor" className="text-[var(--muted)]">Accent Color</Label>
-            <div className="mt-1.5 flex items-center gap-3">
-              <div className="relative h-10 w-14 overflow-hidden rounded-lg border border-[var(--line)] shadow-sm">
-                <input
-                  type="color"
-                  id="secondaryColor"
-                  value={secondaryColor}
-                  onChange={(e) => setCardColor("secondary_color", e.target.value)}
-                  className="absolute -inset-2 h-16 w-20 cursor-pointer"
-                />
+          {/* Photo Selection Modal */}
+          {showAllPhotos && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+              <div className="relative flex max-h-[85vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b p-5">
+                  <h3 className="text-lg font-semibold text-[var(--ink)]">Choose a photo</h3>
+                  <button type="button" onClick={() => setShowAllPhotos(false)} className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {PRESET_IMAGES.map((img) => {
+                      const selected = backgroundImage === img.url;
+                      return (
+                        <button
+                          key={img.id}
+                          type="button"
+                          onClick={() => {
+                            setBackground(img.url);
+                            setShowAllPhotos(false);
+                          }}
+                          className={`relative overflow-hidden rounded-xl border-2 transition-all ${
+                            selected
+                              ? "border-[var(--brand)] ring-2 ring-[var(--brand)] ring-offset-2"
+                              : "border-transparent hover:border-gray-300 shadow-sm hover:shadow-md"
+                          }`}
+                        >
+                          {img.url ? (
+                            <div className="aspect-video w-full">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={img.url} alt={img.label} className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="flex aspect-video w-full items-center justify-center bg-gray-100 text-sm font-medium text-[var(--muted)]">
+                              None
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 p-2">
+                            <span className="text-[10px] font-semibold text-white tracking-wide uppercase">{img.label}</span>
+                          </div>
+                          {selected && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-[var(--brand)]/20">
+                              <div className="rounded-full bg-[var(--brand)] p-1 text-white">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between border-t bg-gray-50 p-5 rounded-b-2xl">
+                  <div className="flex items-center gap-3">
+                    <input
+                      ref={uploadInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="sr-only"
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0];
+                        if (file) {
+                          uploadBackground(file);
+                          setShowAllPhotos(false);
+                        }
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                    <Button type="button" variant="outline" onClick={() => uploadInputRef.current?.click()} disabled={uploadingImage}>
+                      <ImageUp className="mr-2 h-4 w-4" />
+                      {uploadingImage ? "Uploading…" : "Upload your own"}
+                    </Button>
+                    {uploadError && <span className="text-sm text-red-600">{uploadError}</span>}
+                  </div>
+                  <Button type="button" onClick={() => setShowAllPhotos(false)}>Done</Button>
+                </div>
               </div>
-              <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{secondaryColor}</span>
             </div>
-          </div>
-        </div>
-
-        {/* Background image — preset picker */}
-        <div>
-          <Label className="text-[var(--muted)]">Background Image</Label>
-          <p className="mt-1 text-sm text-[var(--muted)]">Choose a preset, upload your own photo, or leave it blank for a colour gradient.</p>
-          <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-            {(showAllPhotos ? PRESET_IMAGES : PRESET_IMAGES.slice(0, 8)).map((img) => {
-              const selected = backgroundImage === img.url;
-              return (
-                <button
-                  key={img.id}
-                  type="button"
-                  title={img.label}
-                  onClick={() => setBackground(img.url)}
-                  className={`relative overflow-hidden rounded-lg border-2 transition-all ${
-                    selected
-                      ? "border-[var(--brand)] ring-2 ring-[var(--brand)] ring-offset-1"
-                      : "border-transparent hover:border-gray-300"
-                  }`}
-                >
-                  {img.url ? (
-                    <div className="aspect-video w-full">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex aspect-video w-full items-center justify-center bg-gray-100 text-[10px] text-[var(--muted)]">
-                      None
-                    </div>
-                  )}
-                  {selected && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--brand)]/20">
-                      <div className="rounded-full bg-[var(--brand)] p-0.5">
-                        <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <input
-              ref={uploadInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="sr-only"
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                if (file) uploadBackground(file);
-                event.currentTarget.value = "";
-              }}
-            />
-            <Button type="button" variant="outline" size="sm" onClick={() => uploadInputRef.current?.click()} disabled={uploadingImage}>
-              <ImageUp className="mr-2 h-4 w-4" />
-              {uploadingImage ? "Uploading…" : "Upload your own"}
-            </Button>
-            {PRESET_IMAGES.length > 8 && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => setShowAllPhotos((visible) => !visible)}>
-                {showAllPhotos ? <ChevronUp className="mr-1 h-4 w-4" /> : <ChevronDown className="mr-1 h-4 w-4" />}
-                {showAllPhotos ? "Show fewer photos" : `Show ${PRESET_IMAGES.length - 8} more photos`}
-              </Button>
-            )}
-            {backgroundImage && !PRESET_IMAGES.some((image) => image.url === backgroundImage) && (
-              <span className="text-sm font-medium text-[var(--ink)]">Custom photo selected</span>
-            )}
-          </div>
-          {uploadError && <p className="mt-2 text-sm text-red-600">{uploadError}</p>}
-        </div>
+          )}
 
         <div className="mt-8 border-t border-[var(--line)] pt-6">
           <h3 className="text-sm font-semibold text-[var(--ink)]">Card details</h3>
@@ -484,6 +545,79 @@ export function ProgramForm({
           </div>
         </div>
       </div>
+
+        {/* Join page */}
+        <section id="join-page" className={`order-4 scroll-mt-8 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 3 ? "hidden" : ""}`}>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">Customize join page</h2>
+              <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">This is the public page people see before adding your loyalty pass. It starts with your business details.</p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={() => updateEnrollment({ business_name: "", program_name: "", description: "", logo_url: "" })}>
+              Use business defaults
+            </Button>
+          </div>
+
+          <div className="mb-7">
+            <Label className="text-[var(--muted)]">Choose a style</Label>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              {([
+                ["classic", "Classic", "Clear, familiar and focused"],
+                ["editorial", "Editorial", "Warm welcome with a strong story"],
+                ["spotlight", "Spotlight", "Bold color and a compact sign-up"],
+              ] as [EnrollmentPageStyle, string, string][]).map(([style, title, detail]) => (
+                <button key={style} type="button" onClick={() => updateEnrollment({ style })} aria-pressed={(enrollment.style ?? "classic") === style} className={`rounded-xl border p-4 text-left ${((enrollment.style ?? "classic") === style) ? "border-[var(--brand)] bg-[var(--brand-soft)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}>
+                  <span className="block text-sm font-semibold text-[var(--ink)]">{title}</span>
+                  <span className="mt-1 block text-xs text-[var(--muted)]">{detail}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-7 grid gap-4 rounded-xl bg-[var(--surface-2)] p-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="joinBackgroundColor" className="text-[var(--muted)]">Page background</Label>
+              <div className="mt-1.5 flex items-center gap-3">
+                <input id="joinBackgroundColor" type="color" value={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")} onChange={(event) => updateEnrollment({ background_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-white p-1" />
+                <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")}</span>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="joinButtonColor" className="text-[var(--muted)]">Join button color</Label>
+              <div className="mt-1.5 flex items-center gap-3">
+                <input id="joinButtonColor" type="color" value={enrollment.button_color ?? primaryColor} onChange={(event) => updateEnrollment({ button_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-white p-1" />
+                <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{enrollment.button_color ?? primaryColor}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="joinBusinessName" className="text-[var(--muted)]">Business name</Label>
+              <Input id="joinBusinessName" value={enrollment.business_name ?? ""} onChange={(event) => updateEnrollment({ business_name: event.target.value })} placeholder={businessName} />
+              <p className="mt-1.5 text-xs text-[var(--muted)]">Leave blank to use your business name.</p>
+            </div>
+            <div>
+              <Label htmlFor="joinProgramName" className="text-[var(--muted)]">Program name</Label>
+              <Input id="joinProgramName" value={enrollment.program_name ?? ""} onChange={(event) => updateEnrollment({ program_name: event.target.value })} placeholder={name || "Your loyalty program"} />
+              <p className="mt-1.5 text-xs text-[var(--muted)]">Leave blank to use the program name above.</p>
+            </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="joinLogo" className="text-[var(--muted)]">Logo URL</Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input id="joinLogo" type="url" value={enrollment.logo_url ?? ""} onChange={(event) => updateEnrollment({ logo_url: event.target.value })} placeholder={businessLogo ?? "https://example.com/logo.png"} />
+                <input ref={logoUploadInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) uploadJoinLogo(file); event.currentTarget.value = ""; }} />
+                <Button type="button" variant="outline" onClick={() => logoUploadInputRef.current?.click()} disabled={uploadingImage}><ImageUp className="mr-2 h-4 w-4" />{uploadingImage ? "Uploading…" : "Upload logo"}</Button>
+              </div>
+              <p className="mt-1.5 text-xs text-[var(--muted)]">Upload a logo, paste a URL, or leave blank to use your business logo.</p>
+            </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="joinDescription" className="text-[var(--muted)]">Welcome message</Label>
+              <Textarea id="joinDescription" value={enrollment.description ?? ""} onChange={(event) => updateEnrollment({ description: event.target.value })} placeholder="Join today, collect rewards, and keep your pass in your phone wallet." className="min-h-[100px]" />
+            </div>
+          </div>
+
+        </section>
 
         {/* Program rules */}
       <div className={`order-2 rounded-2xl border border-[var(--line)] bg-white p-6 shadow-sm ${mode === "create" && createStep !== 1 ? "hidden" : ""}`}>
@@ -696,7 +830,7 @@ export function ProgramForm({
             Back
           </Button>
         )}
-        {mode === "create" && createStep < 2 ? (
+        {mode === "create" && createStep < 3 ? (
           <Button type="button" className="w-full sm:w-auto h-11 px-8 text-base font-semibold" onClick={goToNextStep}>
             Continue
           </Button>
@@ -718,20 +852,38 @@ export function ProgramForm({
         <div className="flex items-center justify-between w-full">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Live preview</p>
         </div>
+        <div className="flex w-full rounded-lg bg-[var(--surface-2)] p-1 text-xs font-semibold">
+          <button type="button" onClick={() => setPreviewMode("join")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "join" ? "bg-white text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Join page</button>
+          <button type="button" onClick={() => setPreviewMode("card")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "card" ? "bg-white text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Wallet card</button>
+        </div>
         
-        {/* Subtle decorative background for the preview container */}
-        <div className="relative p-6 rounded-[50px] bg-white/50 backdrop-blur-sm border border-[var(--line)] shadow-sm">
-          <PhoneMockup
-            name={name || businessName}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-            iconName={selectedIcon}
-            backgroundImage={backgroundImage}
-            programType={type}
-            programConfig={config}
-            stampsRequired={stampsRequired}
-            stampsCollected={3}
-          />
+        <div className="relative flex h-[532px] w-full justify-center overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] p-4 shadow-sm">
+          <div key={previewMode} className="preview-screen-swap absolute inset-x-0 top-4 flex justify-center">
+          {previewMode === "join" ? (
+            <JoinPagePhonePreview
+              businessName={enrollment.business_name || businessName}
+              programName={enrollment.program_name || name || "Your loyalty program"}
+              description={enrollment.description || "Join today, collect rewards, and keep your pass in your phone wallet."}
+              logoUrl={enrollment.logo_url || businessLogo}
+              backgroundColor={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")}
+              buttonColor={enrollment.button_color ?? primaryColor}
+              style={enrollment.style ?? "classic"}
+            />
+          ) : (
+            <PhoneMockup
+              name={name || businessName}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+              iconName={selectedIcon}
+              backgroundImage={backgroundImage}
+              programType={type}
+              programConfig={config}
+              stampsRequired={stampsRequired}
+              stampsCollected={3}
+              previewOnly
+            />
+          )}
+          </div>
         </div>
       </div>
     </div>

@@ -255,9 +255,10 @@
   },
   "enroll": {
     "title": "Join the loyalty program",
-    "name": "Name (optional)",
-    "phone": "Phone (optional)",
-    "email": "Email (optional)",
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "terms": "I accept the Terms and Conditions",
     "addApple": "Add to Apple Wallet",
     "addGoogle": "Add to Google Wallet",
     "submit": "Get your pass"

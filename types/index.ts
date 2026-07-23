@@ -8,11 +8,24 @@ export type CardDetails = {
   website?: string;
 };
 
+export type EnrollmentPageStyle = "classic" | "editorial" | "spotlight";
+
+export type EnrollmentPageConfig = {
+  style?: EnrollmentPageStyle;
+  logo_url?: string;
+  business_name?: string;
+  program_name?: string;
+  description?: string;
+  background_color?: string;
+  button_color?: string;
+};
+
 export type CardAppearance = {
   primary_color?: string;
   secondary_color?: string;
   background_image_url?: string;
   details?: CardDetails;
+  enrollment_page?: EnrollmentPageConfig;
 };
 
 export type StampConfig = CardAppearance & {

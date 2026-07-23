@@ -31,6 +31,7 @@ export default async function NewProgramPage({
         mode="create"
         initialName={typeof name === "string" ? name : undefined}
         businessName={merchant?.business_name}
+        businessLogo={merchant?.logo_url}
         primaryColor={typeof primaryColor === "string" ? primaryColor : merchant?.brand_color_primary}
         secondaryColor={typeof secondaryColor === "string" ? secondaryColor : merchant?.brand_color_secondary}
         initialIconName={typeof iconName === "string" ? iconName : "Coffee"}

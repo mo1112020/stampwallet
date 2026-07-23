@@ -21,6 +21,7 @@ export type PhoneMockupProps = {
   isActive?: boolean;
   programType?: ProgramType;
   programConfig?: ProgramConfig;
+  previewOnly?: boolean;
 };
 
 export function getIconComponent(iconName: string): LucideIcon {
@@ -45,6 +46,7 @@ export function PhoneMockup({
   isActive,
   programType = "stamp",
   programConfig,
+  previewOnly = false,
 }: PhoneMockupProps) {
   const Icon = getIconComponent(iconName);
   const pointsConfig = programConfig as PointsConfig | undefined;
@@ -69,7 +71,7 @@ export function PhoneMockup({
       )}
 
       {/* Phone frame */}
-      <div className="relative h-[480px] w-[235px] shrink-0 overflow-hidden rounded-[42px] border-[10px] border-[#2b2b2b] bg-[#f0f0f0] shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl">
+      <div className={`relative ${previewOnly ? "h-[500px]" : "h-[480px]"} w-[235px] shrink-0 overflow-hidden rounded-[42px] border-[10px] border-[#2b2b2b] bg-[#f0f0f0] shadow-xl ${previewOnly ? "" : "transition-all hover:-translate-y-1 hover:shadow-2xl"}`}>
         {/* Side buttons */}
         <div className="absolute -left-[3px] top-20 h-9 w-[3px] rounded-r-sm bg-[#4a4a4a]" />
         <div className="absolute -left-[3px] top-32 h-12 w-[3px] rounded-r-sm bg-[#4a4a4a]" />
@@ -203,7 +205,7 @@ export function PhoneMockup({
       </div>
 
       {/* Label & action */}
-      <div className="w-[235px]">
+      {!previewOnly && <div className="w-[235px]">
         <h3 className="text-center text-sm font-semibold text-[var(--ink)] truncate">{name || "Untitled"}</h3>
         {actionHref && (
           <Link
@@ -218,7 +220,7 @@ export function PhoneMockup({
             {actionText}
           </Link>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

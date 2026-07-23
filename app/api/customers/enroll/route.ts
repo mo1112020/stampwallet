@@ -103,7 +103,10 @@ export async function POST(request: Request) {
     progress,
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const requestUrl = new URL(request.url);
+  const host = request.headers.get("x-forwarded-host") ?? requestUrl.host;
+  const protocol = request.headers.get("x-forwarded-proto") ?? requestUrl.protocol.replace(":", "");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
 
   return jsonOk(
     {

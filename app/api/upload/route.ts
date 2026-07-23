@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -33,7 +34,33 @@ export async function POST(request: NextRequest) {
   const fileName = `${user.id}/${Date.now()}.${ext}`;
   const bytes = await file.arrayBuffer();
 
-  const { data, error } = await supabase.storage
+  // Upload through the server client when available. This avoids browser-session
+  // RLS failures and lets a fresh installation create its image bucket safely.
+  let storage = supabase;
+  let hasAdminStorage = false;
+  try {
+    storage = createAdminClient();
+    hasAdminStorage = true;
+  } catch {
+    // The authenticated client still works when the storage migration has run.
+  }
+
+  const bucketName = "card-backgrounds";
+  if (hasAdminStorage) {
+    const { error: bucketError } = await storage.storage.getBucket(bucketName);
+    if (bucketError) {
+    const { error: createBucketError } = await storage.storage.createBucket(bucketName, {
+      public: true,
+      fileSizeLimit: 5 * 1024 * 1024,
+      allowedMimeTypes: allowedTypes,
+    });
+    if (createBucketError && !createBucketError.message.toLowerCase().includes("already exists")) {
+      return NextResponse.json({ error: `Could not prepare image storage: ${createBucketError.message}` }, { status: 500 });
+    }
+    }
+  }
+
+  const { error } = await storage.storage
     .from("card-backgrounds")
     .upload(fileName, bytes, {
       contentType: file.type,
@@ -41,10 +68,13 @@ export async function POST(request: NextRequest) {
     });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const setupHint = !hasAdminStorage && /bucket|storage|policy|permission/i.test(error.message)
+      ? " Add SUPABASE_SERVICE_ROLE_KEY to enable automatic storage setup, or apply migration 002_card_backgrounds_storage.sql."
+      : "";
+    return NextResponse.json({ error: `${error.message}${setupHint}` }, { status: 500 });
   }
 
-  const { data: publicUrl } = supabase.storage
+  const { data: publicUrl } = storage.storage
     .from("card-backgrounds")
     .getPublicUrl(fileName);
 

@@ -9,6 +9,15 @@ const cardAppearanceSchema = z.object({
     terms: z.string().max(1000).optional(),
     website: z.string().url().optional(),
   }).optional(),
+  enrollment_page: z.object({
+    style: z.enum(["classic", "editorial", "spotlight"]).optional(),
+    logo_url: z.string().url().optional(),
+    business_name: z.string().max(100).optional(),
+    program_name: z.string().max(100).optional(),
+    description: z.string().max(500).optional(),
+    background_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    button_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  }).optional(),
 });
 
 export const stampConfigSchema = cardAppearanceSchema.extend({

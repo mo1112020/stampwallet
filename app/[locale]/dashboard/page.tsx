@@ -35,6 +35,7 @@ export default async function DashboardHome({
     .eq("merchant_id", user.id)
     .order("created_at", { ascending: false });
 
+
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-10 animate-stagger-1">
@@ -86,6 +87,32 @@ export default async function DashboardHome({
         {/* Always show "create" card at the end */}
         <EmptyPhoneMockup locale={locale} />
       </div>
+
+      {!!programs?.length && (
+        <section className="mt-12 rounded-2xl border border-[var(--line)] bg-white p-5 sm:p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold text-[var(--ink)]">Join pages</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">Open, share, or customize the page customers use to join each program.</p>
+          </div>
+          <div className="divide-y divide-[var(--line)]">
+            {programs.map((program) => {
+              const joinUrl = `/${locale}/pass/new?program=${program.id}`;
+              return (
+                <div key={program.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-[var(--ink)]">{program.name}</p>
+                    <p className={`mt-1 text-sm ${program.is_active ? "text-emerald-700" : "text-[var(--muted)]"}`}>{program.is_active ? "Live and ready to share" : "Paused — join page is unavailable"}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href={`/${locale}/dashboard/programs/${program.id}#join-page`} className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--line)] px-4 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--surface-2)]">Edit join page</Link>
+                    {program.is_active && <a href={joinUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center justify-center rounded-full bg-[var(--primary)] px-4 text-sm font-semibold text-white hover:opacity-95">Open page</a>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Empty state when no programs */}
       {!programs?.length && (
