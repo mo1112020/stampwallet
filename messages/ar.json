@@ -346,7 +346,11 @@
       "security": "الأمان",
       "notifications": "الإشعارات",
       "integrations": "التكاملات",
-      "data": "البيانات"
+      "data": "البيانات",
+      "groups": {
+        "business": "بيانات النشاط",
+        "account": "الحساب"
+      }
     },
     "profile": {
       "loading": "جارٍ التحميل…",
@@ -537,6 +541,14 @@
     },
     "inactiveDays": "غير نشط منذ (أيام)",
     "minPercent": "الحد الأدنى للتقدّم (%)",
+    "program": "البرنامج",
+    "selectProgram": "اختر برنامجًا",
+    "noPrograms": "لا توجد برامج بعد",
+    "preview": "معاينة مباشرة",
+    "previewApple": "شاشة القفل في Apple Wallet",
+    "previewGoogle": "بطاقة Google Wallet",
+    "previewEmptyTitle": "سيظهر العنوان هنا",
+    "previewEmptyMessage": "ستظهر الرسالة هنا",
     "sendNow": "إرسال الآن",
     "schedule": "جدولة لاحقًا",
     "scheduledFor": "الإرسال في",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
+import { buttonVariants } from "@/components/ui/button";
 
 export function PageHero({
   eyebrow,
@@ -29,18 +30,12 @@ export function PageHero({
         {(ctaHref || secondaryHref) && (
           <div className="mt-9 flex flex-wrap gap-3">
             {ctaHref && ctaLabel && (
-              <Link
-                href={ctaHref}
-                className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white hover:opacity-95"
-              >
+              <Link href={ctaHref} className={buttonVariants()}>
                 {ctaLabel}
               </Link>
             )}
             {secondaryHref && secondaryLabel && (
-              <Link
-                href={secondaryHref}
-                className="rounded-full border border-[var(--line)] px-6 py-3 text-sm font-medium text-[var(--ink)] hover:bg-[var(--surface-2)]"
-              >
+              <Link href={secondaryHref} className={buttonVariants({ variant: "outline" })}>
                 {secondaryLabel}
               </Link>
             )}

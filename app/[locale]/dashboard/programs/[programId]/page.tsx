@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { ProgramForm } from "@/components/dashboard/program-form";
@@ -56,14 +57,22 @@ export default async function EditProgramPage({
           <p className="text-sm font-semibold text-[var(--ink)]">Your join page is live</p>
           <p className="mt-1 truncate text-sm text-[var(--muted)]">{enrollUrl}</p>
         </div>
-        <a
-          href={enrollUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-3 inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-5 text-sm font-semibold text-white hover:opacity-95 sm:mt-0"
-        >
-          Open join page
-        </a>
+        <div className="mt-3 flex shrink-0 gap-2 sm:mt-0">
+          <Link
+            href={`/${locale}/dashboard/programs/${program.id}/print`}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--line)] px-5 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--surface-2)]"
+          >
+            Print & marketing
+          </Link>
+          <a
+            href={enrollUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary)] px-5 text-sm font-semibold text-white hover:opacity-95"
+          >
+            Open join page
+          </a>
+        </div>
       </section>
       <ProgramForm
         mode="edit"

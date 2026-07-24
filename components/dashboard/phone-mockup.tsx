@@ -3,8 +3,9 @@
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
-import { type LucideIcon } from "lucide-react";
+import { ExternalLink, type LucideIcon } from "lucide-react";
 import type { PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
 
 export type PhoneMockupProps = {
   name: string;
@@ -22,6 +23,9 @@ export type PhoneMockupProps = {
   programType?: ProgramType;
   programConfig?: ProgramConfig;
   previewOnly?: boolean;
+  /** When provided, the wallet card becomes a real front/back flip card driven by this value — the Card details step. */
+  flipped?: boolean;
+  cardDetails?: { description?: string; terms?: string; website?: string };
 };
 
 export function getIconComponent(iconName: string): LucideIcon {
@@ -47,8 +51,12 @@ export function PhoneMockup({
   programType = "stamp",
   programConfig,
   previewOnly = false,
+  flipped,
+  cardDetails,
 }: PhoneMockupProps) {
   const Icon = getIconComponent(iconName);
+  const reduced = useReducedMotion();
+  const isFlipCard = flipped !== undefined;
   const pointsConfig = programConfig as PointsConfig | undefined;
   const stepsConfig = programConfig as StepsConfig | undefined;
   const rewardDescription = (programConfig as { reward_description?: string } | undefined)?.reward_description;
@@ -87,9 +95,21 @@ export function PhoneMockup({
           <div className="h-11" />
 
           {/* Wallet Card */}
-          <div className="px-3">
+          <div className="px-3 [perspective:1600px]">
             <div
-              className={cn("relative w-full overflow-hidden rounded-2xl shadow-lg", textColor)}
+              className={cn(
+                "relative w-full [transform-style:preserve-3d]",
+                isFlipCard && !reduced && "transition-transform duration-700 ease-[cubic-bezier(0.77,0,0.175,1)]"
+              )}
+              style={isFlipCard && !reduced ? { transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" } : undefined}
+            >
+            <div
+              className={cn(
+                "relative w-full overflow-hidden rounded-2xl shadow-lg",
+                textColor,
+                isFlipCard && "[backface-visibility:hidden]",
+                isFlipCard && reduced && flipped && "hidden"
+              )}
               style={{ backgroundColor: primaryColor }}
             >
               {/* Top image area — fixed height 100px */}
@@ -200,6 +220,52 @@ export function PhoneMockup({
                 <p className="mt-0.5 text-[8px] text-gray-400">Tap ••• for details</p>
               </div>
             </div>
+
+            {isFlipCard && (
+              <div
+                className={cn(
+                  "absolute inset-0 overflow-y-auto rounded-2xl shadow-lg [backface-visibility:hidden]",
+                  textColor,
+                  !reduced && "[transform:rotateY(180deg)]",
+                  reduced && !flipped && "hidden"
+                )}
+                style={{ backgroundColor: primaryColor }}
+              >
+                <div className="px-4 py-4">
+                  <p className="text-[10px] uppercase tracking-[0.2em] opacity-75">{name || "Program name"}</p>
+                  <h4 className="mt-1.5 text-xs font-bold">Card details</h4>
+                  <div className="mt-3 space-y-3 text-[10px] leading-relaxed">
+                    <div>
+                      <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">Reward</p>
+                      <p className="mt-0.5 font-medium">
+                        {programType === "steps" ? (stages.at(-1)?.label ?? "Reward") : (rewardDescription ?? "Free item")}
+                      </p>
+                    </div>
+                    {cardDetails?.description && (
+                      <div>
+                        <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">About</p>
+                        <p className="mt-0.5 whitespace-pre-line opacity-90">{cardDetails.description}</p>
+                      </div>
+                    )}
+                    {cardDetails?.terms && (
+                      <div>
+                        <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">Terms</p>
+                        <p className="mt-0.5 whitespace-pre-line opacity-80">{cardDetails.terms}</p>
+                      </div>
+                    )}
+                    {cardDetails?.website && (
+                      <p className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
+                        <ExternalLink className="h-2.5 w-2.5 shrink-0" /> {cardDetails.website}
+                      </p>
+                    )}
+                    {!cardDetails?.description && !cardDetails?.terms && !cardDetails?.website && (
+                      <p className="opacity-70">Add a welcome message, terms, or a link so members know what to expect.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
+import { buttonVariants } from "@/components/ui/button";
 
 export function CtaBand({
   title,
@@ -22,10 +23,7 @@ export function CtaBand({
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h2>
           <p className="mt-4 text-[var(--muted)]">{description}</p>
         </div>
-        <Link
-          href={href}
-          className="shrink-0 rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white hover:opacity-95"
-        >
+        <Link href={href} className={buttonVariants({ className: "shrink-0" })}>
           {label}
         </Link>
       </Reveal>

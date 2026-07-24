@@ -36,3 +36,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .superpowers/
+
+# local Claude Code / skills tooling (per-developer, not app code)
+.claude/
+.agents/
+skills-lock.json

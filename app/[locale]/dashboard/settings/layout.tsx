@@ -29,14 +29,14 @@ export default async function SettingsLayout({
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl">
       <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
         {t("title")}
       </h1>
-      <div className="mt-6">
+      <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <SettingsNav locale={locale} />
+        <div className="min-w-0 flex-1">{children}</div>
       </div>
-      <div className="mt-6">{children}</div>
     </div>
   );
 }

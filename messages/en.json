@@ -346,7 +346,11 @@
       "security": "Security",
       "notifications": "Notifications",
       "integrations": "Integrations",
-      "data": "Data"
+      "data": "Data",
+      "groups": {
+        "business": "Business",
+        "account": "Account"
+      }
     },
     "profile": {
       "loading": "Loading…",
@@ -537,6 +541,14 @@
     },
     "inactiveDays": "Inactive for (days)",
     "minPercent": "Minimum progress (%)",
+    "program": "Program",
+    "selectProgram": "Select a program",
+    "noPrograms": "No programs yet",
+    "preview": "Live preview",
+    "previewApple": "Apple Wallet lock screen",
+    "previewGoogle": "Google Wallet card",
+    "previewEmptyTitle": "Your title will appear here",
+    "previewEmptyMessage": "Your message will appear here",
     "sendNow": "Send now",
     "schedule": "Schedule for later",
     "scheduledFor": "Send at",

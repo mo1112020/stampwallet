@@ -149,25 +149,24 @@ button {
   }
 }
 
-/* A view change inside the same phone: centered and brief, not a page transition. */
-.preview-screen-swap {
-  animation: previewScreenSwap 180ms var(--ease-out) both;
-  will-change: opacity, transform;
+/* Dashboard route change — app/[locale]/dashboard/template.tsx remounts this on every navigation. */
+.dashboard-page-enter {
+  animation: dashboardPageEnter 360ms var(--ease-out) both;
 }
 
-@keyframes previewScreenSwap {
+@keyframes dashboardPageEnter {
   from {
     opacity: 0;
-    transform: scale(0.985);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .preview-screen-swap {
+  .dashboard-page-enter {
     animation: none;
   }
 }
@@ -224,11 +223,22 @@ button {
   animation: content-out 120ms var(--ease-out) both;
 }
 
+/* Same content-in/out language as Radix popovers, for hand-rolled floating panels
+   (e.g. the language switcher) that aren't Radix primitives but should feel identical. */
+.dropdown-panel[data-state="open"] {
+  animation: content-in 180ms var(--ease-spring) both;
+}
+.dropdown-panel[data-state="closed"] {
+  animation: content-out 120ms var(--ease-out) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-radix-overlay][data-state="open"],
   [data-radix-overlay][data-state="closed"],
   [data-radix-content][data-state="open"],
-  [data-radix-content][data-state="closed"] {
+  [data-radix-content][data-state="closed"],
+  .dropdown-panel[data-state="open"],
+  .dropdown-panel[data-state="closed"] {
     animation: none;
   }
 }

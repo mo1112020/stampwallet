@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { switchLocaleHref } from "@/lib/i18n-nav";
 
 const links = [
   { path: "about", key: "about" as const },
@@ -15,15 +18,6 @@ const links = [
   { path: "pricing", key: "pricing" as const },
   { path: "faq", key: "faq" as const },
 ];
-
-function localeHref(pathname: string, nextLocale: string) {
-  const segments = pathname.split("/");
-  if (segments[1] === "en" || segments[1] === "ar") {
-    segments[1] = nextLocale;
-    return segments.join("/") || `/${nextLocale}`;
-  }
-  return `/${nextLocale}`;
-}
 
 export function MarketingHeader({ locale }: { locale: string }) {
   const t = useTranslations("site.nav");
@@ -97,7 +91,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
 
           <div className="ms-auto hidden items-center gap-1.5 md:flex">
             <Link
-              href={localeHref(pathname, otherLocale)}
+              href={switchLocaleHref(pathname, otherLocale, locale)}
               className="rounded-full px-2.5 py-1.5 text-[12px] font-medium uppercase tracking-wide text-[var(--muted)] hover:text-[var(--ink)]"
               hrefLang={otherLocale}
             >
@@ -111,7 +105,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
             </Link>
             <Link
               href={`/${locale}/signup`}
-              className="rounded-full bg-[var(--primary)] px-4 py-2 text-[13px] font-semibold text-white hover:opacity-95"
+              className={buttonVariants({ size: "sm" })}
             >
               {nav("signup")}
             </Link>
@@ -124,12 +118,35 @@ export function MarketingHeader({ locale }: { locale: string }) {
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? <X size={18} strokeWidth={1.75} /> : <Menu size={18} strokeWidth={1.75} />}
+            <span className="relative flex h-[18px] w-[18px] items-center justify-center">
+              <Menu
+                size={18}
+                strokeWidth={1.75}
+                className={cn(
+                  "absolute transition-[opacity,transform] duration-200 motion-reduce:transition-none",
+                  open ? "rotate-45 opacity-0" : "rotate-0 opacity-100"
+                )}
+              />
+              <X
+                size={18}
+                strokeWidth={1.75}
+                className={cn(
+                  "absolute transition-[opacity,transform] duration-200 motion-reduce:transition-none",
+                  open ? "rotate-0 opacity-100" : "-rotate-45 opacity-0"
+                )}
+              />
+            </span>
           </button>
         </header>
 
-        {open && (
-          <div className="mx-auto mt-3 max-w-5xl rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-sm lg:hidden">
+        <div
+          inert={!open}
+          className={cn(
+            "mx-auto grid max-w-5xl overflow-hidden transition-[grid-template-rows,margin-top] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none lg:hidden",
+            open ? "mt-3 grid-rows-[1fr]" : "mt-0 grid-rows-[0fr]"
+          )}
+        >
+          <div className="overflow-hidden rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-sm">
             <nav className="flex flex-col gap-0.5">
               <Link
                 href={`/${locale}`}
@@ -152,7 +169,10 @@ export function MarketingHeader({ locale }: { locale: string }) {
                 </Link>
               ))}
             </nav>
-            <div className="mt-3 flex items-center gap-2 border-t border-[var(--line)] pt-3">
+            <div className="mt-2 border-t border-[var(--line)] pt-2">
+              <LanguageSwitcher locale={locale} onNavigate={() => setOpen(false)} />
+            </div>
+            <div className="mt-1 flex items-center gap-2 border-t border-[var(--line)] pt-3">
               <Link
                 href={`/${locale}/login`}
                 onClick={() => setOpen(false)}
@@ -163,13 +183,13 @@ export function MarketingHeader({ locale }: { locale: string }) {
               <Link
                 href={`/${locale}/signup`}
                 onClick={() => setOpen(false)}
-                className="ms-auto rounded-full bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white"
+                className={cn(buttonVariants({ size: "sm" }), "ms-auto")}
               >
                 {nav("signup")}
               </Link>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </>
   );

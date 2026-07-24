@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
 import { StaggerGroup } from "@/components/motion/stagger-group";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function PricingPage({
   params,
@@ -62,10 +63,7 @@ export default async function PricingPage({
                 {plan.price}
               </p>
               <p className="mt-3 text-[var(--muted)]">{plan.desc}</p>
-              <Link
-                href={plan.href}
-                className="mt-8 inline-flex rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-95"
-              >
+              <Link href={plan.href} className={buttonVariants({ className: "mt-8" })}>
                 {plan.cta}
               </Link>
             </article>

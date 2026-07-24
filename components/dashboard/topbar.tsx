@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Breadcrumbs } from "@/components/dashboard/breadcrumbs";
 import { NotificationsPopover } from "@/components/dashboard/notifications-popover";
 import { CommandPalette } from "@/components/command-palette";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +42,16 @@ export function DashboardTopbar({
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const el = document.getElementById("dashboard-main");
+    if (!el) return;
+    const onScroll = () => setScrolled(el.scrollTop > 4);
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
 
   const displayName = businessName?.trim() || "Your business";
   const badgeInitial = businessName?.trim()?.charAt(0).toUpperCase() || initial;
@@ -53,10 +64,20 @@ export function DashboardTopbar({
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-[var(--line)] bg-[var(--surface)]/90 px-4 backdrop-blur-md md:px-6">
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-[var(--surface)]/90 px-4 backdrop-blur-md transition-[box-shadow,border-color] duration-300 md:px-6",
+        scrolled
+          ? "border-transparent shadow-[0_8px_24px_-16px_hsl(var(--shadow-color)/0.5)]"
+          : "border-[var(--line)] shadow-none"
+      )}
+    >
       {/* Left: brand + breadcrumbs */}
       <div className="flex min-w-0 items-center gap-4">
-        <Link href={`/${locale}/dashboard`} className="font-brand shrink-0 text-sm text-[var(--ink)]">
+        <Link
+          href={`/${locale}/dashboard`}
+          className="font-brand shrink-0 text-sm text-[var(--ink)] transition-opacity hover:opacity-70"
+        >
           StampWallet
         </Link>
         <div className="hidden h-4 w-px bg-[var(--line)] lg:block" />
@@ -68,7 +89,7 @@ export function DashboardTopbar({
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="hidden items-center gap-2 rounded-full border border-[var(--line)] px-3 py-1.5 text-[13px] text-[var(--muted)] transition-colors hover:border-[var(--line-strong)] hover:text-[var(--ink)] sm:flex"
+          className="hidden items-center gap-2 rounded-full border border-[var(--line)] px-3 py-1.5 text-[13px] text-[var(--muted)] transition-[border-color,color,transform] duration-200 hover:border-[var(--line-strong)] hover:text-[var(--ink)] active:scale-[0.97] sm:flex"
         >
           <Search className="h-3.5 w-3.5" />
           {t("commandPaletteHint")}
@@ -91,7 +112,7 @@ export function DashboardTopbar({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full py-1 pe-2 ps-1 text-[13px] text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+              className="flex items-center gap-2 rounded-full py-1 pe-2 ps-1 text-[13px] text-[var(--ink)] transition-[background-color,transform] duration-200 hover:bg-[var(--surface-2)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
             >
               {logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -137,6 +158,10 @@ export function DashboardTopbar({
                   {t(key)}
                 </button>
               ))}
+            </div>
+            <DropdownMenuSeparator />
+            <div className="px-1.5 pb-1">
+              <LanguageSwitcher locale={locale} triggerClassName="px-2" />
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem destructive onClick={logout}>

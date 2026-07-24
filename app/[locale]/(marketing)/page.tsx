@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CtaBand } from "@/components/marketing/cta-band";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function HomePage({
   params,
@@ -41,16 +42,10 @@ export default async function HomePage({
             </h1>
             <p className="mt-5 max-w-md text-base text-[var(--muted)] md:text-lg">{t("heroSub")}</p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link
-                href={`/${locale}/signup`}
-                className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white hover:opacity-95"
-              >
+              <Link href={`/${locale}/signup`} className={buttonVariants()}>
                 {t("heroCta")}
               </Link>
-              <Link
-                href={`/${locale}/features`}
-                className="rounded-full border border-[var(--line)] px-6 py-3 text-sm font-medium text-[var(--ink)] hover:bg-[var(--surface-2)]"
-              >
+              <Link href={`/${locale}/features`} className={buttonVariants({ variant: "outline" })}>
                 {t("heroSecondary")}
               </Link>
             </div>

@@ -3,8 +3,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { NotificationCampaign, NotificationSend } from "@/types";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { NotificationCampaign, NotificationCampaignStatus, NotificationSend } from "@/types";
+
+const STATUS_VARIANT: Record<NotificationCampaignStatus, "success" | "primary" | "default" | "warning"> = {
+  sent: "success",
+  sending: "primary",
+  scheduled: "primary",
+  draft: "default",
+  canceled: "warning",
+};
 
 type SendWithCustomer = NotificationSend & {
   customer_progress: { customers: { name: string | null } | null } | null;
@@ -41,16 +52,24 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="max-w-2xl">
-      <Button variant="ghost" size="sm" onClick={() => router.push(`/${locale}/dashboard/notifications`)}>
-        ← {t("back")}
-      </Button>
+      <button
+        type="button"
+        onClick={() => router.push(`/${locale}/dashboard/notifications`)}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--muted)] hover:text-[var(--ink)]"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {t("back")}
+      </button>
 
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl text-[var(--primary)]">
-        {campaign.title}
-      </h1>
-      <p className="mt-2 text-[var(--muted)]">{campaign.message}</p>
+      <div className="mt-3 flex items-start justify-between gap-3">
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{campaign.title}</h1>
+        <Badge variant={STATUS_VARIANT[campaign.status]} className="shrink-0 capitalize">
+          {t(`status.${campaign.status}`)}
+        </Badge>
+      </div>
+      <p className="mt-3 text-[var(--muted)]">{campaign.message}</p>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        {t(`status.${campaign.status}`)} · {sends.length} {t("recipients")}
+        {sends.length} {t("recipients")}
       </p>
 
       {(campaign.status === "scheduled" || campaign.status === "draft") && (
@@ -60,23 +79,22 @@ export default function CampaignDetailPage() {
       )}
 
       <div className="mt-8">
-        <p className="text-sm font-semibold text-[var(--ink)]">{t("sendsTitle")}</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">{t("sendsTitle")}</p>
         {sends.length === 0 ? (
-          <p className="mt-2 text-sm text-[var(--muted)]">{t("noSends")}</p>
+          <Card className="mt-3">
+            <p className="p-5 text-sm text-[var(--muted)]">{t("noSends")}</p>
+          </Card>
         ) : (
-          <ul className="mt-3 space-y-2">
+          <div className="mt-3 space-y-2">
             {sends.map((send) => (
-              <li
-                key={send.id}
-                className="flex items-center justify-between rounded-xl border border-[var(--line)] px-4 py-3 text-sm"
-              >
+              <Card key={send.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <span className="text-[var(--ink)]">
                   {send.customer_progress?.customers?.name || t("unknownCustomer")}
                 </span>
                 <span className="text-[var(--muted)]">{t(`sendStatus.${send.status}`)}</span>
-              </li>
+              </Card>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

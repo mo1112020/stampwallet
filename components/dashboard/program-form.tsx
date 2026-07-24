@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { PhoneMockup } from "@/components/dashboard/phone-mockup";
 import { JoinPagePhonePreview } from "@/components/dashboard/join-page-phone-preview";
+import { PreviewCrossfade } from "@/components/motion/preview-crossfade";
+import { cn } from "@/lib/utils";
 import type { EnrollmentPageConfig, EnrollmentPageStyle, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import {
   Coffee, Pizza, Scissors, ShoppingBag, Gift, Star,
@@ -116,6 +118,26 @@ const defaultConfigs: Record<ProgramType, ProgramConfig> = {
   },
 };
 
+// Both create and edit walk the same six steps — editing a program should feel identical
+// to creating one, just pre-filled.
+const STEPS = ["Basic information", "Branding", "Rewards", "Wallet setup", "Card appearance", "Review & save"] as const;
+const STEP_BASIC = 0;
+const STEP_BRANDING = 1;
+const STEP_REWARDS = 2;
+const STEP_WALLET = 3;
+const STEP_CARD = 4;
+const STEP_REVIEW = 5;
+const LAST_STEP = STEPS.length - 1;
+
+function ReviewRow({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
+  return (
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3">
+      <dt className="text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">{label}</dt>
+      <dd className={cn("mt-1 text-sm font-medium text-[var(--ink)]", className)}>{value}</dd>
+    </div>
+  );
+}
+
 type Props = {
   mode: "create" | "edit";
   initial?: {
@@ -158,8 +180,10 @@ export function ProgramForm({
   const [loading, setLoading] = useState(false);
   const [primaryColor, setPrimaryColor] = useState((initial?.config as any)?.primary_color ?? initPrimaryColor);
   const [secondaryColor, setSecondaryColor] = useState((initial?.config as any)?.secondary_color ?? initSecondaryColor);
-  const [createStep, setCreateStep] = useState(0);
-  const [previewMode, setPreviewMode] = useState<"join" | "card">("join");
+  const [step, setStep] = useState(0);
+  // The wallet card is the primary product being designed, so it's the default preview;
+  // it only steps aside for the Wallet setup step, where the join page is what's being edited.
+  const [previewMode, setPreviewMode] = useState<"join" | "card">("card");
   const [selectedIcon, setSelectedIcon] = useState(
     (initial?.config as any)?.icon ?? initialIconName
   );
@@ -173,6 +197,12 @@ export function ProgramForm({
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const logoUploadInputRef = useRef<HTMLInputElement>(null);
   const enrollment = ((config as any).enrollment_page ?? {}) as EnrollmentPageConfig;
+
+  // The preview follows the step being edited — join page only while editing Wallet
+  // setup, the wallet card everywhere else (including Card appearance, so the flip shows).
+  useEffect(() => {
+    setPreviewMode(step === STEP_WALLET ? "join" : "card");
+  }, [step]);
 
   const stampsRequired = (config as any).stamps_required ?? 10;
 
@@ -216,12 +246,12 @@ export function ProgramForm({
   }
 
   function goToNextStep() {
-    if (createStep === 0 && !name.trim()) {
+    if (step === STEP_BASIC && !name.trim()) {
       setError("Give your program a name before continuing.");
       return;
     }
     setError(null);
-    setCreateStep((step) => Math.min(step + 1, 3));
+    setStep((current) => Math.min(current + 1, LAST_STEP));
   }
 
   function updateEnrollment(next: Partial<EnrollmentPageConfig>) {
@@ -286,7 +316,13 @@ export function ProgramForm({
       return;
     }
 
-    router.push(`/${locale}/dashboard/programs/${json.data.id}`);
+    // A freshly created program has nothing to manage yet — the print studio (posters,
+    // stickers, social assets) is the natural next stop. Editing returns to the program.
+    router.push(
+      mode === "create"
+        ? `/${locale}/dashboard/programs/${json.data.id}/print`
+        : `/${locale}/dashboard/programs/${json.data.id}`
+    );
     router.refresh();
   }
 
@@ -306,29 +342,41 @@ export function ProgramForm({
     <div className="flex flex-col-reverse lg:flex-row lg:items-start gap-10">
       <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-8 pb-10">
 
-        {mode === "create" && (
-          <nav aria-label="Program creation steps" className="order-0 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {["Set up", "Rules", "Appearance", "Join page"].map((label, index) => (
-              <button key={label} type="button" onClick={() => setCreateStep(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-medium ${createStep === index ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]" : index < createStep ? "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]" : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"}`}>
-                <span className="mr-1.5 text-xs">{index + 1}</span>{label}
-              </button>
-            ))}
-          </nav>
-        )}
+        <nav aria-label="Program steps" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {STEPS.map((label, index) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setStep(index)}
+              aria-current={step === index ? "step" : undefined}
+              className={cn(
+                "rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors",
+                step === index
+                  ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]"
+                  : index < step
+                    ? "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]"
+                    : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"
+              )}
+            >
+              <span className="mr-1.5 text-xs">{index + 1}</span>
+              {label}
+            </button>
+          ))}
+        </nav>
 
-        {/* Program setup */}
-        <div className={`order-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 0 ? "hidden" : ""}`}>
-          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Program setup</h2>
-          <p className="mb-5 text-sm text-[var(--muted)]">Name the program, choose how members earn rewards, then set its rules below.</p>
+        {/* Step 1 — Basic information */}
+        <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_BASIC && "hidden")}>
+          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Basic information</h2>
+          <p className="mb-5 text-sm text-[var(--muted)]">Name the program and choose how members earn rewards.</p>
           <div className="space-y-6">
             <div>
               <Label htmlFor="name" className="text-[var(--muted)]">Program name</Label>
-              <Input 
-                id="name" 
-                required 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                className="mt-1.5 text-lg" 
+              <Input
+                id="name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1.5 text-lg"
                 placeholder="e.g. VIP Club"
               />
             </div>
@@ -344,8 +392,8 @@ export function ProgramForm({
                       aria-pressed={type === t}
                       onClick={() => switchType(t)}
                       className={`rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-all ${
-                        type === t 
-                          ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] shadow-sm" 
+                        type === t
+                          ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] shadow-sm"
                           : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"
                       }`}
                     >
@@ -358,13 +406,26 @@ export function ProgramForm({
                 </div>
               </div>
             )}
+
+            {mode === "edit" && (
+              <label className="flex items-center gap-3 text-sm font-medium text-[var(--ink)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="h-5 w-5 rounded border-[var(--line-strong)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+                Program is active
+              </label>
+            )}
           </div>
         </div>
 
-        {/* Appearance Section */}
-        <div className={`order-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 2 ? "hidden" : ""}`}>
-          <h2 className="mb-4 text-lg font-semibold text-[var(--ink)]">Appearance</h2>
-          
+        {/* Step 2 — Branding */}
+        <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_BRANDING && "hidden")}>
+          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Branding</h2>
+          <p className="mb-5 text-sm text-[var(--muted)]">Set the card's colors and background image.</p>
+
           <div className="mb-6 flex flex-wrap items-center gap-6 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
             <div className="flex-1">
               <Label htmlFor="primaryColor" className="text-[var(--muted)]">Card Color</Label>
@@ -505,11 +566,13 @@ export function ProgramForm({
               </div>
             </div>
           )}
+        </div>
 
-        <div className="mt-8 border-t border-[var(--line)] pt-6">
-          <h3 className="text-sm font-semibold text-[var(--ink)]">Card details</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">These appear when a member opens “More details” on their pass.</p>
-          <div className="mt-4 space-y-4">
+        {/* Step 5 — Card appearance (the pass's "back" — this is what the live preview flips to) */}
+        <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_CARD && "hidden")}>
+          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Card appearance</h2>
+          <p className="mb-5 text-sm text-[var(--muted)]">These appear when a member opens “More details” on their pass — the back of the card in the preview.</p>
+          <div className="space-y-4">
             <div>
               <Label htmlFor="cardDescription" className="text-[var(--muted)]">Welcome message</Label>
               <Textarea
@@ -544,14 +607,16 @@ export function ProgramForm({
             </div>
           </div>
         </div>
-      </div>
 
-        {/* Join page */}
-        <section id="join-page" className={`order-4 scroll-mt-8 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 3 ? "hidden" : ""}`}>
+        {/* Step 4 — Wallet setup (the join/enrollment page members see before adding the pass) */}
+        <section
+          id="join-page"
+          className={cn("scroll-mt-8 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_WALLET && "hidden")}
+        >
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-[var(--ink)]">Customize join page</h2>
-              <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">This is the public page people see before adding your loyalty pass. It starts with your business details.</p>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">Wallet setup</h2>
+              <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">This is the public join page people see before adding your loyalty pass to their wallet. It starts with your business details.</p>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => updateEnrollment({ business_name: "", program_name: "", description: "", logo_url: "" })}>
               Use business defaults
@@ -619,9 +684,9 @@ export function ProgramForm({
 
         </section>
 
-        {/* Program rules */}
-      <div className={`order-2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm ${mode === "create" && createStep !== 1 ? "hidden" : ""}`}>
-        <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Program rules</h2>
+        {/* Step 3 — Rewards */}
+      <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_REWARDS && "hidden")}>
+        <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Rewards</h2>
         <p className="mb-5 text-sm text-[var(--muted)]">
           {type === "stamp" && "Decide how many visits unlock the reward."}
           {type === "points" && "Set the balance members need before they can claim their reward."}
@@ -804,39 +869,67 @@ export function ProgramForm({
         )}
       </div>
 
-      {mode === "edit" && (
-        <div className="order-4 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm">
-          <label className="flex items-center gap-3 text-sm font-medium text-[var(--ink)] cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={isActive} 
-              onChange={(e) => setIsActive(e.target.checked)} 
-              className="h-5 w-5 rounded border-[var(--line-strong)] text-[var(--primary)] focus:ring-[var(--primary)]"
-            />
-            Program is Active
-          </label>
-        </div>
-      )}
+      {/* Step 6 — Review & save */}
+      <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_REVIEW && "hidden")}>
+        <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Review & save</h2>
+        <p className="mb-5 text-sm text-[var(--muted)]">
+          Double-check the details below, then {mode === "create" ? "create" : "save"} your program.
+        </p>
+        <dl className="grid gap-3 sm:grid-cols-2">
+          <ReviewRow label="Program name" value={name || "Untitled"} />
+          <ReviewRow label="Type" value={type} className="capitalize" />
+          <ReviewRow
+            label="Reward rule"
+            value={
+              type === "stamp"
+                ? `${stampsRequired} stamps → ${(config as any).reward_description || "reward"}`
+                : type === "points"
+                  ? `${(config as any).points_per_reward} ${(config as any).points_label || "pts"} → ${(config as any).reward_description || "reward"}`
+                  : `${(config as StepsConfig).stages.length} stages`
+            }
+          />
+          <ReviewRow
+            label="Colors"
+            value={
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-4 w-4 rounded-full border border-[var(--line)]" style={{ background: primaryColor }} />
+                <span className="h-4 w-4 rounded-full border border-[var(--line)]" style={{ background: secondaryColor }} />
+              </span>
+            }
+          />
+          <ReviewRow label="Background image" value={backgroundImage ? "Custom photo" : "None"} />
+          <ReviewRow label="Join page style" value={enrollment.style ?? "classic"} className="capitalize" />
+          <ReviewRow
+            label="Card details"
+            value={
+              (config as any).details?.description || (config as any).details?.terms || (config as any).details?.website
+                ? "Added"
+                : "Not set"
+            }
+          />
+          {mode === "edit" && <ReviewRow label="Status" value={isActive ? "Active" : "Inactive"} />}
+        </dl>
+      </div>
 
       {error && (
-        <div className="order-5 rounded-xl bg-[var(--danger-soft)] p-4 text-sm text-[var(--danger)] border border-[var(--danger)]/20">
+        <div className="rounded-xl bg-[var(--danger-soft)] p-4 text-sm text-[var(--danger)] border border-[var(--danger)]/20">
           {error}
         </div>
       )}
 
-      <div className="order-6 flex flex-col gap-3 border-t border-[var(--line)] pt-4 sm:flex-row">
-        {mode === "create" && createStep > 0 && (
-          <Button type="button" variant="outline" onClick={() => setCreateStep((step) => step - 1)}>
+      <div className="flex flex-col gap-3 border-t border-[var(--line)] pt-4 sm:flex-row">
+        {step > 0 && (
+          <Button type="button" variant="outline" onClick={() => setStep((current) => current - 1)}>
             Back
           </Button>
         )}
-        {mode === "create" && createStep < 3 ? (
+        {step < LAST_STEP ? (
           <Button type="button" className="w-full sm:w-auto h-11 px-8 text-base font-semibold" onClick={goToNextStep}>
             Continue
           </Button>
         ) : (
           <Button type="submit" className="w-full sm:w-auto h-11 px-8 text-base font-semibold" disabled={loading}>
-            {loading ? "Saving…" : "Save program"}
+            {loading ? "Saving…" : mode === "create" ? "Create program" : "Save changes"}
           </Button>
         )}
         {mode === "edit" && (
@@ -857,33 +950,45 @@ export function ProgramForm({
           <button type="button" onClick={() => setPreviewMode("card")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "card" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Wallet card</button>
         </div>
         
-        <div className="relative flex h-[532px] w-full justify-center overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] p-4 shadow-sm">
-          <div key={previewMode} className="preview-screen-swap absolute inset-x-0 top-4 flex justify-center">
-          {previewMode === "join" ? (
-            <JoinPagePhonePreview
-              businessName={enrollment.business_name || businessName}
-              programName={enrollment.program_name || name || "Your loyalty program"}
-              description={enrollment.description || "Join today, collect rewards, and keep your pass in your phone wallet."}
-              logoUrl={enrollment.logo_url || businessLogo}
-              backgroundColor={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")}
-              buttonColor={enrollment.button_color ?? primaryColor}
-              style={enrollment.style ?? "classic"}
-            />
-          ) : (
-            <PhoneMockup
-              name={name || businessName}
-              primaryColor={primaryColor}
-              secondaryColor={secondaryColor}
-              iconName={selectedIcon}
-              backgroundImage={backgroundImage}
-              programType={type}
-              programConfig={config}
-              stampsRequired={stampsRequired}
-              stampsCollected={3}
-              previewOnly
-            />
-          )}
-          </div>
+        <div className="relative h-[532px] w-full overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] p-4 shadow-sm">
+          <PreviewCrossfade
+            activeKey={previewMode}
+            panels={[
+              {
+                key: "join",
+                content: (
+                  <JoinPagePhonePreview
+                    businessName={enrollment.business_name || businessName}
+                    programName={enrollment.program_name || name || "Your loyalty program"}
+                    description={enrollment.description || "Join today, collect rewards, and keep your pass in your phone wallet."}
+                    logoUrl={enrollment.logo_url || businessLogo}
+                    backgroundColor={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")}
+                    buttonColor={enrollment.button_color ?? primaryColor}
+                    style={enrollment.style ?? "classic"}
+                  />
+                ),
+              },
+              {
+                key: "card",
+                content: (
+                  <PhoneMockup
+                    name={name || businessName}
+                    primaryColor={primaryColor}
+                    secondaryColor={secondaryColor}
+                    iconName={selectedIcon}
+                    backgroundImage={backgroundImage}
+                    programType={type}
+                    programConfig={config}
+                    stampsRequired={stampsRequired}
+                    stampsCollected={3}
+                    previewOnly
+                    flipped={step === STEP_CARD}
+                    cardDetails={(config as any).details}
+                  />
+                ),
+              },
+            ]}
+          />
         </div>
       </div>
     </div>
