@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -24,31 +24,66 @@ function Recenter({ lat, lng }: { lat: number; lng: number }) {
   return null;
 }
 
+function ClickToPick({ onPick }: { onPick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onPick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 export function LocationMap({
   latitude,
   longitude,
   radiusMeters,
+  onPick,
+  interactive = false,
 }: {
   latitude: number;
   longitude: number;
   radiusMeters: number;
+  /** When provided, clicking (and dragging the marker) sets the location — the map becomes the picker. */
+  onPick?: (lat: number, lng: number) => void;
+  interactive?: boolean;
 }) {
   return (
-    <div className="h-64 w-full overflow-hidden rounded-2xl border border-[var(--line)]">
+    <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-[var(--line)]">
       <MapContainer
         center={[latitude, longitude]}
         zoom={15}
         scrollWheelZoom={false}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", cursor: onPick ? "crosshair" : undefined }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[latitude, longitude]} icon={markerIcon} />
+        <Marker
+          position={[latitude, longitude]}
+          icon={markerIcon}
+          draggable={Boolean(onPick)}
+          eventHandlers={
+            onPick
+              ? {
+                  dragend: (e) => {
+                    const marker = e.target as L.Marker;
+                    const pos = marker.getLatLng();
+                    onPick(pos.lat, pos.lng);
+                  },
+                }
+              : undefined
+          }
+        />
         <Circle center={[latitude, longitude]} radius={radiusMeters} pathOptions={{ color: "#3E0856" }} />
         <Recenter lat={latitude} lng={longitude} />
+        {onPick && <ClickToPick onPick={onPick} />}
       </MapContainer>
+      {interactive && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2.5 text-center text-xs font-medium text-white">
+          Tap the map (or drag the pin) to set the location
+        </div>
+      )}
     </div>
   );
 }

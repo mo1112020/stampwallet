@@ -44,7 +44,7 @@ export const A4Poster = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 20 }}>
         <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", opacity: 0.75 }}>{t.joinTheProgram}</span>
-        <h1 style={{ fontSize: 56, fontWeight: 800, lineHeight: 1.08, margin: 0, maxWidth: 560 }}>{data.programName}</h1>
+        <h1 style={{ fontSize: 56, fontWeight: 800, lineHeight: 1.08, margin: 0, maxWidth: 560, color: text }}>{data.programName}</h1>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
@@ -114,7 +114,7 @@ export const TableTent = forwardRef<HTMLDivElement, PrintTemplateData>((data, re
       }}
     >
       <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={44} />
-      <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{data.programName}</h2>
+      <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, lineHeight: 1.2, color: text }}>{data.programName}</h2>
       <QrPanel padding={12} qrNode={<QrCodeImage value={data.qrValue} size={110} dark="#111111" />} />
       <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.5 }}>{t.scanToJoin}</span>
     </div>
@@ -241,7 +241,7 @@ export const SocialSquare = forwardRef<HTMLDivElement, PrintTemplateData>((data,
         <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={72} />
         <span style={{ fontSize: 26, fontWeight: 700, opacity: 0.9 }}>{data.businessName}</span>
       </div>
-      <h1 style={{ fontSize: 64, fontWeight: 800, margin: 0, lineHeight: 1.1, maxWidth: 800 }}>{data.programName}</h1>
+      <h1 style={{ fontSize: 64, fontWeight: 800, margin: 0, lineHeight: 1.1, maxWidth: 800, color: text }}>{data.programName}</h1>
       <QrPanel padding={32} label={t.scanToJoin} qrNode={<QrCodeImage value={data.qrValue} size={260} dark="#111111" />} />
       <WalletBadges height={30} />
     </div>
@@ -274,7 +274,7 @@ export const InstagramStory = forwardRef<HTMLDivElement, PrintTemplateData>((dat
       </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 40 }}>
-        <h1 style={{ fontSize: 68, fontWeight: 800, margin: 0, lineHeight: 1.1 }}>{data.programName}</h1>
+        <h1 style={{ fontSize: 68, fontWeight: 800, margin: 0, lineHeight: 1.1, color: text }}>{data.programName}</h1>
         <QrPanel padding={32} label={t.scanToJoin} qrNode={<QrCodeImage value={data.qrValue} size={280} dark="#111111" />} />
       </div>
 

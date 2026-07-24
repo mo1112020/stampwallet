@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { CreditCard, FileText, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, CreditCard, FileText, Minus, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,36 @@ type Invoice = {
 const UPGRADE_PLANS: { plan: "starter" | "pro"; blurb: string }[] = [
   { plan: "starter", blurb: "For growing businesses ready to customize their brand." },
   { plan: "pro", blurb: "For established loyalty programs across multiple locations." },
+];
+
+const COMPARE_PLANS: Plan[] = ["free", "starter", "pro", "enterprise"];
+
+function limitLabel(value: number | null) {
+  return value === null ? "Unlimited" : value.toLocaleString();
+}
+
+const COMPARE_ROWS: { label: string; sub?: string; render: (plan: Plan) => React.ReactNode }[] = [
+  { label: "Active programs", render: (p) => limitLabel(PLAN_LIMITS[p].maxActivePrograms) },
+  { label: "Customers", render: (p) => limitLabel(PLAN_LIMITS[p].maxActiveCustomers) },
+  { label: "Team seats", render: (p) => limitLabel(PLAN_LIMITS[p].maxSeats) },
+  {
+    label: "Store locations",
+    sub: "Geo-push on Apple & Google Wallet",
+    render: (p) => limitLabel(PLAN_LIMITS[p].maxLocations),
+  },
+  {
+    label: "Custom branding",
+    render: (p) =>
+      PLAN_LIMITS[p].customBranding ? (
+        <Check className="mx-auto h-4 w-4 text-[var(--success)]" />
+      ) : (
+        <Minus className="mx-auto h-4 w-4 text-[var(--muted)]" />
+      ),
+  },
+  { label: "Apple & Google Wallet passes", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },
+  { label: "Wallet-native notifications", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },
+  { label: "Printable marketing materials", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },
+  { label: "Analytics dashboard", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },
 ];
 
 function UsageBar({ used, limit }: { used: number; limit: number | null }) {
@@ -176,6 +206,56 @@ export default function BillingPage() {
             );
           })}
         </StaggerGroup>
+      </section>
+
+      {/* Compare plans */}
+      <section className="mt-8">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">Compare plans</h3>
+        <Card className="mt-3 overflow-x-auto p-0">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead>
+              <tr className="border-b border-[var(--line)]">
+                <th className="px-5 py-3 text-start text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  Features
+                </th>
+                {COMPARE_PLANS.map((plan) => (
+                  <th key={plan} className="px-5 py-3 text-center">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold uppercase tracking-wide",
+                        merchant?.plan === plan ? "text-[var(--primary)]" : "text-[var(--muted)]"
+                      )}
+                    >
+                      {plan}
+                    </span>
+                    {merchant?.plan === plan && <Badge variant="primary" className="ms-2">Current</Badge>}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--line)]">
+              {COMPARE_ROWS.map((row) => (
+                <tr key={row.label}>
+                  <td className="px-5 py-3.5">
+                    <p className="font-medium text-[var(--ink)]">{row.label}</p>
+                    {row.sub && <p className="mt-0.5 text-xs text-[var(--muted)]">{row.sub}</p>}
+                  </td>
+                  {COMPARE_PLANS.map((plan) => (
+                    <td
+                      key={plan}
+                      className={cn(
+                        "px-5 py-3.5 text-center text-[var(--ink)]",
+                        merchant?.plan === plan && "bg-[var(--primary-soft)]/40"
+                      )}
+                    >
+                      {row.render(plan)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
       </section>
 
       {/* Usage */}

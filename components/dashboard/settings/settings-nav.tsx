@@ -63,8 +63,11 @@ export function SettingsNav({ locale }: { locale: string }) {
         </Link>
       </nav>
 
-      {/* Desktop — grouped sidebar */}
-      <nav aria-label={tSettings("title")} className="hidden lg:flex lg:w-56 lg:shrink-0 lg:flex-col lg:gap-5">
+      {/* Desktop — grouped sidebar, stays in view while the settings content scrolls */}
+      <nav
+        aria-label={tSettings("title")}
+        className="hidden lg:sticky lg:top-8 lg:flex lg:max-h-[calc(100vh-4rem)] lg:w-60 lg:shrink-0 lg:flex-col lg:gap-5 lg:self-start lg:overflow-y-auto"
+      >
         {groups.map((group, i) => (
           <div key={i}>
             {group.label && (

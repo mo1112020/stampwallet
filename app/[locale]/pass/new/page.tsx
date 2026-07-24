@@ -9,7 +9,7 @@ import type { EnrollmentPageConfig, EnrollmentPageStyle } from "@/types";
 type JoinPageData = {
   id: string;
   name: string;
-  config: { enrollment_page?: EnrollmentPageConfig };
+  config: { enrollment_page?: EnrollmentPageConfig; primary_color?: string; secondary_color?: string };
   merchants: { business_name: string; logo_url: string | null; brand_color_primary: string; brand_color_secondary: string } | null;
 };
 
@@ -68,7 +68,11 @@ function EnrollForm() {
   const programName = page.program_name || program.name;
   const logo = page.logo_url || merchant?.logo_url;
   const description = page.description || copy;
-  const color = page.button_color || merchant?.brand_color_primary || "#1f57e7";
+  // Same priority as the wizard's live preview (components/dashboard/program-form.tsx):
+  // an explicit join-page override, else the program's own card color, else the
+  // account-wide brand color — a program can be styled differently from the
+  // merchant's default, and the join page must match what the merchant designed.
+  const color = page.button_color || program.config.primary_color || merchant?.brand_color_primary || "#1f57e7";
   const pageBackground = page.background_color || (page.style === "spotlight" ? color : "#f6f6f6");
   const spotlight = style === "spotlight";
   const editorial = style === "editorial";

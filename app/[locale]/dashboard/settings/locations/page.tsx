@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { ChevronDown, MapPin } from "lucide-react";
+import { ChevronDown, Crosshair, Loader2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -23,12 +23,11 @@ const LocationMap = dynamic(
 );
 
 const METERS_TO_FEET = 3.28084;
+const FALLBACK_CENTER = { lat: 24.7136, lng: 46.6753 };
 
 const emptyForm = {
   name: "",
   address: "",
-  latitude: "",
-  longitude: "",
   radius_meters: "150",
   relevant_text: "",
   program_ids: [] as string[],
@@ -41,6 +40,10 @@ export default function LocationsSettingsPage() {
   const [merchant, setMerchant] = useState<{ business_name: string; logo_url: string | null; plan: Plan } | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
+  const [pickedLat, setPickedLat] = useState<number | null>(null);
+  const [pickedLng, setPickedLng] = useState<number | null>(null);
+  const [mapCenter, setMapCenter] = useState(FALLBACK_CENTER);
+  const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,11 +66,41 @@ export default function LocationsSettingsPage() {
     load();
   }, [load]);
 
+  // Best-effort: center the map near the merchant on first load, silently falling
+  // back if geolocation is unavailable or denied — never blocks the page.
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setMapCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 5000 }
+    );
+  }, []);
+
   const limit = merchant ? PLAN_LIMITS[merchant.plan].maxLocations : null;
   const atLimit = limit !== null && locations.length >= limit;
 
+  function useMyLocation() {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPickedLat(pos.coords.latitude);
+        setPickedLng(pos.coords.longitude);
+        setMapCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  }
+
   async function addLocation(e: React.FormEvent) {
     e.preventDefault();
+    if (pickedLat === null || pickedLng === null) {
+      setError(t("previewHint"));
+      return;
+    }
     setSaving(true);
     setError(null);
     const res = await fetch("/api/settings/locations", {
@@ -76,8 +109,8 @@ export default function LocationsSettingsPage() {
       body: JSON.stringify({
         name: form.name,
         address: form.address || null,
-        latitude: Number(form.latitude),
-        longitude: Number(form.longitude),
+        latitude: pickedLat,
+        longitude: pickedLng,
         radius_meters: Number(form.radius_meters) || 150,
         relevant_text: form.relevant_text || null,
         program_ids: form.program_ids,
@@ -90,6 +123,8 @@ export default function LocationsSettingsPage() {
       return;
     }
     setForm(emptyForm);
+    setPickedLat(null);
+    setPickedLng(null);
     load();
   }
 
@@ -114,9 +149,7 @@ export default function LocationsSettingsPage() {
     }));
   }
 
-  const previewLat = Number(form.latitude);
-  const previewLng = Number(form.longitude);
-  const hasPreview = form.latitude !== "" && form.longitude !== "" && !Number.isNaN(previewLat) && !Number.isNaN(previewLng);
+  const hasPicked = pickedLat !== null && pickedLng !== null;
   const radiusMeters = Number(form.radius_meters) || 150;
 
   const applyToCardsLabel =
@@ -132,18 +165,18 @@ export default function LocationsSettingsPage() {
   return (
     <div className="max-w-5xl">
       <Reveal as="div" className="flex flex-wrap items-center gap-3">
-        <p className="text-sm text-[var(--muted)]">{t("intro")}</p>
+        <p className="text-xs text-[var(--muted)] sm:text-sm">{t("intro")}</p>
       </Reveal>
-      <Badge variant="primary" className="mt-3">
+      <Badge variant="primary" className="mt-3 text-[11px] sm:text-xs">
         <MapPin className="h-3 w-3" />
         {t("geoPushBadge", { meters: radiusMeters, feet: Math.round(radiusMeters * METERS_TO_FEET) })}
       </Badge>
       {limit !== null && (
-        <p className="mt-2 text-xs text-[var(--muted)]">{t("limitNote", { limit })}</p>
+        <p className="mt-2 text-[11px] text-[var(--muted)] sm:text-xs">{t("limitNote", { limit })}</p>
       )}
 
       {atLimit && (
-        <div className="mt-4 rounded-xl bg-[var(--surface-2)] px-4 py-3 text-center text-sm text-[var(--muted)]">
+        <div className="mt-4 rounded-xl bg-[var(--surface-2)] px-4 py-3 text-center text-xs text-[var(--muted)] sm:text-sm">
           {t("limitReached")}
         </div>
       )}
@@ -151,41 +184,51 @@ export default function LocationsSettingsPage() {
       {!atLimit && (
         <div className="mt-6 flex flex-col-reverse gap-8 lg:flex-row lg:items-start">
           <form onSubmit={addLocation} className="flex-1 space-y-5">
-            <Card className="space-y-4 p-6">
+            <Card className="space-y-4 p-5 sm:p-6">
               <div>
-                <Label htmlFor="name">{t("name")}</Label>
-                <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Label htmlFor="name" className="text-xs sm:text-[13px]">{t("name")}</Label>
+                <Input
+                  id="name"
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="text-sm"
+                />
               </div>
               <div>
-                <Label htmlFor="address">{t("address")}</Label>
-                <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                <Label htmlFor="address" className="text-xs sm:text-[13px]">{t("address")}</Label>
+                <Input
+                  id="address"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  className="text-sm"
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="lat">{t("latitude")}</Label>
-                  <Input
-                    id="lat"
-                    type="number"
-                    step="any"
-                    required
-                    value={form.latitude}
-                    onChange={(e) => setForm({ ...form, latitude: e.target.value })}
+
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs sm:text-[13px]">{hasPicked ? "" : t("previewHint")}</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={useMyLocation} disabled={locating}>
+                    {locating ? <Loader2 className="me-1.5 h-3.5 w-3.5 animate-spin" /> : <Crosshair className="me-1.5 h-3.5 w-3.5" />}
+                    Use my location
+                  </Button>
+                </div>
+                <div className="mt-2">
+                  <LocationMap
+                    latitude={pickedLat ?? mapCenter.lat}
+                    longitude={pickedLng ?? mapCenter.lng}
+                    radiusMeters={radiusMeters}
+                    onPick={(lat, lng) => {
+                      setPickedLat(lat);
+                      setPickedLng(lng);
+                    }}
+                    interactive
                   />
                 </div>
-                <div>
-                  <Label htmlFor="lng">{t("longitude")}</Label>
-                  <Input
-                    id="lng"
-                    type="number"
-                    step="any"
-                    required
-                    value={form.longitude}
-                    onChange={(e) => setForm({ ...form, longitude: e.target.value })}
-                  />
-                </div>
               </div>
+
               <div>
-                <Label htmlFor="radius">{t("radius")}</Label>
+                <Label htmlFor="radius" className="text-xs sm:text-[13px]">{t("radius")}</Label>
                 <Input
                   id="radius"
                   type="number"
@@ -193,11 +236,12 @@ export default function LocationsSettingsPage() {
                   max={5000}
                   value={form.radius_meters}
                   onChange={(e) => setForm({ ...form, radius_meters: e.target.value })}
+                  className="text-sm"
                 />
               </div>
 
               <div>
-                <Label htmlFor="message">{t("message")}</Label>
+                <Label htmlFor="message" className="text-xs sm:text-[13px]">{t("message")}</Label>
                 <Textarea
                   id="message"
                   rows={2}
@@ -205,11 +249,12 @@ export default function LocationsSettingsPage() {
                   value={form.relevant_text}
                   onChange={(e) => setForm({ ...form, relevant_text: e.target.value })}
                   placeholder={t("messagePlaceholder", { business: merchant?.business_name || "Your business" })}
+                  className="text-sm"
                 />
               </div>
 
               <div>
-                <Label>{t("applyToCards")}</Label>
+                <Label className="text-xs sm:text-[13px]">{t("applyToCards")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
@@ -241,37 +286,33 @@ export default function LocationsSettingsPage() {
                     )}
                   </PopoverContent>
                 </Popover>
-                <p className="mt-1.5 text-xs text-[var(--muted)]">{t("allCards")}</p>
+                <p className="mt-1.5 text-[11px] text-[var(--muted)] sm:text-xs">{t("allCards")}</p>
               </div>
 
-              {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-              <Button type="submit" disabled={saving}>
+              {error && <p className="text-xs text-[var(--danger)] sm:text-sm">{error}</p>}
+              <Button type="submit" disabled={saving} className="text-sm">
                 {saving ? t("saving") : t("addLocation")}
               </Button>
             </Card>
-
-            {hasPreview && (
-              <Card className="p-4">
-                <LocationMap latitude={previewLat} longitude={previewLng} radiusMeters={radiusMeters} />
-              </Card>
-            )}
           </form>
 
           <div className="w-full shrink-0 lg:sticky lg:top-8 lg:w-[260px]">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">{t("previewTitle")}</p>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)] sm:text-xs">
+              {t("previewTitle")}
+            </p>
             <LocationPushPreview
               message={previewMessage}
               businessName={merchant?.business_name ?? ""}
               logoUrl={merchant?.logo_url}
               active
             />
-            <p className="mt-3 text-center text-xs text-[var(--muted)]">{t("previewCaption")}</p>
+            <p className="mt-3 text-center text-[11px] text-[var(--muted)] sm:text-xs">{t("previewCaption")}</p>
           </div>
         </div>
       )}
 
       <div className="mt-10">
-        <p className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">{t("listTitle")}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)] sm:text-sm">{t("listTitle")}</p>
         {loading ? (
           <div className="mt-3 space-y-2">
             <SkeletonRow />
@@ -279,15 +320,15 @@ export default function LocationsSettingsPage() {
           </div>
         ) : locations.length === 0 ? (
           <Card className="mt-3">
-            <p className="p-5 text-sm text-[var(--muted)]">{t("noLocations")}</p>
+            <p className="p-5 text-xs text-[var(--muted)] sm:text-sm">{t("noLocations")}</p>
           </Card>
         ) : (
           <StaggerGroup className="mt-3 space-y-2">
             {locations.map((loc) => (
               <Card key={loc.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-[var(--ink)]">{loc.name}</p>
-                  <p className="truncate text-sm text-[var(--muted)]">
+                  <p className="truncate text-sm font-medium text-[var(--ink)]">{loc.name}</p>
+                  <p className="truncate text-xs text-[var(--muted)] sm:text-sm">
                     {loc.address || `${loc.latitude}, ${loc.longitude}`} · {loc.radius_meters}m
                     {loc.program_ids.length > 0 && ` · ${loc.program_ids.length} program(s)`}
                   </p>
@@ -310,7 +351,7 @@ export default function LocationsSettingsPage() {
                       )}
                     />
                   </button>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => remove(loc.id)}>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => remove(loc.id)} className="text-xs sm:text-sm">
                     {t("remove")}
                   </Button>
                 </div>

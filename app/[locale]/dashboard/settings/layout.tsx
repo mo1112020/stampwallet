@@ -20,22 +20,18 @@ export default async function SettingsLayout({
   if (!roleHasCapability(session.role, "manage_settings")) {
     return (
       <div>
-        <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
-          {t("title")}
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{t("title")}</h1>
         <p className="mt-4 text-sm text-[var(--muted)]">{t("noAccess")}</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
-        {t("title")}
-      </h1>
+    <div className="mx-auto max-w-6xl">
+      <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{t("title")}</h1>
       <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <SettingsNav locale={locale} />
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1 lg:border-s lg:border-[var(--line)] lg:ps-10">{children}</div>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import {
   Utensils, Croissant, Beer, Flower2, Shirt, Dog,
   Gamepad2, Paintbrush, Wine, Flame, CircleDot,
   Heart, Camera, Zap, Globe, Home, Leaf, Sun, Moon,
-  Ticket, Apple, Soup, IceCream, Sandwich, ChevronDown, ChevronUp, ImageUp,
+  Ticket, Apple, Soup, IceCream, Sandwich, ChevronDown, ChevronUp, ImageUp, Loader2,
 } from "lucide-react";
 
 // Pre-made background images (Unsplash)
@@ -192,7 +192,8 @@ export function ProgramForm({
   );
   const [showAllIcons, setShowAllIcons] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingBackground, setUploadingBackground] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const logoUploadInputRef = useRef<HTMLInputElement>(null);
@@ -262,13 +263,13 @@ export function ProgramForm({
   }
 
   async function uploadBackground(file: File) {
-    setUploadingImage(true);
+    setUploadingBackground(true);
     setUploadError(null);
     const formData = new FormData();
     formData.append("file", file);
     const response = await fetch("/api/upload", { method: "POST", body: formData });
     const result = await response.json();
-    setUploadingImage(false);
+    setUploadingBackground(false);
     if (!response.ok) {
       setUploadError(result.error ?? "Could not upload that image.");
       return;
@@ -277,13 +278,13 @@ export function ProgramForm({
   }
 
   async function uploadJoinLogo(file: File) {
-    setUploadingImage(true);
+    setUploadingLogo(true);
     setUploadError(null);
     const formData = new FormData();
     formData.append("file", file);
     const response = await fetch("/api/upload", { method: "POST", body: formData });
     const result = await response.json();
-    setUploadingImage(false);
+    setUploadingLogo(false);
     if (!response.ok) {
       setUploadError(result.error ?? "Could not upload that logo.");
       return;
@@ -473,6 +474,11 @@ export function ProgramForm({
                 ) : (
                   <span className="text-xs font-medium text-[var(--muted)]">None</span>
                 )}
+                {uploadingBackground && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                    <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  </div>
+                )}
               </div>
               <Button type="button" variant="outline" onClick={() => setShowAllPhotos(true)}>
                 Choose a photo
@@ -555,9 +561,13 @@ export function ProgramForm({
                         event.currentTarget.value = "";
                       }}
                     />
-                    <Button type="button" variant="outline" onClick={() => uploadInputRef.current?.click()} disabled={uploadingImage}>
-                      <ImageUp className="mr-2 h-4 w-4" />
-                      {uploadingImage ? "Uploading…" : "Upload your own"}
+                    <Button type="button" variant="outline" onClick={() => uploadInputRef.current?.click()} disabled={uploadingBackground}>
+                      {uploadingBackground ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <ImageUp className="mr-2 h-4 w-4" />
+                      )}
+                      {uploadingBackground ? "Uploading…" : "Upload your own"}
                     </Button>
                     {uploadError && <span className="text-sm text-[var(--danger)]">{uploadError}</span>}
                   </div>
@@ -672,7 +682,10 @@ export function ProgramForm({
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input id="joinLogo" type="url" value={enrollment.logo_url ?? ""} onChange={(event) => updateEnrollment({ logo_url: event.target.value })} placeholder={businessLogo ?? "https://example.com/logo.png"} />
                 <input ref={logoUploadInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) uploadJoinLogo(file); event.currentTarget.value = ""; }} />
-                <Button type="button" variant="outline" onClick={() => logoUploadInputRef.current?.click()} disabled={uploadingImage}><ImageUp className="mr-2 h-4 w-4" />{uploadingImage ? "Uploading…" : "Upload logo"}</Button>
+                <Button type="button" variant="outline" onClick={() => logoUploadInputRef.current?.click()} disabled={uploadingLogo}>
+                  {uploadingLogo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageUp className="mr-2 h-4 w-4" />}
+                  {uploadingLogo ? "Uploading…" : "Upload logo"}
+                </Button>
               </div>
               <p className="mt-1.5 text-xs text-[var(--muted)]">Upload a logo, paste a URL, or leave blank to use your business logo.</p>
             </div>

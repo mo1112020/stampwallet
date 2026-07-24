@@ -409,7 +409,7 @@
       "addLocation": "Add location",
       "saving": "Saving…",
       "saveFailed": "Could not save that location.",
-      "previewHint": "Enter coordinates to preview on the map",
+      "previewHint": "Tap the map, drag the pin, or use your location to set the spot",
       "listTitle": "Your locations",
       "loading": "Loading…",
       "noLocations": "No locations yet.",

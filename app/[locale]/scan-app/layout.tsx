@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   icons: {
     apple: "/icons/apple-touch-icon.png",
   },
+  // Next's `appleWebApp.capable` only emits the modern generic
+  // "mobile-web-app-capable" tag — older iOS Safari versions specifically
+  // need the Apple-prefixed one to launch installed PWAs in true
+  // standalone mode instead of Safari's browser chrome.
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
