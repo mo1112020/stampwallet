@@ -80,7 +80,7 @@ export function DashboardNav({ locale }: { locale: string }) {
   return (
     <>
       {/* Desktop / tablet — icon rail, sticky for the full body height */}
-      <aside className="relative hidden w-16 shrink-0 flex-col items-center border-e border-[var(--line)] bg-[var(--surface)] py-6 md:flex">
+      <aside className="relative z-20 hidden w-16 shrink-0 flex-col items-center border-e border-[var(--line)] bg-[var(--surface)] py-6 md:flex">
         <nav ref={railRef} className="relative flex flex-col gap-2">
           <span
             ref={indicatorRef}
@@ -115,7 +115,7 @@ export function DashboardNav({ locale }: { locale: string }) {
                 <span
                   role="tooltip"
                   aria-hidden="true"
-                  className="pointer-events-none absolute start-full ms-3 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1.5 text-[12px] font-medium text-[var(--surface)] opacity-0 shadow-lg transition-[opacity,transform] duration-150 [transform:translateX(-4px)] rtl:[transform:translateX(4px)] group-hover:opacity-100 group-hover:[transform:translateX(0)] group-focus-visible:opacity-100 group-focus-visible:[transform:translateX(0)]"
+                  className="pointer-events-none absolute start-full ms-3 z-10 whitespace-nowrap rounded-lg bg-[var(--ink)] px-2.5 py-1.5 text-[12px] font-medium text-[var(--surface)] opacity-0 shadow-lg transition-[opacity,transform] duration-150 [transform:translateX(-4px)] rtl:[transform:translateX(4px)] group-hover:opacity-100 group-hover:[transform:translateX(0)] group-focus-visible:opacity-100 group-focus-visible:[transform:translateX(0)]"
                 >
                   {t(link.key)}
                 </span>
