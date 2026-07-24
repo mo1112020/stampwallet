@@ -155,7 +155,214 @@ export const Flyer = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) =
 });
 Flyer.displayName = "Flyer";
 
-// 5. Window sticker — circular safe zone for an adhesive die-cut.
+// 5. Flyer — Bold — diagonal color split, oversized type, for a grand-opening / promo feel.
+export const FlyerBold = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
+  const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.flyerBold;
+  const t = PRINT_COPY[data.locale];
+  return (
+    <div ref={ref} style={{ ...rootStyle(data, widthPx, heightPx), background: "#0b0b0c" }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `linear-gradient(135deg, ${data.primaryColor}, ${shade(data.primaryColor, -15)} 55%, #0b0b0c 55%)`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 260,
+          height: 260,
+          borderRadius: "50%",
+          background: shade(data.primaryColor, 25),
+          opacity: 0.35,
+        }}
+      />
+      <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "48px 40px", color: "#ffffff" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={52} />
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{data.businessName}</span>
+        </div>
+
+        <div style={{ marginTop: 56 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", opacity: 0.85 }}>{t.joinTheProgram}</span>
+          <h1 style={{ fontSize: 50, fontWeight: 900, lineHeight: 1.03, margin: "12px 0 0", maxWidth: 440 }}>{data.programName}</h1>
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 20 }}>
+          <div style={{ maxWidth: 220 }}>
+            <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.5, margin: 0 }}>{t.instructions}</p>
+            <div style={{ marginTop: 16 }}>
+              <WalletBadges height={20} />
+            </div>
+          </div>
+          <QrPanel padding={16} qrNode={<QrCodeImage value={data.qrValue} size={130} dark="#111111" />} />
+        </div>
+      </div>
+    </div>
+  );
+});
+FlyerBold.displayName = "FlyerBold";
+
+// 6. Flyer — Minimal — generous white space, thin rules, editorial serif headline.
+export const FlyerMinimal = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
+  const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.flyerMinimal;
+  const t = PRINT_COPY[data.locale];
+  return (
+    <div ref={ref} style={{ ...rootStyle(data, widthPx, heightPx), background: "#ffffff", display: "flex", flexDirection: "column", padding: "56px 48px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={40} />
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "#111" }}>{data.businessName}</span>
+      </div>
+
+      <div style={{ width: 40, height: 2, background: data.primaryColor, margin: "40px 0 32px" }} />
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: data.primaryColor }}>{t.joinTheProgram}</span>
+        <h1
+          style={{
+            fontSize: 40,
+            fontWeight: 700,
+            color: "#111",
+            margin: 0,
+            lineHeight: 1.15,
+            maxWidth: 420,
+            fontFamily: "Georgia, 'Times New Roman', serif",
+          }}
+        >
+          {data.programName}
+        </h1>
+        <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.6, margin: 0, maxWidth: 380 }}>{t.instructions}</p>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 24, paddingTop: 32, borderTop: "1px solid #e5e7eb" }}>
+        <div style={{ padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+          <QrCodeImage value={data.qrValue} size={104} dark="#111111" />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#111" }}>{t.scanToJoin}</span>
+          <WalletBadges height={18} />
+        </div>
+      </div>
+      <span style={{ marginTop: 20, fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "#9ca3af" }}>{t.poweredBy}</span>
+    </div>
+  );
+});
+FlyerMinimal.displayName = "FlyerMinimal";
+
+// 7. Flyer — Geometric — playful overlapping circles in brand colors.
+export const FlyerGeometric = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
+  const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.flyerGeometric;
+  const t = PRINT_COPY[data.locale];
+  return (
+    <div ref={ref} style={{ ...rootStyle(data, widthPx, heightPx), background: "#f7f7f5" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: -60,
+          left: -60,
+          width: 220,
+          height: 220,
+          borderRadius: "50%",
+          background: data.primaryColor,
+          opacity: 0.9,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: 40,
+          left: 120,
+          width: 140,
+          height: 140,
+          borderRadius: "50%",
+          background: data.secondaryColor || shade(data.primaryColor, 30),
+          opacity: 0.55,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: -70,
+          right: -70,
+          width: 240,
+          height: 240,
+          borderRadius: "50%",
+          background: shade(data.primaryColor, -20),
+          opacity: 0.85,
+        }}
+      />
+      <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "44px 40px", color: "#111" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={48} />
+          <span style={{ fontSize: 15, fontWeight: 700 }}>{data.businessName}</span>
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 16, marginTop: 40 }}>
+          <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: shade(data.primaryColor, -25) }}>
+            {t.joinTheProgram}
+          </span>
+          <h1 style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.1, margin: 0, maxWidth: 400 }}>{data.programName}</h1>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 24 }}>
+          <QrPanel padding={16} qrNode={<QrCodeImage value={data.qrValue} size={120} dark="#111111" />} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 700 }}>{t.scanToJoin}</span>
+            <WalletBadges height={20} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+FlyerGeometric.displayName = "FlyerGeometric";
+
+// 8. Flyer — Corporate — structured side panel, professional two-tone layout.
+export const FlyerCorporate = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
+  const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.flyerCorporate;
+  const t = PRINT_COPY[data.locale];
+  const text = readableTextColor(data.primaryColor);
+  const isRtl = data.locale === "ar";
+  const dotColor = text === "#ffffff" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.12)";
+  return (
+    <div ref={ref} style={{ ...rootStyle(data, widthPx, heightPx), background: "#ffffff", display: "flex", flexDirection: isRtl ? "row-reverse" : "row" }}>
+      <div
+        style={{
+          width: "34%",
+          color: text,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "36px 24px",
+          background: `radial-gradient(${dotColor} 1.5px, transparent 1.5px) 0 0/14px 14px, linear-gradient(200deg, ${data.primaryColor}, ${shade(data.primaryColor, -25)})`,
+        }}
+      >
+        <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={48} />
+        <span style={{ fontSize: 13, fontWeight: 700 }}>{data.businessName}</span>
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "40px 32px", gap: 20 }}>
+        <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", color: data.primaryColor }}>{t.joinTheProgram}</span>
+        <h1 style={{ fontSize: 32, fontWeight: 800, color: "#111", margin: 0, lineHeight: 1.15 }}>{data.programName}</h1>
+        <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, margin: 0 }}>{t.instructions}</p>
+        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <QrPanel padding={14} qrNode={<QrCodeImage value={data.qrValue} size={116} dark="#111111" />} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>{t.scanToJoin}</span>
+            <WalletBadges height={18} />
+          </div>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af" }}>{t.poweredBy}</span>
+      </div>
+    </div>
+  );
+});
+FlyerCorporate.displayName = "FlyerCorporate";
+
+// 9. Window sticker — circular safe zone for an adhesive die-cut.
 export const WindowSticker = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
   const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.windowSticker;
   const t = PRINT_COPY[data.locale];
@@ -188,7 +395,7 @@ export const WindowSticker = forwardRef<HTMLDivElement, PrintTemplateData>((data
 });
 WindowSticker.displayName = "WindowSticker";
 
-// 6. QR-only — QR-dominant, minimal chrome, for a register or door.
+// 10. QR-only — QR-dominant, minimal chrome, for a register or door.
 export const QrOnly = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
   const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.qrOnly;
   const t = PRINT_COPY[data.locale];
@@ -216,7 +423,7 @@ export const QrOnly = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) 
 });
 QrOnly.displayName = "QrOnly";
 
-// 7. Square social — Instagram/Facebook feed post.
+// 11. Square social — Instagram/Facebook feed post.
 export const SocialSquare = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
   const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.socialSquare;
   const t = PRINT_COPY[data.locale];
@@ -249,7 +456,7 @@ export const SocialSquare = forwardRef<HTMLDivElement, PrintTemplateData>((data,
 });
 SocialSquare.displayName = "SocialSquare";
 
-// 8. Instagram Story — vertical 9:16, top/bottom kept clear of platform UI.
+// 12. Instagram Story — vertical 9:16, top/bottom kept clear of platform UI.
 export const InstagramStory = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
   const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.instagramStory;
   const t = PRINT_COPY[data.locale];

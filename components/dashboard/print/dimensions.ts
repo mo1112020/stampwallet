@@ -3,6 +3,10 @@ export type TemplateId =
   | "counterStand"
   | "tableTent"
   | "flyer"
+  | "flyerBold"
+  | "flyerMinimal"
+  | "flyerGeometric"
+  | "flyerCorporate"
   | "windowSticker"
   | "qrOnly"
   | "socialSquare"
@@ -21,6 +25,10 @@ export const TEMPLATE_DIMENSIONS: Record<TemplateId, TemplateDimension> = {
   counterStand: { widthPx: 384, heightPx: 576, widthMm: 101.6, heightMm: 152.4, kind: "print" },
   tableTent: { widthPx: 384, heightPx: 384, widthMm: 101.6, heightMm: 101.6, kind: "print" },
   flyer: { widthPx: 559, heightPx: 794, widthMm: 148, heightMm: 210, kind: "print" },
+  flyerBold: { widthPx: 559, heightPx: 794, widthMm: 148, heightMm: 210, kind: "print" },
+  flyerMinimal: { widthPx: 559, heightPx: 794, widthMm: 148, heightMm: 210, kind: "print" },
+  flyerGeometric: { widthPx: 559, heightPx: 794, widthMm: 148, heightMm: 210, kind: "print" },
+  flyerCorporate: { widthPx: 559, heightPx: 794, widthMm: 148, heightMm: 210, kind: "print" },
   windowSticker: { widthPx: 384, heightPx: 384, widthMm: 101.6, heightMm: 101.6, kind: "print" },
   qrOnly: { widthPx: 384, heightPx: 576, widthMm: 101.6, heightMm: 152.4, kind: "print" },
   socialSquare: { widthPx: 1080, heightPx: 1080, kind: "digital" },

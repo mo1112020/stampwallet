@@ -21,22 +21,24 @@ export function DialogContent({
         data-radix-overlay
         className="fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]"
       />
-      <DialogPrimitive.Content
-        data-radix-content
-        className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-xl focus:outline-none",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        {showClose && (
-          <DialogPrimitive.Close className="absolute end-4 top-4 rounded-full p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <DialogPrimitive.Content
+          data-radix-content
+          className={cn(
+            "relative w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-xl focus:outline-none",
+            className
+          )}
+          {...props}
+        >
+          {children}
+          {showClose && (
+            <DialogPrimitive.Close className="absolute end-4 top-4 rounded-full p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Content>
+      </div>
     </DialogPrimitive.Portal>
   );
 }

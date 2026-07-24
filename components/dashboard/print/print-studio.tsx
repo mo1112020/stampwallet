@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, FileText } from "lucide-react";
+import { Download, Eye, FileText } from "lucide-react";
 import { toast } from "@/components/ui/toaster";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -9,12 +9,17 @@ import { printFont } from "@/lib/fonts/print";
 import { exportNodeAsPdf, exportNodeAsPng } from "@/lib/print/export";
 import { PRINT_COPY, type PrintLocale } from "./copy";
 import { PrintPreviewFrame, type PrintTemplateData } from "./primitives";
+import { PrintPreviewDialog } from "./preview-dialog";
 import { TEMPLATE_DIMENSIONS, type TemplateId } from "./dimensions";
 import {
   A4Poster,
   CounterStand,
   TableTent,
   Flyer,
+  FlyerBold,
+  FlyerMinimal,
+  FlyerGeometric,
+  FlyerCorporate,
   WindowSticker,
   QrOnly,
   SocialSquare,
@@ -25,7 +30,11 @@ const TEMPLATE_CONFIG: { id: TemplateId; label: string; Component: typeof A4Post
   { id: "a4Poster", label: "A4 poster", Component: A4Poster },
   { id: "counterStand", label: "Counter stand", Component: CounterStand },
   { id: "tableTent", label: "Table tent", Component: TableTent },
-  { id: "flyer", label: "Flyer", Component: Flyer },
+  { id: "flyer", label: "Flyer — Classic", Component: Flyer },
+  { id: "flyerBold", label: "Flyer — Bold", Component: FlyerBold },
+  { id: "flyerMinimal", label: "Flyer — Minimal", Component: FlyerMinimal },
+  { id: "flyerGeometric", label: "Flyer — Geometric", Component: FlyerGeometric },
+  { id: "flyerCorporate", label: "Flyer — Corporate", Component: FlyerCorporate },
   { id: "windowSticker", label: "Window sticker", Component: WindowSticker },
   { id: "qrOnly", label: "QR only", Component: QrOnly },
   { id: "socialSquare", label: "Square social", Component: SocialSquare },
@@ -55,6 +64,7 @@ export function PrintStudio({
 }) {
   const [assetLocale, setAssetLocale] = useState<PrintLocale>("en");
   const [exportingId, setExportingId] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<TemplateId | null>(null);
   const nodeRefs = useRef<Map<TemplateId, HTMLDivElement>>(new Map());
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "");
@@ -117,7 +127,20 @@ export function PrintStudio({
           const pdfKey = `${id}-pdf`;
           return (
             <Card key={id} className="flex flex-col items-center gap-3 p-4">
-              <div className="overflow-hidden rounded-lg border border-[var(--line)] shadow-sm" style={{ width: PREVIEW_WIDTH, height: dim.heightPx * scale }}>
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={`Preview ${label}`}
+                onClick={() => setPreviewId(id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setPreviewId(id);
+                  }
+                }}
+                className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--line)] shadow-sm outline-none transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                style={{ width: PREVIEW_WIDTH, height: dim.heightPx * scale }}
+              >
                 <PrintPreviewFrame width={dim.widthPx} height={dim.heightPx} scale={scale}>
                   <Component
                     ref={(el) => {
@@ -127,6 +150,12 @@ export function PrintStudio({
                     {...data}
                   />
                 </PrintPreviewFrame>
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/25 group-hover:opacity-100">
+                  <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#111]">
+                    <Eye className="h-3.5 w-3.5" />
+                    Preview
+                  </span>
+                </div>
               </div>
               <p className="text-sm font-semibold text-[var(--ink)]">{label}</p>
               <div className="flex w-full flex-col gap-1.5">
@@ -155,6 +184,28 @@ export function PrintStudio({
           );
         })}
       </div>
+
+      {previewId &&
+        (() => {
+          const previewConfig = TEMPLATE_CONFIG.find((c) => c.id === previewId);
+          if (!previewConfig) return null;
+          const PreviewComponent = previewConfig.Component;
+          return (
+            <PrintPreviewDialog
+              label={previewConfig.label}
+              dim={TEMPLATE_DIMENSIONS[previewId]}
+              open={previewId !== null}
+              onOpenChange={(next) => {
+                if (!next) setPreviewId(null);
+              }}
+              onDownload={(format) => handleDownload(previewId, format)}
+              exportingId={exportingId}
+              templateId={previewId}
+            >
+              <PreviewComponent {...data} />
+            </PrintPreviewDialog>
+          );
+        })()}
     </div>
   );
 }

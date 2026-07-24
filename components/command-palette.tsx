@@ -42,7 +42,7 @@ export function CommandPalette({ locale, open: openProp, onOpenChange }: Command
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         showClose={false}
-        className="top-[20%] max-w-lg translate-y-0 overflow-hidden p-0"
+        className="mt-[20vh] max-w-lg self-start overflow-hidden p-0"
         aria-describedby={undefined}
       >
         <DialogTitle className="sr-only">{t("commandPaletteLabel")}</DialogTitle>
