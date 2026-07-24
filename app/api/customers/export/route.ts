@@ -1,12 +1,13 @@
-import { jsonError, requireMerchant } from "@/lib/api";
+import { jsonError, requireCapability, requireMerchant } from "@/lib/api";
 
-export async function GET(request: Request) {
+function csvField(value: string) {
+  return `"${value.replaceAll('"', '""')}"`;
+}
+
+/** Per-program export — used by /dashboard/programs/[programId]/customers. Unchanged. */
+async function exportForProgram(programId: string) {
   const auth = await requireMerchant();
   if ("error" in auth) return auth.error;
-
-  const { searchParams } = new URL(request.url);
-  const programId = searchParams.get("program_id");
-  if (!programId) return jsonError("program_id required", "validation_error", 400);
 
   const { data: program } = await auth.supabase
     .from("loyalty_programs")
@@ -28,17 +29,13 @@ export async function GET(request: Request) {
 
   const header = "pass_id,name,email,phone,progress\n";
   const lines = (rows ?? []).map((row) => {
-    const c = row.customers as unknown as {
-      name: string | null;
-      email: string | null;
-      phone: string | null;
-    } | null;
+    const c = row.customers as unknown as { name: string | null; email: string | null; phone: string | null } | null;
     return [
       row.pass_id,
-      c?.name ?? "",
-      c?.email ?? "",
-      c?.phone ?? "",
-      JSON.stringify(row.progress).replaceAll(",", ";"),
+      csvField(c?.name ?? ""),
+      csvField(c?.email ?? ""),
+      csvField(c?.phone ?? ""),
+      csvField(JSON.stringify(row.progress)),
     ].join(",");
   });
 
@@ -48,4 +45,45 @@ export async function GET(request: Request) {
       "Content-Disposition": `attachment; filename="customers-${programId}.csv"`,
     },
   });
+}
+
+/** Merchant-wide export — all customers across every program. */
+async function exportAll() {
+  const auth = await requireCapability("export_customers");
+  if ("error" in auth) return auth.error;
+
+  const { data: rows, error } = await auth.supabase
+    .from("customers")
+    .select("name, email, phone, birthday, created_at, customer_progress(loyalty_programs(name))")
+    .eq("merchant_id", auth.merchantId)
+    .order("created_at", { ascending: false });
+
+  if (error) return jsonError(error.message, "export_failed", 500);
+
+  const header = "name,email,phone,birthday,created_at,programs\n";
+  const lines = (rows ?? []).map((row) => {
+    const progress = row.customer_progress as unknown as { loyalty_programs: { name: string } | null }[];
+    const programs = progress.map((p) => p.loyalty_programs?.name).filter(Boolean).join("; ");
+    return [
+      csvField(row.name ?? ""),
+      csvField(row.email ?? ""),
+      csvField(row.phone ?? ""),
+      csvField(row.birthday ?? ""),
+      csvField(row.created_at),
+      csvField(programs),
+    ].join(",");
+  });
+
+  return new Response(header + lines.join("\n"), {
+    headers: {
+      "Content-Type": "text/csv",
+      "Content-Disposition": `attachment; filename="customers.csv"`,
+    },
+  });
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const programId = searchParams.get("program_id");
+  return programId ? exportForProgram(programId) : exportAll();
 }

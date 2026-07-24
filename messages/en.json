@@ -8,6 +8,7 @@
     "signup": "Start free",
     "dashboard": "Dashboard",
     "programs": "Programs",
+    "customers": "Customers",
     "scan": "Scan",
     "analytics": "Analytics",
     "notifications": "Notifications",
@@ -392,11 +393,19 @@
     },
     "locations": {
       "intro": "Store locations are embedded directly on customers' wallet passes — no app needed, Apple and Google Wallet natively show the pass on the lock screen when a customer is nearby.",
+      "geoPushBadge": "Geo-push within {meters} metres ({feet} feet)",
+      "limitNote": "On your plan, {limit} location(s) available.",
+      "limitReached": "You reached your location limit",
       "name": "Location name",
       "address": "Address",
       "latitude": "Latitude",
       "longitude": "Longitude",
       "radius": "Radius (meters)",
+      "message": "Push message",
+      "messagePlaceholder": "e.g. You're near {business} — stop by for your reward!",
+      "applyToCards": "Apply to cards",
+      "allCards": "All programs",
+      "nothingSelected": "Nothing selected",
       "addLocation": "Add location",
       "saving": "Saving…",
       "saveFailed": "Could not save that location.",
@@ -406,7 +415,9 @@
       "noLocations": "No locations yet.",
       "active": "Active",
       "inactive": "Inactive",
-      "remove": "Remove"
+      "remove": "Remove",
+      "previewTitle": "Live preview",
+      "previewCaption": "Shown on the customer's lock screen when they're nearby, on Apple and Google Wallet."
     },
     "team": {
       "inviteTitle": "Invite a team member",
@@ -585,6 +596,28 @@
       "expiring_reward": "Expiring reward",
       "inactive_customer": "Inactive customer"
     }
+  },
+  "customers": {
+    "title": "Customers",
+    "intro": "Everyone who's added one of your loyalty cards, across every program.",
+    "totalCustomers": "Customers total",
+    "cardsInstalled": "Cards installed",
+    "transactions": "Transactions",
+    "searchPlaceholder": "Search by name, phone, or email",
+    "filterAll": "All customers",
+    "filterBirthday": "Birthday this month",
+    "filterProgram": "By program",
+    "export": "Export CSV",
+    "columnName": "Name",
+    "columnCreated": "Created",
+    "columnBirthday": "Birthday",
+    "columnPhone": "Phone",
+    "columnCards": "Cards",
+    "columnWallet": "Wallet",
+    "unknownCustomer": "Unknown",
+    "noCustomers": "No customers yet.",
+    "noResults": "No customers match your search.",
+    "loading": "Loading…"
   },
   "common": {
     "loading": "Loading…",

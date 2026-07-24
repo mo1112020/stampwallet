@@ -70,7 +70,7 @@ export async function generateApplePass(params: {
     const certs = loadAppleCertificates();
     const passTypeIdentifier = process.env.APPLE_PASS_TYPE_IDENTIFIER!;
     const teamIdentifier = process.env.APPLE_TEAM_IDENTIFIER!;
-    const locations = await getActiveStoreLocations(params.merchant.id);
+    const locations = await getActiveStoreLocations(params.merchant.id, params.program.id);
 
     const secondaryValue = fields.rewardAvailable
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`

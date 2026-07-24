@@ -24,15 +24,34 @@ export async function PATCH(request: Request, { params }: Ctx) {
     return jsonError("Location not found", "not_found", 404);
   }
 
+  const { program_ids, ...locationFields } = parsed.data;
+
   const { data, error } = await auth.supabase
     .from("store_locations")
-    .update(parsed.data)
+    .update(locationFields)
     .eq("id", id)
     .select("*")
     .single();
 
   if (error || !data) return jsonError(error?.message ?? "Update failed", "update_failed", 500);
-  return jsonOk(data);
+
+  let finalProgramIds = program_ids;
+  if (program_ids !== undefined) {
+    await auth.supabase.from("store_location_programs").delete().eq("store_location_id", id);
+    if (program_ids.length > 0) {
+      await auth.supabase
+        .from("store_location_programs")
+        .insert(program_ids.map((program_id) => ({ store_location_id: id, program_id })));
+    }
+  } else {
+    const { data: assigned } = await auth.supabase
+      .from("store_location_programs")
+      .select("program_id")
+      .eq("store_location_id", id);
+    finalProgramIds = (assigned ?? []).map((row) => row.program_id);
+  }
+
+  return jsonOk({ ...data, program_ids: finalProgramIds ?? [] });
 }
 
 export async function DELETE(_request: Request, { params }: Ctx) {

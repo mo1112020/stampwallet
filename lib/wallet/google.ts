@@ -34,11 +34,17 @@ async function upsertResource(client: JWT, collection: "loyaltyClass" | "loyalty
   }
 }
 
-async function loyaltyObjectFields(passId: string, classId: string, fields: PassFields, merchantId: string) {
+async function loyaltyObjectFields(
+  passId: string,
+  classId: string,
+  fields: PassFields,
+  merchantId: string,
+  programId: string
+) {
   const secondaryValue = fields.rewardAvailable
     ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
     : fields.secondaryValue;
-  const locations = await getActiveStoreLocations(merchantId);
+  const locations = await getActiveStoreLocations(merchantId, programId);
 
   return {
     classId,
@@ -103,7 +109,7 @@ export async function generateGoogleWalletLink(params: {
       client,
       "loyaltyObject",
       objectId,
-      { id: objectId, ...(await loyaltyObjectFields(params.passId, classId, fields, params.merchant.id)) }
+      { id: objectId, ...(await loyaltyObjectFields(params.passId, classId, fields, params.merchant.id, params.program.id)) }
     );
 
     try {
@@ -161,7 +167,7 @@ export async function pushGooglePassUpdate(
     const secondaryValue = fields.rewardAvailable
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
       : fields.secondaryValue;
-    const locations = await getActiveStoreLocations(merchant.id);
+    const locations = await getActiveStoreLocations(merchant.id, program.id);
 
     await client.request({
       url: `${WALLET_API}/loyaltyObject/${googleObjectId}`,

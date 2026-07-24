@@ -146,6 +146,8 @@ export const storeLocationSchema = z.object({
   radius_meters: z.number().int().min(20).max(5000).default(150),
   relevant_text: z.string().max(200).optional().nullable(),
   is_active: z.boolean().optional(),
+  /** Programs this location applies to. Omitted/empty = applies to all. */
+  program_ids: z.array(z.string().uuid()).optional(),
 });
 
 export const updateStoreLocationSchema = storeLocationSchema.partial();

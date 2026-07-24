@@ -26,6 +26,8 @@ export type PhoneMockupProps = {
   /** When provided, the wallet card becomes a real front/back flip card driven by this value — the Card details step. */
   flipped?: boolean;
   cardDetails?: { description?: string; terms?: string; website?: string };
+  /** Small icon button rendered next to the primary action (e.g. quick "Download A4 poster"). */
+  secondaryAction?: { icon: LucideIcon; label: string; onClick: () => void; loading?: boolean };
 };
 
 export function getIconComponent(iconName: string): LucideIcon {
@@ -53,6 +55,7 @@ export function PhoneMockup({
   previewOnly = false,
   flipped,
   cardDetails,
+  secondaryAction,
 }: PhoneMockupProps) {
   const Icon = getIconComponent(iconName);
   const reduced = useReducedMotion();
@@ -273,19 +276,33 @@ export function PhoneMockup({
       {/* Label & action */}
       {!previewOnly && <div className="w-[235px]">
         <h3 className="text-center text-sm font-semibold text-[var(--ink)] truncate">{name || "Untitled"}</h3>
-        {actionHref && (
-          <Link
-            href={actionHref}
-            className={cn(
-              "mt-2 block w-full rounded-xl px-4 py-2 text-center text-sm font-semibold transition-colors active:scale-95",
-              isTemplate
-                ? "bg-[var(--ink)] text-[var(--surface)] hover:opacity-90"
-                : "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)]"
-            )}
-          >
-            {actionText}
-          </Link>
-        )}
+        <div className="mt-2 flex items-center gap-1.5">
+          {actionHref && (
+            <Link
+              href={actionHref}
+              className={cn(
+                "block flex-1 rounded-xl px-4 py-2 text-center text-sm font-semibold transition-colors active:scale-95",
+                isTemplate
+                  ? "bg-[var(--ink)] text-[var(--surface)] hover:opacity-90"
+                  : "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)]"
+              )}
+            >
+              {actionText}
+            </Link>
+          )}
+          {secondaryAction && (
+            <button
+              type="button"
+              onClick={secondaryAction.onClick}
+              disabled={secondaryAction.loading}
+              aria-label={secondaryAction.label}
+              title={secondaryAction.label}
+              className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)] active:scale-95 disabled:opacity-50"
+            >
+              <secondaryAction.icon className={cn("h-4 w-4", secondaryAction.loading && "animate-pulse")} strokeWidth={1.75} />
+            </button>
+          )}
+        </div>
       </div>}
     </div>
   );

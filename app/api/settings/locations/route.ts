@@ -8,12 +8,20 @@ export async function GET() {
 
   const { data, error } = await auth.supabase
     .from("store_locations")
-    .select("*")
+    .select("*, store_location_programs(program_id)")
     .eq("merchant_id", auth.merchantId)
     .order("created_at", { ascending: false });
 
   if (error) return jsonError(error.message, "list_failed", 500);
-  return jsonOk(data);
+
+  const withProgramIds = (data ?? []).map((row) => {
+    const { store_location_programs, ...location } = row as Record<string, unknown> & {
+      store_location_programs: { program_id: string }[];
+    };
+    return { ...location, program_ids: store_location_programs.map((p: { program_id: string }) => p.program_id) };
+  });
+
+  return jsonOk(withProgramIds);
 }
 
 export async function POST(request: Request) {
@@ -40,12 +48,21 @@ export async function POST(request: Request) {
     );
   }
 
+  const { program_ids, ...locationFields } = parsed.data;
+
   const { data, error } = await auth.supabase
     .from("store_locations")
-    .insert({ ...parsed.data, merchant_id: auth.merchantId })
+    .insert({ ...locationFields, merchant_id: auth.merchantId })
     .select("*")
     .single();
 
   if (error || !data) return jsonError(error?.message ?? "Create failed", "create_failed", 500);
-  return jsonOk(data, 201);
+
+  if (program_ids && program_ids.length > 0) {
+    await auth.supabase
+      .from("store_location_programs")
+      .insert(program_ids.map((program_id) => ({ store_location_id: data.id, program_id })));
+  }
+
+  return jsonOk({ ...data, program_ids: program_ids ?? [] }, 201);
 }

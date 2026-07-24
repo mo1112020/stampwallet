@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { PhoneMockup, EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
+import { EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
+import { ProgramCard } from "@/components/dashboard/program-card";
 import type { ProgramConfig, ProgramType } from "@/types";
 
 export default async function ProgramsPage({
@@ -49,8 +50,11 @@ export default async function ProgramsPage({
           const iconName =
             config?.icon && /^[A-Z]/.test(config.icon) ? config.icon : "Coffee";
           return (
-            <PhoneMockup
+            <ProgramCard
               key={p.id}
+              programId={p.id}
+              businessName={merchant?.business_name ?? "Your business"}
+              logoUrl={merchant?.logo_url}
               name={p.name}
               primaryColor={config?.primary_color ?? merchant?.brand_color_primary ?? "#3E0856"}
               secondaryColor={config?.secondary_color ?? merchant?.brand_color_secondary ?? "#FAAE62"}

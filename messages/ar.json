@@ -8,6 +8,7 @@
     "signup": "ابدأ مجاناً",
     "dashboard": "لوحة التحكم",
     "programs": "البرامج",
+    "customers": "العملاء",
     "scan": "مسح",
     "analytics": "التحليلات",
     "notifications": "الإشعارات",
@@ -392,11 +393,19 @@
     },
     "locations": {
       "intro": "تُدمج مواقع المتجر مباشرة في بطاقات محفظة العملاء — بدون تطبيق، حيث تعرض Apple و Google Wallet البطاقة على شاشة القفل تلقائيًا عند اقتراب العميل.",
+      "geoPushBadge": "إشعار جغرافي ضمن {meters} متر ({feet} قدم)",
+      "limitNote": "في باقتك، يتوفر {limit} موقع.",
+      "limitReached": "لقد وصلت إلى الحد الأقصى للمواقع",
       "name": "اسم الموقع",
       "address": "العنوان",
       "latitude": "خط العرض",
       "longitude": "خط الطول",
       "radius": "نصف القطر (متر)",
+      "message": "رسالة الإشعار",
+      "messagePlaceholder": "مثال: أنت بالقرب من {business} — مر علينا لأخذ مكافأتك!",
+      "applyToCards": "تطبيق على البطاقات",
+      "allCards": "جميع البرامج",
+      "nothingSelected": "لم يتم تحديد شيء",
       "addLocation": "إضافة موقع",
       "saving": "جارٍ الحفظ…",
       "saveFailed": "تعذر حفظ هذا الموقع.",
@@ -406,7 +415,9 @@
       "noLocations": "لا توجد مواقع بعد.",
       "active": "نشط",
       "inactive": "غير نشط",
-      "remove": "إزالة"
+      "remove": "إزالة",
+      "previewTitle": "معاينة مباشرة",
+      "previewCaption": "يظهر على شاشة قفل العميل عند اقترابه، على Apple و Google Wallet."
     },
     "team": {
       "inviteTitle": "دعوة عضو فريق",
@@ -585,6 +596,28 @@
       "expiring_reward": "مكافأة على وشك الانتهاء",
       "inactive_customer": "عميل غير نشط"
     }
+  },
+  "customers": {
+    "title": "العملاء",
+    "intro": "كل من أضاف إحدى بطاقات الولاء الخاصة بك، عبر جميع البرامج.",
+    "totalCustomers": "إجمالي العملاء",
+    "cardsInstalled": "البطاقات المثبتة",
+    "transactions": "المعاملات",
+    "searchPlaceholder": "ابحث بالاسم أو الهاتف أو البريد الإلكتروني",
+    "filterAll": "جميع العملاء",
+    "filterBirthday": "عيد الميلاد هذا الشهر",
+    "filterProgram": "حسب البرنامج",
+    "export": "تصدير CSV",
+    "columnName": "الاسم",
+    "columnCreated": "تاريخ الإنشاء",
+    "columnBirthday": "عيد الميلاد",
+    "columnPhone": "الهاتف",
+    "columnCards": "البطاقات",
+    "columnWallet": "المحفظة",
+    "unknownCustomer": "غير معروف",
+    "noCustomers": "لا يوجد عملاء بعد.",
+    "noResults": "لا يوجد عملاء يطابقون بحثك.",
+    "loading": "جارٍ التحميل…"
   },
   "common": {
     "loading": "جارٍ التحميل…",

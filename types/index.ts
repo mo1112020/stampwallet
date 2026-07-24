@@ -190,6 +190,8 @@ export type StoreLocation = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  /** Programs this location's geo-push applies to. Empty = applies to all. */
+  program_ids: string[];
 };
 
 export type NotificationSend = {
