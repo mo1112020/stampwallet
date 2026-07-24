@@ -110,7 +110,7 @@ export function LanguageSwitcher({
             id={panelId}
             data-state={isOpen ? "open" : "closed"}
             style={{ position: "fixed", top: coords.top, left: coords.left, width: coords.width }}
-            className="dropdown-panel z-[100] origin-top rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl"
+            className="dropdown-panel pointer-events-auto z-[100] origin-top rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl"
           >
             <nav aria-label="Language" className="flex flex-col gap-0.5">
               {locales.map((code) => {

@@ -130,7 +130,19 @@ export function DashboardTopbar({
               <ChevronDown className="hidden h-3.5 w-3.5 text-[var(--muted)] md:inline" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent
+            align="end"
+            className="w-64"
+            onInteractOutside={(e) => {
+              // The language switcher portals its own panel straight to document.body (so it
+              // isn't clipped by this dropdown's overflow), which puts it outside this content's
+              // DOM subtree — Radix's dismiss-on-outside-click would otherwise treat clicks in
+              // that panel as "outside" and close this menu before the language Link can fire.
+              if (e.target instanceof Element && e.target.closest(".dropdown-panel")) {
+                e.preventDefault();
+              }
+            }}
+          >
             <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
