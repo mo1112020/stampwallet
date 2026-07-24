@@ -20,6 +20,10 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED=1
 
+# Opts next.config.mjs into `output: "standalone"` — only this Docker build needs it;
+# Vercel gets the default output shape (see next.config.mjs for why).
+ENV STANDALONE_BUILD=1
+
 RUN npm run build
 
 # Production image, copy all the files and run next

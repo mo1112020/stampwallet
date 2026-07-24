@@ -11,9 +11,11 @@ const nextConfig = {
   // bundle), but Vercel's own builder does its own file tracing/packaging and expects
   // the default output shape — with "standalone" set, it looks for
   // .next/next-server.js.nft.json in a location standalone mode doesn't produce it,
-  // and the build fails with ENOENT. Vercel sets VERCEL=1 during its build, so only
-  // opt into standalone when building anywhere else (e.g. `docker build`).
-  ...(process.env.VERCEL ? {} : { output: "standalone" }),
+  // and the build fails with ENOENT. Rather than trying to detect Vercel (its System
+  // Environment Variables aren't reliably exposed to every project's build step), the
+  // Dockerfile explicitly opts in via STANDALONE_BUILD=1; everyone else — including
+  // Vercel — gets the safe default.
+  ...(process.env.STANDALONE_BUILD ? { output: "standalone" } : {}),
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
