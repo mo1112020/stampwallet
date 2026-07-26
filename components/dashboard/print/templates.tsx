@@ -159,20 +159,21 @@ Flyer.displayName = "Flyer";
 export const FlyerBold = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
   const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.flyerBold;
   const t = PRINT_COPY[data.locale];
+  const isRtl = data.locale === "ar";
   return (
     <div ref={ref} style={{ ...rootStyle(data, widthPx, heightPx), background: "#0b0b0c" }}>
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: `linear-gradient(135deg, ${data.primaryColor}, ${shade(data.primaryColor, -15)} 55%, #0b0b0c 55%)`,
+          background: `linear-gradient(${isRtl ? 225 : 135}deg, ${data.primaryColor}, ${shade(data.primaryColor, -15)} 55%, #0b0b0c 55%)`,
         }}
       />
       <div
         style={{
           position: "absolute",
           top: -80,
-          right: -80,
+          ...(isRtl ? { left: -80 } : { right: -80 }),
           width: 260,
           height: 260,
           borderRadius: "50%",
@@ -258,13 +259,14 @@ FlyerMinimal.displayName = "FlyerMinimal";
 export const FlyerGeometric = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) => {
   const { widthPx, heightPx } = TEMPLATE_DIMENSIONS.flyerGeometric;
   const t = PRINT_COPY[data.locale];
+  const isRtl = data.locale === "ar";
   return (
     <div ref={ref} style={{ ...rootStyle(data, widthPx, heightPx), background: "#f7f7f5" }}>
       <div
         style={{
           position: "absolute",
           top: -60,
-          left: -60,
+          ...(isRtl ? { right: -60 } : { left: -60 }),
           width: 220,
           height: 220,
           borderRadius: "50%",
@@ -276,7 +278,7 @@ export const FlyerGeometric = forwardRef<HTMLDivElement, PrintTemplateData>((dat
         style={{
           position: "absolute",
           top: 40,
-          left: 120,
+          ...(isRtl ? { right: 120 } : { left: 120 }),
           width: 140,
           height: 140,
           borderRadius: "50%",
@@ -288,7 +290,7 @@ export const FlyerGeometric = forwardRef<HTMLDivElement, PrintTemplateData>((dat
         style={{
           position: "absolute",
           bottom: -70,
-          right: -70,
+          ...(isRtl ? { left: -70 } : { right: -70 }),
           width: 240,
           height: 240,
           borderRadius: "50%",

@@ -6,6 +6,8 @@ export type PlanLimits = {
   maxSeats: number | null;
   maxLocations: number | null;
   customBranding: boolean;
+  /** Card expiration (config.expiration) — Paid plans only. */
+  cardExpiration: boolean;
 };
 
 /** `null` means unlimited — prefer this over magic-number sentinels. */
@@ -16,6 +18,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxSeats: 1,
     maxLocations: 1,
     customBranding: false,
+    cardExpiration: false,
   },
   starter: {
     maxActivePrograms: 3,
@@ -23,6 +26,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxSeats: 3,
     maxLocations: 3,
     customBranding: true,
+    cardExpiration: true,
   },
   pro: {
     maxActivePrograms: 20,
@@ -30,6 +34,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxSeats: 10,
     maxLocations: 20,
     customBranding: true,
+    cardExpiration: true,
   },
   enterprise: {
     maxActivePrograms: null,
@@ -37,6 +42,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxSeats: null,
     maxLocations: null,
     customBranding: true,
+    cardExpiration: true,
   },
 };
 

@@ -32,6 +32,7 @@ async function deliverToTarget(
     merchant: target.merchant,
     progress: target.progress,
     notification: { title, message },
+    enrolledAt: target.enrolledAt,
   });
 
   const configured = isAppleWalletConfigured() || isGoogleWalletConfigured();

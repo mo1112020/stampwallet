@@ -39,12 +39,16 @@ export async function generateApplePass(params: {
    * value changes and the device re-fetches (after the APNs wake sent by
    * pushApplePassUpdate), iOS shows it as the lock-screen notification. */
   latestNotificationMessage?: string | null;
+  /** customer_progress.created_at — powers the card-expiration premium
+   * feature's "N days remaining" field when the program has it enabled. */
+  enrolledAt?: string;
 }): Promise<{ buffer: Buffer; contentType: string; stub: boolean }> {
   const fields = renderPassFields(
     params.program.type,
     params.program.config,
     params.progress,
-    params.merchant.business_name
+    params.merchant.business_name,
+    params.enrolledAt
   );
 
   if (!isAppleWalletConfigured()) {
@@ -100,6 +104,10 @@ export async function generateApplePass(params: {
       // shows the pass on the lock screen when the device is physically
       // near these coordinates.
       ...(locations.length > 0 ? { locations } : {}),
+      // Card expiration (premium): expirationDate makes iOS itself grey out
+      // and eventually remove the pass, on top of the visible countdown
+      // field below.
+      ...(fields.expiry ? { expirationDate: fields.expiry.expiresAt.toISOString() } : {}),
       storeCard: {
         headerFields: [],
         primaryFields: [
@@ -110,6 +118,9 @@ export async function generateApplePass(params: {
         ],
         auxiliaryFields: [
           { key: "auxiliary", label: fields.auxiliaryLabel, value: fields.auxiliaryValue },
+          ...(fields.expiry
+            ? [{ key: "expiry", label: fields.expiry.label, value: fields.expiry.value }]
+            : []),
         ],
         backFields: [
           ...(params.program.config.details?.description

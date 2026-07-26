@@ -52,6 +52,10 @@ export function PrintLogo({
 export function WalletBadges({ height = 22 }: { height?: number }) {
   return (
     <div
+      // Fixed brand lockup — Apple then Google — regardless of the
+      // template's text direction; these are logos, not prose, so they
+      // shouldn't mirror under direction: rtl the way text does.
+      dir="ltr"
       style={{
         display: "inline-flex",
         alignItems: "center",

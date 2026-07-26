@@ -55,12 +55,20 @@ async function loyaltyObjectFields(
       label: fields.primaryLabel,
       balance: { string: fields.primaryValue },
     },
-    textModulesData: [{ header: fields.secondaryLabel, body: secondaryValue }],
+    textModulesData: [
+      { header: fields.secondaryLabel, body: secondaryValue },
+      ...(fields.expiry ? [{ header: fields.expiry.label, body: fields.expiry.value }] : []),
+    ],
     barcode: { type: "QR_CODE", value: passId, alternateText: passId },
     // Phase 9: no customer app needed — Google Wallet natively surfaces
     // the pass when the device is physically near these coordinates.
     ...(locations.length > 0
       ? { locations: locations.map((l) => ({ latitude: l.latitude, longitude: l.longitude })) }
+      : {}),
+    // Card expiration (premium): Google Wallet stops showing the pass as
+    // active past this date, mirroring Apple's expirationDate.
+    ...(fields.expiry
+      ? { validTimeInterval: { end: { date: fields.expiry.expiresAt.toISOString() } } }
       : {}),
   };
 }
@@ -70,12 +78,15 @@ export async function generateGoogleWalletLink(params: {
   program: LoyaltyProgram;
   merchant: Merchant;
   progress: Progress;
+  /** customer_progress.created_at — powers the card-expiration premium feature. */
+  enrolledAt?: string;
 }): Promise<{ saveUrl: string; stub: boolean; objectId?: string }> {
   const fields = renderPassFields(
     params.program.type,
     params.program.config,
     params.progress,
-    params.merchant.business_name
+    params.merchant.business_name,
+    params.enrolledAt
   );
 
   if (!isGoogleWalletConfigured()) {
@@ -150,7 +161,9 @@ export async function pushGooglePassUpdate(
   progress: Progress,
   /** Phase 8: appends a real Google Wallet message (header/body banner
    * shown in-app) rather than just refreshing the points/progress fields. */
-  notification?: { title: string; message: string } | null
+  notification?: { title: string; message: string } | null,
+  /** customer_progress.created_at — powers the card-expiration premium feature. */
+  enrolledAt?: string
 ) {
   if (!isGoogleWalletConfigured()) {
     console.info("[wallet:google] stub patch", passId, googleObjectId);
@@ -163,7 +176,7 @@ export async function pushGooglePassUpdate(
 
   try {
     const client = getWalletClient();
-    const fields = renderPassFields(program.type, program.config, progress, merchant.business_name);
+    const fields = renderPassFields(program.type, program.config, progress, merchant.business_name, enrolledAt);
     const secondaryValue = fields.rewardAvailable
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
       : fields.secondaryValue;
@@ -174,9 +187,15 @@ export async function pushGooglePassUpdate(
       method: "PATCH",
       data: {
         loyaltyPoints: { label: fields.primaryLabel, balance: { string: fields.primaryValue } },
-        textModulesData: [{ header: fields.secondaryLabel, body: secondaryValue }],
+        textModulesData: [
+          { header: fields.secondaryLabel, body: secondaryValue },
+          ...(fields.expiry ? [{ header: fields.expiry.label, body: fields.expiry.value }] : []),
+        ],
         ...(locations.length > 0
           ? { locations: locations.map((l) => ({ latitude: l.latitude, longitude: l.longitude })) }
+          : {}),
+        ...(fields.expiry
+          ? { validTimeInterval: { end: { date: fields.expiry.expiresAt.toISOString() } } }
           : {}),
         ...(notification
           ? {

@@ -19,6 +19,7 @@ export type NotificationTarget = {
   program: LoyaltyProgram;
   merchant: Merchant;
   progress: Progress;
+  enrolledAt: string;
 };
 
 export function progressPercent(program: LoyaltyProgram, progress: Progress): number {
@@ -67,7 +68,7 @@ export async function resolveSegmentTargets(
 
   const { data: progressRows } = await admin
     .from("customer_progress")
-    .select("id, pass_id, program_id, progress, google_object_id, updated_at, customers(birthday)")
+    .select("id, pass_id, program_id, progress, google_object_id, updated_at, created_at, customers(birthday)")
     .in("program_id", programIds);
 
   let rows = progressRows ?? [];
@@ -106,6 +107,7 @@ export async function resolveSegmentTargets(
         program,
         merchant: merchant as Merchant,
         progress: r.progress as Progress,
+        enrolledAt: r.created_at as string,
       };
     })
     .filter((t): t is NotificationTarget => t !== null);

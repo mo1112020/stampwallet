@@ -1,5 +1,6 @@
 import { jsonError, jsonOk } from "@/lib/api";
-import { isStripeConfigured, STRIPE_PRICE_ENV } from "@/lib/billing/plans";
+import { isStripeConfigured, PLAN_LIMITS, STRIPE_PRICE_ENV } from "@/lib/billing/plans";
+import { disableCardExpirationForMerchant } from "@/lib/billing/enforcement";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createStripeClient } from "@/lib/stripe";
 import type Stripe from "stripe";
@@ -78,10 +79,18 @@ export async function POST(request: Request) {
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
     const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-    await admin
+    const { data: merchant } = await admin
       .from("merchants")
       .update({ plan: "free" })
-      .eq("stripe_customer_id", customerId);
+      .eq("stripe_customer_id", customerId)
+      .select("id")
+      .maybeSingle();
+
+    // Free plan doesn't include card expiration — switch it off wherever a
+    // merchant had it enabled rather than leaving a paid feature running.
+    if (merchant && !PLAN_LIMITS.free.cardExpiration) {
+      await disableCardExpirationForMerchant(admin, merchant.id);
+    }
   }
 
   return jsonOk({ received: true });

@@ -57,6 +57,7 @@ export default async function PassPage({
         businessName={program.merchants.business_name}
         primaryColor={(program.config as any).primary_color ?? program.merchants.brand_color_primary}
         secondaryColor={(program.config as any).secondary_color ?? program.merchants.brand_color_secondary}
+        enrolledAt={row.created_at}
       />
       <p className="mt-6 text-center text-sm text-[var(--muted)]">{program.name}</p>
     </main>

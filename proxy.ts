@@ -12,11 +12,32 @@ const intlMiddleware = createMiddleware({
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/api")) {
+  // /api and the Supabase OAuth callback are plain route handlers with no
+  // locale segment — the intl middleware below defaults to localePrefix:
+  // "always" and would otherwise redirect them to e.g. /en/auth/callback,
+  // which doesn't exist and 404s before the code exchange ever runs.
+  if (pathname.startsWith("/api") || pathname.startsWith("/auth/callback")) {
     return NextResponse.next();
   }
 
-  const response = intlMiddleware(request);
+  const intlResponse = intlMiddleware(request);
+  if (intlResponse.headers.get("location")) {
+    // next-intl is redirecting to add/normalize the locale prefix — follow
+    // it as-is; the redirected request re-enters this middleware fresh.
+    return intlResponse;
+  }
+
+  // not-found.tsx files don't receive `params`, so this is how they read
+  // the URL's locale segment via headers() — see app/not-found.tsx and
+  // app/[locale]/not-found.tsx, which need it for genuinely unmatched
+  // routes (Next.js renders the root not-found boundary for those, not
+  // the nested one, regardless of the locale segment matching).
+  const firstSegment = pathname.split("/")[1];
+  const urlLocale = (locales as readonly string[]).includes(firstSegment) ? firstSegment : defaultLocale;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-locale", urlLocale);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  intlResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost",

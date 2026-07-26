@@ -87,6 +87,7 @@ export default async function EditProgramPage({
         businessLogo={merchant?.logo_url}
         primaryColor={merchant?.brand_color_primary}
         secondaryColor={merchant?.brand_color_secondary}
+        merchantPlan={merchant?.plan}
       />
     </div>
   );

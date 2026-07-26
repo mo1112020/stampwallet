@@ -45,7 +45,7 @@ export async function evaluateAutomatedTriggers(): Promise<{ evaluated: number; 
 
     const { data: progressRows } = await admin
       .from("customer_progress")
-      .select("id, pass_id, program_id, progress, google_object_id, updated_at, customers(name, birthday)")
+      .select("id, pass_id, program_id, progress, google_object_id, updated_at, created_at, customers(name, birthday)")
       .in("program_id", programIds);
 
     for (const row of progressRows ?? []) {
@@ -61,6 +61,7 @@ export async function evaluateAutomatedTriggers(): Promise<{ evaluated: number; 
         program,
         merchant,
         progress,
+        enrolledAt: row.created_at as string,
       };
       const customer = row.customers as unknown as { name: string | null; birthday: string | null } | null;
       const updatedAt = new Date(row.updated_at as string);

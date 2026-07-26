@@ -14,6 +14,7 @@ import type {
   StepsProgress,
 } from "@/types";
 import { renderPassFields } from "@/lib/wallet/renderPassFields";
+import { getStampCellScale, getStampGridColumns } from "@/lib/stamp-grid";
 
 type Props = {
   type: ProgramType;
@@ -23,6 +24,8 @@ type Props = {
   primaryColor?: string;
   secondaryColor?: string;
   icon?: string;
+  /** customer_progress.created_at — powers the card-expiration premium feature. */
+  enrolledAt?: string;
 };
 
 export function WalletPreview({
@@ -32,6 +35,7 @@ export function WalletPreview({
   businessName,
   primaryColor = "#3E0856",
   secondaryColor = "#FAAE62",
+  enrolledAt,
 }: Props) {
   const [showDetails, setShowDetails] = useState(false);
   const p =
@@ -42,7 +46,7 @@ export function WalletPreview({
         ? ({ points: 420 } as PointsProgress)
         : ({ current_value: 7, completed_stage_keys: ["welcome"] } as StepsProgress));
 
-  const fields = renderPassFields(type, config, p, businessName);
+  const fields = renderPassFields(type, config, p, businessName, enrolledAt);
   const details = (config as { details?: { description?: string; terms?: string; website?: string } }).details;
   const backgroundImage = (config as { background_image_url?: string }).background_image_url;
 
@@ -83,6 +87,11 @@ export function WalletPreview({
           <p className="text-3xl font-semibold tracking-tight">{fields.primaryValue}</p>
           <p className="mt-4 text-sm opacity-80">{fields.secondaryLabel}</p>
           <p className="text-lg font-medium">{fields.secondaryValue}</p>
+          {fields.expiry && (
+            <p className={`mt-2 text-xs font-semibold ${fields.expiry.expired ? "text-red-200" : "opacity-80"}`}>
+              {fields.expiry.expired ? fields.expiry.value : `${fields.expiry.label}: ${fields.expiry.value}`}
+            </p>
+          )}
         </div>
 
         <div className="bg-white/15 px-5 py-4">
@@ -100,6 +109,20 @@ export function WalletPreview({
   );
 }
 
+const STAMP_TEXT_SIZE: Record<ReturnType<typeof getStampCellScale>, string> = {
+  lg: "text-lg",
+  md: "text-base",
+  sm: "text-sm",
+  xs: "text-xs",
+};
+
+const STAMP_GAP: Record<ReturnType<typeof getStampCellScale>, string> = {
+  lg: "gap-2",
+  md: "gap-1.5",
+  sm: "gap-1.5",
+  xs: "gap-1",
+};
+
 function StampGrid({
   required,
   collected,
@@ -111,12 +134,17 @@ function StampGrid({
   icon: string;
   fill: string;
 }) {
+  const columns = getStampGridColumns(required);
+  const scale = getStampCellScale(required);
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div
+      className={`grid ${STAMP_GAP[scale]}`}
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+    >
       {Array.from({ length: required }).map((_, i) => (
         <div
           key={i}
-          className="flex aspect-square items-center justify-center rounded-full text-lg"
+          className={`flex aspect-square items-center justify-center rounded-full ${STAMP_TEXT_SIZE[scale]}`}
           style={{
             background: i < collected ? fill : "transparent",
             color: i < collected ? "#ffffff" : fill,

@@ -12,6 +12,8 @@ export async function pushWalletUpdate(params: {
   /** Phase 8: set when this push is delivering a notification (campaign or
    * automated trigger), not just a routine post-scan progress refresh. */
   notification?: { title: string; message: string } | null;
+  /** customer_progress.created_at — powers the card-expiration premium feature. */
+  enrolledAt?: string;
 }) {
   let pushTokens: string[] = [];
   try {
@@ -33,7 +35,8 @@ export async function pushWalletUpdate(params: {
       params.program,
       params.merchant,
       params.progress,
-      params.notification
+      params.notification,
+      params.enrolledAt
     ),
   ]);
 }

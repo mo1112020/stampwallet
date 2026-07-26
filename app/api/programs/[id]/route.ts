@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { updateProgramSchema } from "@/lib/validators";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -41,6 +42,14 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const parsed = updateProgramSchema.safeParse(body);
   if (!parsed.success) {
     return jsonError(parsed.error.message, "validation_error", 400);
+  }
+
+  if (parsed.data.config?.expiration?.enabled && !PLAN_LIMITS[auth.merchant.plan].cardExpiration) {
+    return jsonError(
+      `Card expiration is a paid-plan feature. Upgrade to enable it.`,
+      "plan_limit",
+      403
+    );
   }
 
   const { data, error } = await auth.supabase

@@ -41,6 +41,14 @@ export async function POST(request: Request) {
     );
   }
 
+  if (parsed.data.config.expiration?.enabled && !limits.cardExpiration) {
+    return jsonError(
+      `Card expiration is a paid-plan feature. Upgrade to enable it.`,
+      "plan_limit",
+      403
+    );
+  }
+
   const { data, error } = await auth.supabase
     .from("loyalty_programs")
     .insert({

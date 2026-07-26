@@ -19,13 +19,25 @@ const cardAppearanceSchema = z.object({
     button_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   }).optional(),
   reward_value: z.number().min(0).optional(),
+  expiration: z
+    .object({
+      enabled: z.boolean(),
+      days: z.number().int().min(1).max(365),
+    })
+    .optional(),
 });
 
-export const stampConfigSchema = cardAppearanceSchema.extend({
-  stamps_required: z.number().int().min(1).max(25),
-  reward_description: z.string().min(1).max(200),
-  icon: z.string().min(1).max(16),
-});
+export const stampConfigSchema = cardAppearanceSchema
+  .extend({
+    stamps_required: z.number().int().min(1).max(25),
+    reward_description: z.string().min(1).max(200),
+    icon: z.string().min(1).max(16),
+    initial_stamps: z.number().int().min(0).max(25).optional(),
+  })
+  .refine((data) => (data.initial_stamps ?? 0) <= data.stamps_required, {
+    message: "initial_stamps cannot exceed stamps_required",
+    path: ["initial_stamps"],
+  });
 
 export const pointsConfigSchema = cardAppearanceSchema.extend({
   points_per_reward: z.number().int().min(1),

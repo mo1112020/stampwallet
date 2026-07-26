@@ -59,6 +59,16 @@ const COMPARE_ROWS: { label: string; sub?: string; render: (plan: Plan) => React
         <Minus className="mx-auto h-4 w-4 text-[var(--muted)]" />
       ),
   },
+  {
+    label: "Card expiration",
+    sub: "Cards expire a set number of days after joining",
+    render: (p) =>
+      PLAN_LIMITS[p].cardExpiration ? (
+        <Check className="mx-auto h-4 w-4 text-[var(--success)]" />
+      ) : (
+        <Minus className="mx-auto h-4 w-4 text-[var(--muted)]" />
+      ),
+  },
   { label: "Apple & Google Wallet passes", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },
   { label: "Wallet-native notifications", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },
   { label: "Printable marketing materials", render: () => <Check className="mx-auto h-4 w-4 text-[var(--success)]" /> },

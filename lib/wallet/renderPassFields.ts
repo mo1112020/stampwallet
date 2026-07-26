@@ -1,4 +1,5 @@
 import type {
+  CardAppearance,
   PointsConfig,
   PointsProgress,
   ProgramConfig,
@@ -9,6 +10,7 @@ import type {
   StepsConfig,
   StepsProgress,
 } from "@/types";
+import { computeExpirationStatus, formatDaysRemaining } from "@/lib/wallet/expiration";
 
 export type PassFields = {
   primaryLabel: string;
@@ -18,12 +20,18 @@ export type PassFields = {
   auxiliaryLabel: string;
   auxiliaryValue: string;
   rewardAvailable: boolean;
+  /** Only present when config.expiration is enabled and enrolledAt was supplied. */
+  expiry?: { label: string; value: string; expiresAt: Date; expired: boolean };
 };
 
-export function initialProgress(type: ProgramType): Progress {
+export function initialProgress(type: ProgramType, config?: ProgramConfig): Progress {
   switch (type) {
-    case "stamp":
-      return { stamps_collected: 0 };
+    case "stamp": {
+      const c = config as StampConfig | undefined;
+      const stampsRequired = c?.stamps_required ?? 25;
+      const initialStamps = Math.min(Math.max(c?.initial_stamps ?? 0, 0), stampsRequired);
+      return { stamps_collected: initialStamps };
+    }
     case "points":
       return { points: 0 };
     case "steps":
@@ -35,8 +43,23 @@ export function renderPassFields(
   type: ProgramType,
   config: ProgramConfig,
   progress: Progress,
-  businessName: string
+  businessName: string,
+  /** customer_progress.created_at — omit to leave `expiry` off the result
+   * (e.g. dashboard previews with no real customer pass yet). */
+  enrolledAt?: string | Date
 ): PassFields {
+  const expirationStatus = enrolledAt
+    ? computeExpirationStatus((config as CardAppearance).expiration, enrolledAt)
+    : null;
+  const expiry = expirationStatus
+    ? {
+        label: "Expires",
+        value: formatDaysRemaining(expirationStatus),
+        expiresAt: expirationStatus.expiresAt,
+        expired: expirationStatus.expired,
+      }
+    : undefined;
+
   if (type === "stamp") {
     const c = config as StampConfig;
     const p = progress as StampProgress;
@@ -49,6 +72,7 @@ export function renderPassFields(
       auxiliaryLabel: "Business",
       auxiliaryValue: businessName,
       rewardAvailable,
+      expiry,
     };
   }
 
@@ -64,6 +88,7 @@ export function renderPassFields(
       auxiliaryLabel: "Business",
       auxiliaryValue: businessName,
       rewardAvailable,
+      expiry,
     };
   }
 
@@ -86,5 +111,6 @@ export function renderPassFields(
     auxiliaryLabel: "Business",
     auxiliaryValue: businessName,
     rewardAvailable,
+    expiry,
   };
 }

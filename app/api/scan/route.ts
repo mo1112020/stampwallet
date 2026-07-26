@@ -108,6 +108,7 @@ export async function POST(request: Request) {
         program,
         merchant,
         progress: nextProgress,
+        enrolledAt: row.created_at,
       },
     });
   } else {
@@ -117,6 +118,7 @@ export async function POST(request: Request) {
       program,
       merchant,
       progress: nextProgress,
+      enrolledAt: row.created_at,
     });
   }
 

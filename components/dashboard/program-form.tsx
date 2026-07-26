@@ -8,7 +8,9 @@ import { PhoneMockup } from "@/components/dashboard/phone-mockup";
 import { JoinPagePhonePreview } from "@/components/dashboard/join-page-phone-preview";
 import { PreviewCrossfade } from "@/components/motion/preview-crossfade";
 import { cn } from "@/lib/utils";
-import type { EnrollmentPageConfig, EnrollmentPageStyle, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
+import type { CardExpirationConfig, EnrollmentPageConfig, EnrollmentPageStyle, Plan, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { Lock } from "lucide-react";
 import {
   Coffee, Pizza, Scissors, ShoppingBag, Gift, Star,
   Dumbbell, Music, BookOpen, Bike, Car, Smile,
@@ -106,7 +108,7 @@ const ICON_CATEGORIES = [
 ];
 
 const defaultConfigs: Record<ProgramType, ProgramConfig> = {
-  stamp: { stamps_required: 10, reward_description: "Free item", icon: "Coffee" },
+  stamp: { stamps_required: 10, reward_description: "Free item", icon: "Coffee", initial_stamps: 0 },
   points: { points_per_reward: 1000, reward_description: "Free gift", points_label: "pts" },
   steps: {
     stages: [
@@ -154,6 +156,7 @@ type Props = {
   secondaryColor?: string;
   initialIconName?: string;
   initialBackgroundImage?: string;
+  merchantPlan?: Plan;
 };
 
 export function ProgramForm({
@@ -166,7 +169,9 @@ export function ProgramForm({
   secondaryColor: initSecondaryColor = "#FAAE62",
   initialIconName = "Coffee",
   initialBackgroundImage,
+  merchantPlan = "free",
 }: Props) {
+  const canUseCardExpiration = PLAN_LIMITS[merchantPlan].cardExpiration;
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
@@ -198,6 +203,15 @@ export function ProgramForm({
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const logoUploadInputRef = useRef<HTMLInputElement>(null);
   const enrollment = ((config as any).enrollment_page ?? {}) as EnrollmentPageConfig;
+  const expiration = ((config as any).expiration ?? { enabled: false, days: 7 }) as CardExpirationConfig;
+
+  function updateExpiration(next: Partial<CardExpirationConfig>) {
+    if (!canUseCardExpiration) return;
+    setConfig((prev) => ({
+      ...(prev as any),
+      expiration: { ...((prev as any).expiration ?? { enabled: false, days: 7 }), ...next },
+    } as ProgramConfig));
+  }
 
   // The preview follows the step being edited — join page only while editing Wallet
   // setup, the wallet card everywhere else (including Card appearance, so the flip shows).
@@ -615,6 +629,50 @@ export function ProgramForm({
                 placeholder="https://yourbusiness.com"
               />
             </div>
+
+            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="expirationEnabled" className="text-[var(--ink)]">Card expiration</Label>
+                    {!canUseCardExpiration && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[var(--surface-3)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                        <Lock className="h-2.5 w-2.5" /> Paid plan
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    {canUseCardExpiration
+                      ? `Members see the card as expiring ${expiration.days} day${expiration.days === 1 ? "" : "s"} after they join — the wallet pass shows the remaining time and updates as it counts down.`
+                      : "Upgrade to a paid plan to make cards expire a set number of days after a customer joins."}
+                  </p>
+                </div>
+                <label className="flex shrink-0 items-center">
+                  <input
+                    id="expirationEnabled"
+                    type="checkbox"
+                    checked={expiration.enabled && canUseCardExpiration}
+                    disabled={!canUseCardExpiration}
+                    onChange={(e) => updateExpiration({ enabled: e.target.checked })}
+                    className="h-5 w-5 rounded border-[var(--line-strong)] text-[var(--primary)] focus:ring-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-40"
+                  />
+                </label>
+              </div>
+              {expiration.enabled && canUseCardExpiration && (
+                <div className="mt-4 max-w-[180px]">
+                  <Label htmlFor="expirationDays" className="text-[var(--muted)]">Expires after (days)</Label>
+                  <Input
+                    id="expirationDays"
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={expiration.days}
+                    onChange={(e) => updateExpiration({ days: Math.max(1, Math.min(365, Number(e.target.value))) })}
+                    className="mt-1.5"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -717,9 +775,14 @@ export function ProgramForm({
                   min={1}
                   max={25}
                   value={(config as any).stamps_required}
-                  onChange={(e) =>
-                    setConfig({ ...(config as any), stamps_required: Number(e.target.value) } as ProgramConfig)
-                  }
+                  onChange={(e) => {
+                    const nextRequired = Number(e.target.value);
+                    setConfig((prev) => ({
+                      ...(prev as any),
+                      stamps_required: nextRequired,
+                      initial_stamps: Math.min((prev as any).initial_stamps ?? 0, Math.max(nextRequired, 0)),
+                    } as ProgramConfig));
+                  }}
                   className="mt-1.5"
                 />
               </div>
@@ -733,6 +796,21 @@ export function ProgramForm({
                   className="mt-1.5"
                   placeholder="e.g. Free Coffee"
                 />
+              </div>
+              <div>
+                <Label className="text-[var(--muted)]">Pre-stamped cards (0–{stampsRequired})</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={stampsRequired}
+                  value={(config as any).initial_stamps ?? 0}
+                  onChange={(e) => {
+                    const next = Math.max(0, Math.min(stampsRequired, Number(e.target.value)));
+                    setConfig({ ...(config as any), initial_stamps: next } as ProgramConfig);
+                  }}
+                  className="mt-1.5"
+                />
+                <p className="mt-1.5 text-xs text-[var(--muted)]">New members receive their wallet card already collected up to this many stamps.</p>
               </div>
             </div>
 
@@ -911,6 +989,9 @@ export function ProgramForm({
             }
           />
           <ReviewRow label="Background image" value={backgroundImage ? "Custom photo" : "None"} />
+          {type === "stamp" && ((config as any).initial_stamps ?? 0) > 0 && (
+            <ReviewRow label="Pre-stamped cards" value={`New members start with ${(config as any).initial_stamps} stamp${(config as any).initial_stamps === 1 ? "" : "s"}`} />
+          )}
           <ReviewRow label="Join page style" value={enrollment.style ?? "classic"} className="capitalize" />
           <ReviewRow
             label="Card details"
@@ -993,7 +1074,7 @@ export function ProgramForm({
                     programType={type}
                     programConfig={config}
                     stampsRequired={stampsRequired}
-                    stampsCollected={3}
+                    stampsCollected={type === "stamp" ? ((config as any).initial_stamps ?? 0) : 3}
                     previewOnly
                     flipped={step === STEP_CARD}
                     cardDetails={(config as any).details}

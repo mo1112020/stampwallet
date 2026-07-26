@@ -20,6 +20,12 @@ export type EnrollmentPageConfig = {
   button_color?: string;
 };
 
+export type CardExpirationConfig = {
+  enabled: boolean;
+  /** Days after enrollment the card expires. */
+  days: number;
+};
+
 export type CardAppearance = {
   primary_color?: string;
   secondary_color?: string;
@@ -28,12 +34,16 @@ export type CardAppearance = {
   enrollment_page?: EnrollmentPageConfig;
   /** Optional — powers the analytics revenue-impact KPI when set. Never estimated if absent. */
   reward_value?: number;
+  /** Paid-plan only — see lib/billing/plans.ts `cardExpiration`. Disabled by default. */
+  expiration?: CardExpirationConfig;
 };
 
 export type StampConfig = CardAppearance & {
   stamps_required: number;
   reward_description: string;
   icon: string;
+  /** Stamps a newly-enrolled customer's pass starts with. Defaults to 0. */
+  initial_stamps?: number;
 };
 
 export type PointsConfig = CardAppearance & {

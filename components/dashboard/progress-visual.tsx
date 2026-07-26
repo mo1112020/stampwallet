@@ -10,6 +10,14 @@ import type {
   StepsProgress,
 } from "@/types";
 import { cn } from "@/lib/utils";
+import { getStampCellScale } from "@/lib/stamp-grid";
+
+const STAMP_DOT_SIZE: Record<ReturnType<typeof getStampCellScale>, string> = {
+  lg: "h-5 w-5 text-[11px]",
+  md: "h-4 w-4 text-[10px]",
+  sm: "h-3.5 w-3.5 text-[9px]",
+  xs: "h-3 w-3 text-[8px]",
+};
 
 /**
  * Compact row-scale progress indicator for lists (customer rows, etc.) — a
@@ -34,13 +42,15 @@ export function ProgressVisual({
     const { stamps_collected } = progress as StampProgress;
     const required = Math.max(stamps_required, 1);
     const collected = Math.min(stamps_collected, required);
+    const dotSize = STAMP_DOT_SIZE[getStampCellScale(required)];
     return (
-      <div className={cn("flex items-center gap-1", className)} title={`${collected}/${required}`}>
+      <div className={cn("flex flex-wrap items-center gap-1 max-w-[180px]", className)} title={`${collected}/${required}`}>
         {Array.from({ length: required }).map((_, i) => (
           <span
             key={i}
             className={cn(
-              "flex h-5 w-5 items-center justify-center rounded-full text-[11px]",
+              "flex shrink-0 items-center justify-center rounded-full",
+              dotSize,
               i < collected
                 ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
                 : "bg-[var(--surface-3)] text-transparent"

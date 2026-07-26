@@ -36,6 +36,7 @@ export default async function NewProgramPage({
         secondaryColor={typeof secondaryColor === "string" ? secondaryColor : merchant?.brand_color_secondary}
         initialIconName={typeof iconName === "string" ? iconName : "Coffee"}
         initialBackgroundImage={typeof backgroundImage === "string" ? backgroundImage : undefined}
+        merchantPlan={merchant?.plan}
       />
     </div>
   );

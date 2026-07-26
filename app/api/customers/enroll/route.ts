@@ -6,7 +6,7 @@ import { initialProgress } from "@/lib/wallet/renderPassFields";
 import { generateApplePass } from "@/lib/wallet/apple";
 import { generateGoogleWalletLink } from "@/lib/wallet/google";
 import { enrollSchema } from "@/lib/validators";
-import type { LoyaltyProgram, Merchant, ProgramType } from "@/types";
+import type { LoyaltyProgram, Merchant, ProgramConfig, ProgramType } from "@/types";
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "anon";
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     return jsonError(customerError?.message ?? "Customer create failed", "create_failed", 500);
   }
 
-  const progress = initialProgress(program.type as ProgramType);
+  const progress = initialProgress(program.type as ProgramType, program.config as ProgramConfig);
   const { data: cp, error: cpError } = await admin
     .from("customer_progress")
     .insert({
@@ -97,12 +97,14 @@ export async function POST(request: Request) {
     merchant,
     progress,
     authenticationToken: cp.apple_auth_token,
+    enrolledAt: cp.created_at,
   });
   const google = await generateGoogleWalletLink({
     passId: cp.pass_id,
     program: loyaltyProgram,
     merchant,
     progress,
+    enrolledAt: cp.created_at,
   });
 
   const requestUrl = new URL(request.url);

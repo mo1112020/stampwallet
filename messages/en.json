@@ -516,6 +516,13 @@
     "progress": "Your progress",
     "notFound": "Pass not found"
   },
+  "notFoundPage": {
+    "eyebrow": "404",
+    "title": "This page took the day off",
+    "description": "The page you're looking for doesn't exist or may have moved.",
+    "backHome": "Back to home",
+    "goToDashboard": "Go to dashboard"
+  },
   "billing": {
     "title": "Billing",
     "currentPlan": "Current plan",

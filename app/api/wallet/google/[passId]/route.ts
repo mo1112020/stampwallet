@@ -36,6 +36,7 @@ export async function GET(request: Request, { params }: Ctx) {
     program: programRaw,
     merchant: programRaw.merchants,
     progress: row.progress as Progress,
+    enrolledAt: row.created_at,
   });
 
   return jsonOk(link);

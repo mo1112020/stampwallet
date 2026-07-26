@@ -3,9 +3,32 @@
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
-import { ExternalLink, type LucideIcon } from "lucide-react";
-import type { PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { Clock, ExternalLink, type LucideIcon } from "lucide-react";
+import type { CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
+import { getStampCellScale, getStampGridColumns } from "@/lib/stamp-grid";
+import { computeExpirationStatus, formatDaysRemaining } from "@/lib/wallet/expiration";
+
+const STAMP_ICON_SIZE: Record<ReturnType<typeof getStampCellScale>, string> = {
+  lg: "h-3 w-3",
+  md: "h-2.5 w-2.5",
+  sm: "h-2 w-2",
+  xs: "h-1.5 w-1.5",
+};
+
+const STAMP_GAP: Record<ReturnType<typeof getStampCellScale>, string> = {
+  lg: "gap-1.5",
+  md: "gap-1",
+  sm: "gap-1",
+  xs: "gap-0.5",
+};
+
+const STAMP_BORDER_WIDTH: Record<ReturnType<typeof getStampCellScale>, string> = {
+  lg: "1.5px",
+  md: "1.5px",
+  sm: "1px",
+  xs: "1px",
+};
 
 export type PhoneMockupProps = {
   name: string;
@@ -62,6 +85,8 @@ export function PhoneMockup({
   const isFlipCard = flipped !== undefined;
   const pointsConfig = programConfig as PointsConfig | undefined;
   const stepsConfig = programConfig as StepsConfig | undefined;
+  // Preview assumes "just enrolled" (now) so the countdown shows the full configured window.
+  const expirationPreview = computeExpirationStatus((programConfig as CardAppearance | undefined)?.expiration, new Date());
   const rewardDescription = (programConfig as { reward_description?: string } | undefined)?.reward_description;
   const pointsTarget = pointsConfig?.points_per_reward ?? 1000;
   const demoPoints = Math.min(420, pointsTarget);
@@ -148,26 +173,36 @@ export function PhoneMockup({
 
               {/* Reward progress */}
               <div className="px-3 pt-2">
-                {programType === "stamp" && <div className="grid grid-cols-5 gap-1.5">
-                  {Array.from({ length: Math.min(25, Math.max(1, stampsRequired)) }).map((_, i) => {
-                    const filled = i < stampsCollected;
-                    return (
-                      <div
-                        key={i}
-                        className="flex aspect-square items-center justify-center rounded-full"
-                        style={{
-                          backgroundColor: filled ? secondaryColor : "rgba(255,255,255,0.18)",
-                          border: `1.5px solid ${filled ? secondaryColor : "rgba(255,255,255,0.45)"}`,
-                        }}
-                      >
-                        <Icon
-                          className="h-3 w-3"
-                          style={{ color: filled ? "#fff" : "rgba(255,255,255,0.7)" }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>}
+                {programType === "stamp" && (() => {
+                  const clampedRequired = Math.min(25, Math.max(1, stampsRequired));
+                  const columns = getStampGridColumns(clampedRequired);
+                  const scale = getStampCellScale(clampedRequired);
+                  return (
+                    <div
+                      className={`grid ${STAMP_GAP[scale]}`}
+                      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+                    >
+                      {Array.from({ length: clampedRequired }).map((_, i) => {
+                        const filled = i < stampsCollected;
+                        return (
+                          <div
+                            key={i}
+                            className="flex aspect-square items-center justify-center rounded-full"
+                            style={{
+                              backgroundColor: filled ? secondaryColor : "rgba(255,255,255,0.18)",
+                              border: `${STAMP_BORDER_WIDTH[scale]} solid ${filled ? secondaryColor : "rgba(255,255,255,0.45)"}`,
+                            }}
+                          >
+                            <Icon
+                              className={STAMP_ICON_SIZE[scale]}
+                              style={{ color: filled ? "#fff" : "rgba(255,255,255,0.7)" }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
                 {programType === "points" && (
                   <div className="overflow-hidden rounded-lg bg-white/90 py-2.5 text-[#1f57e7]">
                     <div className="flex items-baseline justify-center gap-1">
@@ -196,6 +231,13 @@ export function PhoneMockup({
                   </div>
                 )}
               </div>
+
+              {expirationPreview && (
+                <div className="mx-3 mt-2 flex items-center justify-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[8px] font-semibold uppercase tracking-wide">
+                  <Clock className="h-2.5 w-2.5" />
+                  {formatDaysRemaining(expirationPreview)}
+                </div>
+              )}
 
               {/* Info row */}
               <div className="px-3 pt-3 pb-1 flex justify-between text-[9px]">
