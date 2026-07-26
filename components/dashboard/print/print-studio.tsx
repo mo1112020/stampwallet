@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/toaster";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { printFont } from "@/lib/fonts/print";
+import { normalizeHex } from "@/lib/print/color";
 import { exportNodeAsPdf, exportNodeAsPng } from "@/lib/print/export";
 import { PRINT_COPY, type PrintLocale } from "./copy";
 import { PrintPreviewFrame, type PrintTemplateData } from "./primitives";
@@ -75,8 +76,11 @@ export function PrintStudio({
     programName,
     logoUrl,
     qrValue,
-    primaryColor,
-    secondaryColor,
+    // Templates interpolate these straight into inline CSS (gradients,
+    // borders) — an invalid/empty color here silently breaks a whole
+    // template's background, so normalize once, here, for every template.
+    primaryColor: normalizeHex(primaryColor),
+    secondaryColor: normalizeHex(secondaryColor),
     locale: assetLocale,
   };
 

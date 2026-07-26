@@ -1,9 +1,22 @@
+const DEFAULT_HEX = "#1f57e7";
+
+/**
+ * Coerces to a valid #rrggbb hex, falling back to a safe default for bad
+ * input (empty string, missing "#", 3-digit shorthand, etc). Bad input left
+ * unnormalized used to propagate straight into inline CSS — e.g.
+ * `linear-gradient(155deg, , )` — which browsers silently drop, making a
+ * template's entire background disappear. Every color a print template
+ * touches should be passed through this first (see print-studio.tsx).
+ */
+export function normalizeHex(hex: string | undefined | null): string {
+  const clean = (hex ?? "").trim().replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  return /^[0-9a-f]{6}$/i.test(full) ? `#${full.toLowerCase()}` : DEFAULT_HEX;
+}
+
 /** Lighten (positive) or darken (negative) a hex color by a percentage, for subtle print-asset gradients. */
 export function shade(hex: string, percent: number): string {
-  const clean = hex.replace("#", "");
-  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
-  const num = parseInt(full, 16);
-  if (Number.isNaN(num)) return hex;
+  const num = parseInt(normalizeHex(hex).slice(1), 16);
   let r = (num >> 16) & 0xff;
   let g = (num >> 8) & 0xff;
   let b = num & 0xff;
@@ -16,10 +29,7 @@ export function shade(hex: string, percent: number): string {
 
 /** Relative luminance-based pick between black/white text for contrast against a hex background. */
 export function readableTextColor(hex: string): "#111111" | "#ffffff" {
-  const clean = hex.replace("#", "");
-  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
-  const num = parseInt(full, 16);
-  if (Number.isNaN(num)) return "#111111";
+  const num = parseInt(normalizeHex(hex).slice(1), 16);
   const r = (num >> 16) & 0xff;
   const g = (num >> 8) & 0xff;
   const b = num & 0xff;
