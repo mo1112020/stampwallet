@@ -69,6 +69,9 @@ export function PrintPreviewDialog({
           className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-[var(--surface-2)] p-3"
         >
           <div
+            // dir="ltr": see PrintPreviewFrame in primitives.tsx — same
+            // scaled-viewport-under-RTL-ancestor clipping issue.
+            dir="ltr"
             className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-md"
             style={{ width: dim.widthPx * scale, height: dim.heightPx * scale }}
           >

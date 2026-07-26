@@ -8,7 +8,7 @@ export const Input = React.forwardRef<
   <input
     ref={ref}
     className={cn(
-      "flex h-12 w-full rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-[15px] text-[var(--ink)] placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary-soft)]",
+      "flex h-12 w-full rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-[16px] sm:text-[15px] text-[var(--ink)] placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary-soft)]",
       className
     )}
     {...props}
@@ -33,7 +33,7 @@ export const Select = React.forwardRef<
   <select
     ref={ref}
     className={cn(
-      "flex h-12 w-full rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-[15px] text-[var(--ink)] focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary-soft)]",
+      "flex h-12 w-full rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-[16px] sm:text-[15px] text-[var(--ink)] focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary-soft)]",
       className
     )}
     {...props}
@@ -50,7 +50,7 @@ export const Textarea = React.forwardRef<
   <textarea
     ref={ref}
     className={cn(
-      "flex min-h-[96px] w-full rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-[15px] text-[var(--ink)] placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary-soft)]",
+      "flex min-h-[96px] w-full rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-[16px] sm:text-[15px] text-[var(--ink)] placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary-soft)]",
       className
     )}
     {...props}

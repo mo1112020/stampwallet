@@ -116,7 +116,14 @@ export function PrintPreviewFrame({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ width: width * scale, height: height * scale, overflow: "hidden" }}>
+    // dir="ltr": under an RTL ancestor (app locale = ar), a plain block
+    // child narrower than its parent lays out flush with the inline-start
+    // edge, which under RTL is the right side — so this fixed-size scaled
+    // child would be positioned mostly off-screen to the left and get
+    // clipped by overflow:hidden. This is a geometric viewport onto the
+    // template's own canvas, not reading content, so it must stay LTR
+    // regardless of the surrounding page's direction.
+    <div dir="ltr" style={{ width: width * scale, height: height * scale, overflow: "hidden" }}>
       <div style={{ width, height, transform: `scale(${scale})`, transformOrigin: "top left" }}>{children}</div>
     </div>
   );
