@@ -14,25 +14,39 @@ export function QrCodeImage({
   dark?: string;
   className?: string;
 }) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [svg, setSvg] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(value, {
-      width: size * 3,
+    QRCode.toString(value, {
+      type: "svg",
+      width: size,
       margin: 1,
       color: { dark, light: "#00000000" },
-    }).then((url) => {
-      if (!cancelled) setSrc(url);
+    }).then((markup) => {
+      if (!cancelled) setSvg(markup);
     });
     return () => {
       cancelled = true;
     };
   }, [value, size, dark]);
 
-  if (!src) {
+  if (!svg) {
     return <div className={className} style={{ width: size, height: size }} aria-hidden="true" />;
   }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" width={size} height={size} className={className} />;
+
+  return (
+    // Rendered as inline SVG (vector paths), not a raster <img> — the
+    // export pipeline (lib/print/export.ts, via html-to-image) snapshots
+    // this DOM by serializing it into an SVG <foreignObject> and rasterizing
+    // that on a <canvas>. iOS Safari unreliably rasterizes raster <img>
+    // elements nested inside that foreignObject (they'd render fine on
+    // screen but come out blank in the exported PNG/PDF); native SVG
+    // content doesn't hit that path since it's already vector markup.
+    <div
+      className={className}
+      style={{ width: size, height: size }}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
 }

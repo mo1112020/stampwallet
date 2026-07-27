@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, Eye, FileText } from "lucide-react";
 import { toast } from "@/components/ui/toaster";
 import { Card } from "@/components/ui/card";
@@ -42,10 +42,120 @@ const TEMPLATE_CONFIG: { id: TemplateId; label: string; Component: typeof A4Post
   { id: "instagramStory", label: "Instagram Story", Component: InstagramStory },
 ];
 
-const PREVIEW_WIDTH = 220;
+// Initial guess used for exactly one frame, before the ResizeObserver in
+// TemplateCard reports the slot's real width — avoids a 0-height flash.
+const INITIAL_PREVIEW_WIDTH = 160;
 
 function slugify(value: string) {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "stampwallet";
+}
+
+function TemplateCard({
+  id,
+  label,
+  Component,
+  data,
+  exportingId,
+  onPreview,
+  onDownload,
+  registerNode,
+}: {
+  id: TemplateId;
+  label: string;
+  Component: typeof A4Poster;
+  data: PrintTemplateData;
+  exportingId: string | null;
+  onPreview: () => void;
+  onDownload: (format: "png" | "pdf") => void;
+  registerNode: (id: TemplateId, el: HTMLDivElement | null) => void;
+}) {
+  const dim = TEMPLATE_DIMENSIONS[id];
+  const pngKey = `${id}-png`;
+  const pdfKey = `${id}-pdf`;
+
+  // The old fixed-pixel preview width (220px) didn't shrink for narrower
+  // grid columns — on phones (2-up) and even some tablet/laptop widths
+  // (3-up/4-up), the slot's actual column was narrower than that, so the
+  // preview overflowed its card. The outer slot's shape now comes from
+  // `aspect-ratio` in CSS (correct from the very first frame, no JS
+  // involved) rather than a JS-computed pixel height — only the *inner*
+  // fixed-px template's scale factor still needs a measured width, and if
+  // that lags a frame while the ResizeObserver's first callback lands, the
+  // box is already the right shape so nothing visibly overflows or jumps.
+  const slotRef = useRef<HTMLDivElement>(null);
+  const [slotWidth, setSlotWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = slotRef.current;
+    if (!el) return;
+    const compute = () => {
+      const width = el.getBoundingClientRect().width;
+      if (width > 0) setSlotWidth(width);
+    };
+    compute();
+    const raf = requestAnimationFrame(compute);
+    const observer = new ResizeObserver(compute);
+    observer.observe(el);
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, []);
+
+  const scale = (slotWidth ?? INITIAL_PREVIEW_WIDTH) / dim.widthPx;
+
+  return (
+    <Card className="flex flex-col items-center gap-3 p-4">
+      <div
+        ref={slotRef}
+        role="button"
+        tabIndex={0}
+        aria-label={`Preview ${label}`}
+        onClick={onPreview}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onPreview();
+          }
+        }}
+        className="group relative w-full cursor-pointer overflow-hidden rounded-lg border border-[var(--line)] shadow-sm outline-none transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+        style={{ aspectRatio: `${dim.widthPx} / ${dim.heightPx}` }}
+      >
+        <PrintPreviewFrame width={dim.widthPx} height={dim.heightPx} scale={scale}>
+          <Component ref={(el) => registerNode(id, el)} {...data} />
+        </PrintPreviewFrame>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/25 group-hover:opacity-100">
+          <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#111]">
+            <Eye className="h-3.5 w-3.5" />
+            Preview
+          </span>
+        </div>
+      </div>
+      <p className="text-sm font-semibold text-[var(--ink)]">{label}</p>
+      <div className="flex w-full flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => onDownload("png")}
+          disabled={exportingId !== null}
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
+        >
+          <Download className="h-3.5 w-3.5" />
+          {exportingId === pngKey ? "Exporting…" : "PNG"}
+        </button>
+        {dim.kind === "print" && (
+          <button
+            type="button"
+            onClick={() => onDownload("pdf")}
+            disabled={exportingId !== null}
+            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            {exportingId === pdfKey ? "Exporting…" : "PDF"}
+          </button>
+        )}
+      </div>
+    </Card>
+  );
 }
 
 export function PrintStudio({
@@ -83,6 +193,11 @@ export function PrintStudio({
     secondaryColor: normalizeHex(secondaryColor),
     locale: assetLocale,
   };
+
+  function registerNode(id: TemplateId, el: HTMLDivElement | null) {
+    if (el) nodeRefs.current.set(id, el);
+    else nodeRefs.current.delete(id);
+  }
 
   async function handleDownload(id: TemplateId, format: "png" | "pdf") {
     const node = nodeRefs.current.get(id);
@@ -123,70 +238,20 @@ export function PrintStudio({
       </div>
       <p className="mt-2 text-sm text-[var(--muted)]">{PRINT_COPY[assetLocale].instructions}</p>
 
-      <div className="mt-6 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-        {TEMPLATE_CONFIG.map(({ id, label, Component }) => {
-          const dim = TEMPLATE_DIMENSIONS[id];
-          const scale = PREVIEW_WIDTH / dim.widthPx;
-          const pngKey = `${id}-png`;
-          const pdfKey = `${id}-pdf`;
-          return (
-            <Card key={id} className="flex flex-col items-center gap-3 p-4">
-              <div
-                role="button"
-                tabIndex={0}
-                aria-label={`Preview ${label}`}
-                onClick={() => setPreviewId(id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setPreviewId(id);
-                  }
-                }}
-                className="group relative cursor-pointer overflow-hidden rounded-lg border border-[var(--line)] shadow-sm outline-none transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-                style={{ width: PREVIEW_WIDTH, height: dim.heightPx * scale }}
-              >
-                <PrintPreviewFrame width={dim.widthPx} height={dim.heightPx} scale={scale}>
-                  <Component
-                    ref={(el) => {
-                      if (el) nodeRefs.current.set(id, el);
-                      else nodeRefs.current.delete(id);
-                    }}
-                    {...data}
-                  />
-                </PrintPreviewFrame>
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/25 group-hover:opacity-100">
-                  <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#111]">
-                    <Eye className="h-3.5 w-3.5" />
-                    Preview
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm font-semibold text-[var(--ink)]">{label}</p>
-              <div className="flex w-full flex-col gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => handleDownload(id, "png")}
-                  disabled={exportingId !== null}
-                  className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  {exportingId === pngKey ? "Exporting…" : "PNG"}
-                </button>
-                {dim.kind === "print" && (
-                  <button
-                    type="button"
-                    onClick={() => handleDownload(id, "pdf")}
-                    disabled={exportingId !== null}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
-                  >
-                    <FileText className="h-3.5 w-3.5" />
-                    {exportingId === pdfKey ? "Exporting…" : "PDF"}
-                  </button>
-                )}
-              </div>
-            </Card>
-          );
-        })}
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+        {TEMPLATE_CONFIG.map(({ id, label, Component }) => (
+          <TemplateCard
+            key={id}
+            id={id}
+            label={label}
+            Component={Component}
+            data={data}
+            exportingId={exportingId}
+            onPreview={() => setPreviewId(id)}
+            onDownload={(format) => handleDownload(id, format)}
+            registerNode={registerNode}
+          />
+        ))}
       </div>
 
       {previewId &&

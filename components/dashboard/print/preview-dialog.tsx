@@ -25,10 +25,20 @@ export function PrintPreviewDialog({
   children: React.ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.25);
+  // Deliberately no fallback guess here (e.g. a fixed 0.25) — if the very
+  // first measurement raced the dialog's own layout and undershot, nothing
+  // afterward would ever correct it (a ResizeObserver only reports actual
+  // size *changes*, and this container's box doesn't change again once the
+  // dialog has finished laying out). Rendering nothing until the first real
+  // measurement lands is safer than risking a permanently-wrong-but-valid
+  // scale.
+  const [scale, setScale] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setScale(null);
+      return;
+    }
     const el = containerRef.current;
     if (!el) return;
     const compute = () => {
@@ -38,9 +48,17 @@ export function PrintPreviewDialog({
       if (next > 0) setScale(next);
     };
     compute();
+    // The dialog's flex layout can still be settling on the exact frame this
+    // effect first runs — a second pass next frame catches that without
+    // waiting on a ResizeObserver entry that may never fire (this
+    // container's own box doesn't necessarily change size again).
+    const raf = requestAnimationFrame(compute);
     const observer = new ResizeObserver(compute);
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, [open, dim.widthPx, dim.heightPx]);
 
   const pngKey = `${templateId}-png`;
@@ -68,24 +86,26 @@ export function PrintPreviewDialog({
           ref={containerRef}
           className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-[var(--surface-2)] p-3"
         >
-          <div
-            // dir="ltr": see PrintPreviewFrame in primitives.tsx — same
-            // scaled-viewport-under-RTL-ancestor clipping issue.
-            dir="ltr"
-            className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-md"
-            style={{ width: dim.widthPx * scale, height: dim.heightPx * scale }}
-          >
+          {scale !== null && (
             <div
-              style={{
-                width: dim.widthPx,
-                height: dim.heightPx,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-              }}
+              // dir="ltr": see PrintPreviewFrame in primitives.tsx — same
+              // scaled-viewport-under-RTL-ancestor clipping issue.
+              dir="ltr"
+              className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-md"
+              style={{ width: dim.widthPx * scale, height: dim.heightPx * scale }}
             >
-              {children}
+              <div
+                style={{
+                  width: dim.widthPx,
+                  height: dim.heightPx,
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                {children}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex flex-wrap justify-center gap-2">
