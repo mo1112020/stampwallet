@@ -45,6 +45,7 @@
       "company": "Company",
       "legal": "Legal",
       "start": "Start now",
+      "support": "Support",
       "privacy": "Privacy",
       "terms": "Terms",
       "copyright": "© 2026 WalletOS. All rights reserved."
@@ -187,6 +188,20 @@
       "eyebrow": "FAQ",
       "title": "Questions, answered.",
       "description": "Everything merchants ask before launching WalletOS."
+    },
+    "support": {
+      "eyebrow": "Support",
+      "title": "We're here to help.",
+      "description": "Questions about setting up your loyalty program, wallet passes, or billing — reach us directly or browse the answers merchants ask most.",
+      "emailTitle": "Email us",
+      "emailBody": "For account, billing, or technical issues — we typically reply within one business day.",
+      "email": "support@walletos.online",
+      "faqTitle": "Read the FAQ",
+      "faqBody": "Common questions about enrollment, Apple/Google Wallet, and how billing works.",
+      "faqCta": "Browse the FAQ",
+      "guideTitle": "Explore features",
+      "guideBody": "See how programs, analytics, and wallet passes fit together before you reach out.",
+      "guideCta": "See features"
     }
   },
   "landing": {

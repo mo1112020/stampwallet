@@ -1,8 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
-import { gsap } from "@/lib/motion/gsap";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
@@ -15,10 +13,14 @@ type StaggerGroupProps = {
   y?: number;
 };
 
+const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
+
 /**
- * Fade-up-staggers its children once they scroll into view. For card grids /
- * KPI rows — the group entrance IS the hierarchy cue, so this only ever plays
- * once (no looping), per "motion must be motivated."
+ * Fade-up-staggers its children once they scroll into view, via
+ * IntersectionObserver + CSS transitions rather than GSAP + ScrollTrigger —
+ * see components/motion/reveal.tsx for why. For card grids / KPI rows — the
+ * group entrance IS the hierarchy cue, so this only ever plays once (no
+ * looping), per "motion must be motivated."
  */
 export function StaggerGroup({
   children,
@@ -30,30 +32,39 @@ export function StaggerGroup({
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
 
-  useGSAP(
-    () => {
-      if (reduced || !ref.current) return;
-      const items = ref.current.querySelectorAll(itemSelector);
-      if (!items.length) return;
-      gsap.fromTo(
-        items,
-        { opacity: 0, y },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.55,
-          stagger,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ref.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-    },
-    { scope: ref, dependencies: [reduced] }
-  );
+  // Sets the pre-reveal hidden state synchronously, before the browser's
+  // first paint — a plain useEffect here would let children flash fully
+  // visible for a frame before snapping hidden, since it runs after paint.
+  useLayoutEffect(() => {
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    const items = el.querySelectorAll<HTMLElement>(itemSelector);
+    items.forEach((item, index) => {
+      item.style.transition = `opacity 0.55s ${EASE} ${index * stagger}s, transform 0.55s ${EASE} ${index * stagger}s`;
+      item.style.opacity = "0";
+      item.style.transform = `translateY(${y}px)`;
+    });
+  }, [reduced, itemSelector, stagger, y]);
+
+  useEffect(() => {
+    if (reduced) return;
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        el.querySelectorAll<HTMLElement>(itemSelector).forEach((item) => {
+          item.style.opacity = "1";
+          item.style.transform = "translateY(0)";
+        });
+        observer.unobserve(el);
+      },
+      { rootMargin: "0px 0px -10% 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [reduced, itemSelector]);
 
   return (
     <div ref={ref} className={cn(className)}>

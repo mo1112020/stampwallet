@@ -52,6 +52,11 @@ export async function MarketingFooter({ locale }: { locale: string }) {
               </Link>
             </li>
             <li>
+              <Link href={`/${locale}/support`} className="hover:text-[var(--ink)]">
+                {t("support")}
+              </Link>
+            </li>
+            <li>
               <Link href={`/${locale}/signup`} className="hover:text-[var(--ink)]">
                 {t("start")}
               </Link>

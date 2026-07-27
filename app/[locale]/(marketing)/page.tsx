@@ -20,7 +20,11 @@ export default async function HomePage({
     <main>
       <section className="relative min-h-[100dvh] overflow-hidden bg-[var(--surface)]">
         <div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col items-center gap-10 px-6 pb-16 pt-28 md:gap-12 lg:flex-row lg:gap-14 lg:pb-20 lg:pt-28 rtl:lg:flex-row-reverse">
-          <Reveal as="div" y={16} className="mx-auto h-[500px] w-[283px] shrink-0 lg:mx-0">
+          <Reveal
+            as="div"
+            y={16}
+            className="mx-auto aspect-[283/500] w-[85vw] max-w-[380px] shrink-0 lg:mx-0 lg:aspect-auto lg:h-[500px] lg:w-[283px] lg:max-w-none"
+          >
             <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-[var(--surface-2)]">
               <video
                 className="absolute inset-0 h-full w-full object-cover"
@@ -30,6 +34,11 @@ export default async function HomePage({
                 playsInline
                 preload="metadata"
                 aria-hidden="true"
+                // Gives the browser an immediately-paintable frame instead of
+                // nothing until the video's own data streams in and decodes —
+                // this is the hero's LCP candidate, so that gap is exactly
+                // what shows up as a slow/non-discoverable LCP in Lighthouse.
+                poster="/videos/loyalty-hero-poster.jpg"
               >
                 <source src="/videos/loyalty-hero.webm" type="video/webm" />
               </video>
@@ -61,6 +70,7 @@ export default async function HomePage({
           <Link
             href={`/${locale}/features/wallet`}
             className="mt-6 inline-flex text-sm font-semibold text-[var(--primary)] hover:underline"
+            aria-label={`${common("learnMore")} — ${t("pocketTitle")}`}
           >
             {common("learnMore")}
           </Link>
