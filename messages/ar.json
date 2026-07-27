@@ -513,19 +513,6 @@
     "addGoogle": "إضافة إلى Google Wallet",
     "submit": "احصل على بطاقتك"
   },
-  "pass": {
-    "yourProgress": "تقدمك",
-    "toGo": "متبقي {count} لفتح مكافأتك",
-    "nextStage": "التالي: {stage}",
-    "rewardReady": "مكافأتك جاهزة — أظهر هذا للموظف لاستبدالها",
-    "addToAppleWallet": "أضف إلى Apple Wallet",
-    "addToGoogleWallet": "أضف إلى Google Wallet",
-    "adding": "جارٍ الإضافة…",
-    "walletError": "تعذّرت الإضافة إلى المحفظة. حاول مرة أخرى.",
-    "poweredBy": "بواسطة WalletOS",
-    "notFoundTitle": "البطاقة غير موجودة",
-    "notFoundDescription": "قد يكون هذا الرابط معطلاً أو أن البطاقة قد أُزيلت. تواصل مع النشاط التجاري إذا كنت تعتقد أن هذا خطأ."
-  },
   "notFoundPage": {
     "eyebrow": "404",
     "title": "يبدو أن هذه الصفحة أخذت إجازة",

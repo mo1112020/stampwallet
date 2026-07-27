@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -34,7 +34,6 @@ const LIGHT_CARD_VARS = {
 } as React.CSSProperties;
 
 function EnrollForm() {
-  const params = useParams();
   const programId = useSearchParams().get("program") ?? "";
   const [program, setProgram] = useState<JoinPageData | null>(null);
   const [loadingPage, setLoadingPage] = useState(Boolean(programId));
@@ -45,6 +44,7 @@ function EnrollForm() {
   const [passId, setPassId] = useState<string | null>(null);
   const [appleUrl, setAppleUrl] = useState<string | null>(null);
   const [googleUrl, setGoogleUrl] = useState<string | null>(null);
+  const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -112,7 +112,16 @@ function EnrollForm() {
     }
     setPassId(json.data.pass_id);
     setAppleUrl(json.data.apple_pass_url);
-    setGoogleUrl(json.data.google_wallet_url);
+    // json.data.google_wallet_url falls back to a local link (not a real
+    // pay.google.com save URL) when Google Wallet isn't configured or the
+    // API call failed — json.data.stub.google flags exactly that case, so
+    // it must gate whether we treat the URL as a working save link rather
+    // than silently sending the customer to an unrelated page.
+    if (json.data.stub?.google) {
+      setGoogleUnavailable(true);
+    } else {
+      setGoogleUrl(json.data.google_wallet_url);
+    }
   }
 
   if (loadingPage) {
@@ -169,10 +178,11 @@ function EnrollForm() {
               <a href={googleUrl} className="block rounded-full bg-black px-5 py-3 font-semibold text-white">
                 Add to Google Wallet
               </a>
+            ) : googleUnavailable ? (
+              <p className="text-sm text-[var(--muted)]">
+                Google Wallet isn't available right now — you can still track your progress below.
+              </p>
             ) : null}
-            <a href={`/${params.locale}/pass/${passId}`} className="block text-sm font-semibold" style={{ color }}>
-              View your progress
-            </a>
           </div>
         </section>
       </main>

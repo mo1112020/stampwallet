@@ -39,5 +39,20 @@ export async function GET(request: Request, { params }: Ctx) {
     enrolledAt: row.created_at,
   });
 
+  // This endpoint's only job is handing back a real pay.google.com save
+  // link for the client to redirect to. When Google Wallet isn't
+  // configured (or the real API call failed), generateGoogleWalletLink
+  // falls back to a local stub URL rather than a real save link — that
+  // must surface as a request failure here, not a 200 with a fake link,
+  // otherwise a caller that blindly redirects to `saveUrl` sends the
+  // customer to an unrelated page instead of Google Wallet.
+  if (link.stub) {
+    return jsonError(
+      "Google Wallet isn't available right now. Please try again later.",
+      "google_wallet_unavailable",
+      503
+    );
+  }
+
   return jsonOk(link);
 }

@@ -91,10 +91,11 @@ export async function generateGoogleWalletLink(params: {
 
   if (!isGoogleWalletConfigured()) {
     console.info("[wallet:google] stub link", params.passId);
-    return {
-      saveUrl: `/pass/${params.passId}?wallet=google-stub&primary=${encodeURIComponent(fields.primaryValue)}`,
-      stub: true,
-    };
+    // `saveUrl` is intentionally empty — callers must check `stub` before
+    // treating this as a real link (both wallet/google/[passId]/route.ts and
+    // customers/enroll/route.ts do); there's no local fallback page to point
+    // to here anymore.
+    return { saveUrl: "", stub: true };
   }
 
   try {
@@ -146,10 +147,7 @@ export async function generateGoogleWalletLink(params: {
     return { saveUrl: `https://pay.google.com/gp/v/save/${saveToken}`, stub: false, objectId };
   } catch (err) {
     console.error("[wallet:google] real link generation failed, falling back to stub", err);
-    return {
-      saveUrl: `/pass/${params.passId}?wallet=google-stub&primary=${encodeURIComponent(fields.primaryValue)}`,
-      stub: true,
-    };
+    return { saveUrl: "", stub: true };
   }
 }
 

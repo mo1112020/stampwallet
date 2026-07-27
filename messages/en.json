@@ -513,19 +513,6 @@
     "addGoogle": "Add to Google Wallet",
     "submit": "Get your pass"
   },
-  "pass": {
-    "yourProgress": "Your progress",
-    "toGo": "{count} more to unlock your reward",
-    "nextStage": "Next: {stage}",
-    "rewardReady": "Your reward is ready — show this to staff to redeem",
-    "addToAppleWallet": "Add to Apple Wallet",
-    "addToGoogleWallet": "Add to Google Wallet",
-    "adding": "Adding…",
-    "walletError": "Couldn't add to wallet. Please try again.",
-    "poweredBy": "Powered by WalletOS",
-    "notFoundTitle": "Pass not found",
-    "notFoundDescription": "This link may be broken, or the pass may have been removed. Contact the business if you think this is a mistake."
-  },
   "notFoundPage": {
     "eyebrow": "404",
     "title": "This page took the day off",
