@@ -50,34 +50,24 @@ export async function POST(request: Request) {
     return jsonError("This program has reached its customer cap", "plan_limit", 403);
   }
 
-  const { data: customer, error: customerError } = await admin
-    .from("customers")
-    .insert({
-      merchant_id: merchant.id,
-      name: parsed.data.name ?? null,
-      phone: parsed.data.phone ?? null,
-      email: parsed.data.email ?? null,
-    })
-    .select("*")
-    .single();
-
-  if (customerError || !customer) {
-    return jsonError(customerError?.message ?? "Customer create failed", "create_failed", 500);
-  }
-
   const progress = initialProgress(program.type as ProgramType, program.config as ProgramConfig);
-  const { data: cp, error: cpError } = await admin
-    .from("customer_progress")
-    .insert({
-      customer_id: customer.id,
-      program_id: program.id,
-      progress,
-    })
-    .select("*")
-    .single();
 
-  if (cpError || !cp) {
-    return jsonError(cpError?.message ?? "Progress create failed", "create_failed", 500);
+  // Atomic find-or-create: if this person (matched by phone or email, for
+  // this merchant) already has a customer record and/or is already
+  // enrolled in this program, reuse that row instead of creating a
+  // duplicate — see supabase/migrations/014_customer_dedup.sql.
+  const { data: enrollRows, error: enrollError } = await admin.rpc("enroll_customer", {
+    p_merchant_id: merchant.id,
+    p_program_id: program.id,
+    p_name: parsed.data.name ?? null,
+    p_phone: parsed.data.phone ?? null,
+    p_email: parsed.data.email ?? null,
+    p_progress: progress,
+  });
+
+  const cp = enrollRows?.[0];
+  if (enrollError || !cp) {
+    return jsonError(enrollError?.message ?? "Enrollment failed", "create_failed", 500);
   }
 
   const loyaltyProgram = {
@@ -91,20 +81,25 @@ export async function POST(request: Request) {
     updated_at: program.updated_at,
   } as LoyaltyProgram;
 
+  // Use the enrollment's actual current progress, not the freshly computed
+  // `progress` local — for a returning customer (re-scanning the join QR),
+  // that's their real stamp/point balance, not a reset-to-zero card.
+  const currentProgress = (cp.progress ?? progress) as typeof progress;
+
   const apple = await generateApplePass({
     passId: cp.pass_id,
     program: loyaltyProgram,
     merchant,
-    progress,
+    progress: currentProgress,
     authenticationToken: cp.apple_auth_token,
-    enrolledAt: cp.created_at,
+    enrolledAt: cp.enrolled_at,
   });
   const google = await generateGoogleWalletLink({
     passId: cp.pass_id,
     program: loyaltyProgram,
     merchant,
-    progress,
-    enrolledAt: cp.created_at,
+    progress: currentProgress,
+    enrolledAt: cp.enrolled_at,
   });
 
   const requestUrl = new URL(request.url);
