@@ -1,28 +1,13 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { Download, Search, Users } from "lucide-react";
-import { Input, Select } from "@/components/ui/input";
+import { redirect } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Users } from "lucide-react";
+import { getSessionOrNull } from "@/lib/api";
+import { roleHasCapability } from "@/lib/auth/permissions";
+import { listAllCustomers } from "@/lib/customers/queries";
 import { Card } from "@/components/ui/card";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
-import { cn } from "@/lib/utils";
-
-type CustomerRow = {
-  id: string;
-  name: string | null;
-  phone: string | null;
-  email: string | null;
-  birthday: string | null;
-  created_at: string;
-  cardsCount: number;
-  programs: string[];
-  hasApple: boolean;
-  hasGoogle: boolean;
-};
-
-type Filter = "all" | "birthday_month";
+import { CustomersToolbar } from "@/components/dashboard/customers-toolbar";
 
 function StatTile({ label, value }: { label: string; value: string | number }) {
   return (
@@ -33,43 +18,41 @@ function StatTile({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-export default function CustomersPage() {
-  const t = useTranslations("customers");
-  const [customers, setCustomers] = useState<CustomerRow[]>([]);
-  const [stats, setStats] = useState({ totalCustomers: 0, totalCards: 0, totalScans: 0 });
-  const [programs, setPrograms] = useState<{ id: string; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
-  const [programFilter, setProgramFilter] = useState("");
+export default async function CustomersPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string; filter?: string; filter_program_id?: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("customers");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (search) params.set("q", search);
-    if (filter === "birthday_month") params.set("filter", "birthday_month");
-    if (programFilter) params.set("filter_program_id", programFilter);
+  const session = await getSessionOrNull();
+  if (!session) {
+    redirect(`/${locale}/login`);
+  }
 
-    const res = await fetch(`/api/customers?${params.toString()}`);
-    const json = await res.json();
-    if (res.ok) {
-      setCustomers(json.data?.customers ?? []);
-      setStats(json.data?.stats ?? { totalCustomers: 0, totalCards: 0, totalScans: 0 });
-    }
-    setLoading(false);
-  }, [search, filter, programFilter]);
+  if (!roleHasCapability(session.role, "view_analytics")) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{t("title")}</h1>
+        <p className="mt-4 text-sm text-[var(--muted)]">{t("noAccess")}</p>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    fetch("/api/programs")
-      .then((r) => r.json())
-      .then((json) => setPrograms(json.data ?? []))
-      .catch(() => {});
-  }, []);
+  const sp = await searchParams;
+  const search = sp.q?.trim() || undefined;
+  const filterProgramId = sp.filter_program_id || undefined;
+  const filter = sp.filter === "birthday_month" ? "birthday_month" : null;
+  const hasActiveQuery = Boolean(search) || filter === "birthday_month" || Boolean(filterProgramId);
 
-  useEffect(() => {
-    const id = setTimeout(load, 250);
-    return () => clearTimeout(id);
-  }, [load]);
+  const [{ customers, stats }, { data: programs }] = await Promise.all([
+    listAllCustomers(session, { search, filterProgramId, filter }),
+    session.supabase.from("loyalty_programs").select("id, name").eq("merchant_id", session.merchantId).order("name"),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -84,62 +67,13 @@ export default function CustomersPage() {
         <StatTile label={t("transactions")} value={stats.totalScans} />
       </StaggerGroup>
 
-      <div className="mt-6 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="ps-11"
-          />
-        </div>
-        <div className="flex gap-1 rounded-full bg-[var(--surface-2)] p-1 text-sm font-semibold">
-          <button
-            type="button"
-            onClick={() => setFilter("all")}
-            className={cn(
-              "rounded-full px-3 py-1.5 transition-colors",
-              filter === "all" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
-            )}
-          >
-            {t("filterAll")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilter("birthday_month")}
-            className={cn(
-              "rounded-full px-3 py-1.5 transition-colors",
-              filter === "birthday_month" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
-            )}
-          >
-            {t("filterBirthday")}
-          </button>
-        </div>
-        <Select value={programFilter} onChange={(e) => setProgramFilter(e.target.value)} className="w-auto max-w-[180px]">
-          <option value="">{t("filterProgram")}</option>
-          {programs.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </Select>
-        <a
-          href="/api/customers/export"
-          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)]"
-        >
-          <Download className="h-4 w-4" />
-          {t("export")}
-        </a>
-      </div>
+      <CustomersToolbar programs={programs ?? []} />
 
       <div className="mt-6">
-        {loading ? (
-          <p className="text-sm text-[var(--muted)]">{t("loading")}</p>
-        ) : customers.length === 0 ? (
+        {customers.length === 0 ? (
           <Card className="flex flex-col items-center gap-3 p-12 text-center">
             <Users className="h-8 w-8 text-[var(--muted)]" strokeWidth={1.5} />
-            <p className="text-[var(--muted)]">{search || filter !== "all" || programFilter ? t("noResults") : t("noCustomers")}</p>
+            <p className="text-[var(--muted)]">{hasActiveQuery ? t("noResults") : t("noCustomers")}</p>
           </Card>
         ) : (
           <Card className="overflow-x-auto p-0">

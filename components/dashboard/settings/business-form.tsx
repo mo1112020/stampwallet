@@ -1,0 +1,69 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input, Label, Select } from "@/components/ui/input";
+import { toast } from "@/components/ui/toaster";
+import type { Merchant } from "@/types";
+
+const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "EGP", "PKR"];
+
+export function BusinessForm({ merchant }: { merchant: Merchant }) {
+  const t = useTranslations("settings.business");
+  const [currency, setCurrency] = useState(merchant.currency ?? "");
+  const [aov, setAov] = useState(merchant.average_order_value != null ? String(merchant.average_order_value) : "");
+  const [saving, setSaving] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    const res = await fetch("/api/settings/merchant", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currency: currency || null,
+        average_order_value: aov ? Number(aov) : null,
+      }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.success(t("saved"));
+    } else {
+      toast.error(t("saveFailed"));
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="max-w-md space-y-4">
+      <p className="text-sm text-[var(--muted)]">{t("intro")}</p>
+      <div>
+        <Label htmlFor="currency">{t("currency")}</Label>
+        <Select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+          <option value="">{t("notSet")}</option>
+          {CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="aov">{t("averageOrderValue")}</Label>
+        <Input
+          id="aov"
+          type="number"
+          min={0}
+          step="0.01"
+          value={aov}
+          onChange={(e) => setAov(e.target.value)}
+          placeholder={t("optional")}
+        />
+      </div>
+      <p className="text-xs text-[var(--muted)]">{t("rewardValueHint")}</p>
+      <Button type="submit" disabled={saving}>
+        {saving ? t("saving") : t("save")}
+      </Button>
+    </form>
+  );
+}

@@ -535,6 +535,7 @@
     "viewInvoice": "View invoice",
     "processing": "Processing…",
     "usageLoadFailed": "Couldn't load plan usage. Try refreshing the page.",
+    "noAccess": "You don't have access to billing.",
     "usage": {
       "title": "Plan usage",
       "programs": "Active programs",
@@ -576,6 +577,7 @@
     "sendFailed": "Could not create that campaign.",
     "historyTitle": "Campaign history",
     "loading": "Loading…",
+    "noAccess": "You don't have access to notifications.",
     "noCampaigns": "No campaigns yet.",
     "notFound": "Campaign not found.",
     "back": "Back",
@@ -624,7 +626,8 @@
     "unknownCustomer": "Unknown",
     "noCustomers": "No customers yet.",
     "noResults": "No customers match your search.",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "noAccess": "You don't have access to customers."
   },
   "common": {
     "loading": "Loading…",
