@@ -7,7 +7,7 @@ import { RegisterServiceWorker } from "@/components/scanner/register-sw";
 // auth check here would redirect it to itself in a loop. The actual auth
 // gate is the sibling (app)/layout.tsx route group.
 export const metadata: Metadata = {
-  title: "StampWallet Scanner",
+  title: "WalletOS Scanner",
   description: "Scan customer loyalty passes, award stamps/points, and redeem rewards.",
   manifest: "/manifest.json",
   appleWebApp: {

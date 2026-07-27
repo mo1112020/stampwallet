@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { Logo } from "@/components/brand/logo";
 
 export async function MarketingFooter({ locale }: { locale: string }) {
   const t = await getTranslations("site.footer");
@@ -9,7 +10,7 @@ export async function MarketingFooter({ locale }: { locale: string }) {
     <footer className="border-t border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:grid-cols-4">
         <div>
-          <p className="font-brand text-lg">StampWallet</p>
+          <Logo className="h-6" />
           <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{t("tagline")}</p>
         </div>
         <div>

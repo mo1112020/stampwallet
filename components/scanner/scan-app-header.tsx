@@ -28,7 +28,7 @@ export function ScanAppHeader({
   return (
     <header className="flex items-center justify-between">
       <div>
-        <p className="font-brand text-sm text-white">{businessName || "StampWallet"}</p>
+        <p className="font-brand text-sm text-white">{businessName || "WalletOS"}</p>
         <p className="text-xs uppercase tracking-wide text-white/50">{t(`role.${role}`)}</p>
       </div>
       <button

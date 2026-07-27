@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 
 // Leaflet's default marker icon paths break under most bundlers unless
 // pointed at CDN-hosted images explicitly — a well-known Leaflet+webpack
-// gotcha, not something StampWallet-specific.
+// gotcha, not something WalletOS-specific.
 const markerIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",

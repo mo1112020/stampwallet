@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "StampWallet",
+    "title": "WalletOS",
     "tagline": "ولاء العملاء في المحفظة الرقمية."
   },
   "nav": {
@@ -47,7 +47,7 @@
       "start": "ابدأ الآن",
       "privacy": "الخصوصية",
       "terms": "الشروط",
-      "copyright": "© 2026 StampWallet. جميع الحقوق محفوظة."
+      "copyright": "© 2026 WalletOS. جميع الحقوق محفوظة."
     },
     "common": {
       "getStarted": "ابدأ الآن",
@@ -61,7 +61,7 @@
       "heroSecondary": "استعرض الميزات",
       "pocketTitle": "علامتك التجارية في جيب عميلك.",
       "pocketSub": "لا حاجة لتطبيق — بطاقة ولاء بسيطة وقوية لـ Apple و Google Wallet.",
-      "exploreTitle": "استكشف StampWallet",
+      "exploreTitle": "استكشف WalletOS",
       "exploreFeatures": "الميزات",
       "exploreFeaturesBody": "بطاقات محفظة، برامج أختام ونقاط، تحديثات فورية، وتحليلات.",
       "exploreIndustries": "القطاعات",
@@ -72,7 +72,7 @@
     "about": {
       "eyebrow": "من نحن",
       "title": "نبيع ولاء العملاء، لا تقنية المحفظة.",
-      "description": "يساعد StampWallet المنشآت الصغيرة والمتوسطة على إطلاق ولاء رقمي خلال دقائق — عربي وإنجليزي، بمنطقة الشرق الأوسط والخليج أولاً.",
+      "description": "يساعد WalletOS المنشآت الصغيرة والمتوسطة على إطلاق ولاء رقمي خلال دقائق — عربي وإنجليزي، بمنطقة الشرق الأوسط والخليج أولاً.",
       "missionTitle": "مهمتنا",
       "missionBody": "جعل الولاء ببساطة بطاقة الأختام الورقية، مع وصول Apple Wallet و Google Wallet. للتاجر لوحة تحكم. وللعميل لا حاجة لتحميل تطبيق.",
       "valuesTitle": "ما نؤمن به",
@@ -110,7 +110,7 @@
     "featuresPrograms": {
       "eyebrow": "البرامج",
       "title": "ثلاثة أنواع برامج، لوحة تحكم واحدة",
-      "description": "اختر أسلوب الولاء المناسب لنشاطك — الكل ضمن StampWallet.",
+      "description": "اختر أسلوب الولاء المناسب لنشاطك — الكل ضمن WalletOS.",
       "stampTitle": "بطاقات الأختام",
       "stampBody": "اشترِ 10 واحصل على 1 مجاناً — شبكات بصرية ومألوفة.",
       "pointsTitle": "بطاقات النقاط",
@@ -186,7 +186,7 @@
     "faqPage": {
       "eyebrow": "الأسئلة الشائعة",
       "title": "أسئلة وأجوبة.",
-      "description": "كل ما يسأله التجار قبل إطلاق StampWallet."
+      "description": "كل ما يسأله التجار قبل إطلاق WalletOS."
     }
   },
   "landing": {
@@ -287,7 +287,8 @@
     "rewardAvailable": "مكافأة متاحة — استبدال؟",
     "redeem": "استبدال",
     "award": "إضافة",
-    "pointsAmount": "النقاط للإضافة"
+    "pointsAmount": "النقاط للإضافة",
+    "noAccess": "ليس لديك صلاحية الوصول إلى البرامج."
   },
   "scanner": {
     "title": "الماسح الضوئي",
@@ -513,8 +514,17 @@
     "submit": "احصل على بطاقتك"
   },
   "pass": {
-    "progress": "تقدمك",
-    "notFound": "البطاقة غير موجودة"
+    "yourProgress": "تقدمك",
+    "toGo": "متبقي {count} لفتح مكافأتك",
+    "nextStage": "التالي: {stage}",
+    "rewardReady": "مكافأتك جاهزة — أظهر هذا للموظف لاستبدالها",
+    "addToAppleWallet": "أضف إلى Apple Wallet",
+    "addToGoogleWallet": "أضف إلى Google Wallet",
+    "adding": "جارٍ الإضافة…",
+    "walletError": "تعذّرت الإضافة إلى المحفظة. حاول مرة أخرى.",
+    "poweredBy": "بواسطة WalletOS",
+    "notFoundTitle": "البطاقة غير موجودة",
+    "notFoundDescription": "قد يكون هذا الرابط معطلاً أو أن البطاقة قد أُزيلت. تواصل مع النشاط التجاري إذا كنت تعتقد أن هذا خطأ."
   },
   "notFoundPage": {
     "eyebrow": "404",

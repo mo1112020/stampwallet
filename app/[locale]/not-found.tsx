@@ -4,6 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { defaultLocale, locales, type AppLocale } from "@/i18n/config";
 import en from "@/messages/en.json";
 import ar from "@/messages/ar.json";
+import { Logo } from "@/components/brand/logo";
 
 const MESSAGES = { en, ar } as const;
 
@@ -25,8 +26,8 @@ export default async function LocaleNotFound() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--surface)] px-6 py-16 text-center">
-      <Link href={`/${locale}`} className="font-brand text-sm text-[var(--ink)]">
-        StampWallet
+      <Link href={`/${locale}`}>
+        <Logo className="h-5" />
       </Link>
 
       <p className="mt-10 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--muted)]">

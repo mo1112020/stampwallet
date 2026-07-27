@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/dashboard/breadcrumbs";
 import { NotificationsPopover } from "@/components/dashboard/notifications-popover";
 import { CommandPalette } from "@/components/command-palette";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { Logo } from "@/components/brand/logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,9 +77,9 @@ export function DashboardTopbar({
       <div className="flex min-w-0 items-center gap-4">
         <Link
           href={`/${locale}/dashboard`}
-          className="font-brand shrink-0 text-sm text-[var(--ink)] transition-opacity hover:opacity-70"
+          className="shrink-0 transition-opacity hover:opacity-70"
         >
-          StampWallet
+          <Logo className="h-5" />
         </Link>
         <div className="hidden h-4 w-px bg-[var(--line)] lg:block" />
         <Breadcrumbs locale={locale} />

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "StampWallet",
+    "title": "WalletOS",
     "tagline": "Customer retention that lives in the wallet."
   },
   "nav": {
@@ -47,7 +47,7 @@
       "start": "Start now",
       "privacy": "Privacy",
       "terms": "Terms",
-      "copyright": "© 2026 StampWallet. All rights reserved."
+      "copyright": "© 2026 WalletOS. All rights reserved."
     },
     "common": {
       "getStarted": "Get started",
@@ -61,7 +61,7 @@
       "heroSecondary": "See features",
       "pocketTitle": "Your brand, in their pocket.",
       "pocketSub": "No app needed — a simple, powerful loyalty card for Apple and Google Wallet.",
-      "exploreTitle": "Explore StampWallet",
+      "exploreTitle": "Explore WalletOS",
       "exploreFeatures": "Features",
       "exploreFeaturesBody": "Wallet passes, stamp and points programs, live updates, and analytics.",
       "exploreIndustries": "Industries",
@@ -72,7 +72,7 @@
     "about": {
       "eyebrow": "About",
       "title": "We sell customer retention, not wallet technology.",
-      "description": "StampWallet helps small and medium businesses launch digital loyalty in minutes — bilingual Arabic and English, MENA/GCC first.",
+      "description": "WalletOS helps small and medium businesses launch digital loyalty in minutes — bilingual Arabic and English, MENA/GCC first.",
       "missionTitle": "Our mission",
       "missionBody": "Make loyalty as simple as a paper stamp card, with the reach of Apple Wallet and Google Wallet. Merchants get a dashboard. Customers never download an app.",
       "valuesTitle": "What we believe",
@@ -110,7 +110,7 @@
     "featuresPrograms": {
       "eyebrow": "Programs",
       "title": "Three program types, one dashboard",
-      "description": "Pick the loyalty style that fits your business — all included in StampWallet.",
+      "description": "Pick the loyalty style that fits your business — all included in WalletOS.",
       "stampTitle": "Stamp cards",
       "stampBody": "Buy 10, get 1 free style grids. Visual and familiar.",
       "pointsTitle": "Point cards",
@@ -186,7 +186,7 @@
     "faqPage": {
       "eyebrow": "FAQ",
       "title": "Questions, answered.",
-      "description": "Everything merchants ask before launching StampWallet."
+      "description": "Everything merchants ask before launching WalletOS."
     }
   },
   "landing": {
@@ -198,7 +198,7 @@
           "a": "No. Passes live in Apple Wallet and Google Wallet. Customers add their card in seconds — nothing to download, no account to create."
         },
         "paper": {
-          "q": "How does StampWallet replace a paper stamp card?",
+          "q": "How does WalletOS replace a paper stamp card?",
           "a": "Staff scan the customer’s QR. Stamps or points update on the pass in real time. Cards can’t be lost, forgotten, or faked."
         },
         "cost": {
@@ -207,7 +207,7 @@
         },
         "pos": {
           "q": "Does it work with my POS?",
-          "a": "StampWallet runs independently of your POS — no till changes required. Staff scan from any phone on the dashboard."
+          "a": "WalletOS runs independently of your POS — no till changes required. Staff scan from any phone on the dashboard."
         },
         "industries": {
           "q": "Which businesses is it for?",
@@ -287,7 +287,8 @@
     "rewardAvailable": "Reward available — Redeem?",
     "redeem": "Redeem",
     "award": "Award",
-    "pointsAmount": "Points to add"
+    "pointsAmount": "Points to add",
+    "noAccess": "You don't have access to programs."
   },
   "scanner": {
     "title": "Scanner",
@@ -513,8 +514,17 @@
     "submit": "Get your pass"
   },
   "pass": {
-    "progress": "Your progress",
-    "notFound": "Pass not found"
+    "yourProgress": "Your progress",
+    "toGo": "{count} more to unlock your reward",
+    "nextStage": "Next: {stage}",
+    "rewardReady": "Your reward is ready — show this to staff to redeem",
+    "addToAppleWallet": "Add to Apple Wallet",
+    "addToGoogleWallet": "Add to Google Wallet",
+    "adding": "Adding…",
+    "walletError": "Couldn't add to wallet. Please try again.",
+    "poweredBy": "Powered by WalletOS",
+    "notFoundTitle": "Pass not found",
+    "notFoundDescription": "This link may be broken, or the pass may have been removed. Contact the business if you think this is a mistake."
   },
   "notFoundPage": {
     "eyebrow": "404",

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Input, Label } from "@/components/ui/input";
+import { LogoOnDark } from "@/components/brand/logo";
 
 export default function ScanAppLoginPage() {
   const t = useTranslations("scanner");
@@ -35,7 +36,7 @@ export default function ScanAppLoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6">
-      <p className="font-brand text-sm text-white/80">StampWallet</p>
+      <LogoOnDark className="h-5 opacity-80" />
       <h1 className="mt-2 text-2xl font-semibold">{t("staffLogin")}</h1>
 
       <form onSubmit={onSubmit} className="mt-8 w-full max-w-[340px] space-y-4">

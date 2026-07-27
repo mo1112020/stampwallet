@@ -11,14 +11,14 @@ export const PRINT_COPY: Record<PrintLocale, {
     scanToJoin: "Scan to join",
     addToWallet: "Add to your phone wallet",
     instructions: "Scan the code with your phone camera to add your card — no app to download.",
-    poweredBy: "Powered by StampWallet",
+    poweredBy: "Powered by WalletOS",
     joinTheProgram: "Join our loyalty program",
   },
   ar: {
     scanToJoin: "امسح للانضمام",
     addToWallet: "أضف البطاقة إلى محفظة هاتفك",
     instructions: "امسح الرمز بكاميرا هاتفك لإضافة بطاقتك — بلا تحميل تطبيق.",
-    poweredBy: "بواسطة StampWallet",
+    poweredBy: "بواسطة WalletOS",
     joinTheProgram: "انضم إلى برنامج الولاء",
   },
 };

@@ -105,7 +105,7 @@ export async function generateGoogleWalletLink(params: {
 
     await upsertResource(client, "loyaltyClass", classId, {
       id: classId,
-      issuerName: params.merchant.business_name || "StampWallet",
+      issuerName: params.merchant.business_name || "WalletOS",
       programName: params.program.name,
       reviewStatus: "UNDER_REVIEW",
       hexBackgroundColor: /^#[0-9a-f]{6}$/i.test(params.merchant.brand_color_primary)

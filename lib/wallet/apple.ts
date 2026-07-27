@@ -85,7 +85,7 @@ export async function generateApplePass(params: {
       passTypeIdentifier,
       teamIdentifier,
       serialNumber: params.passId,
-      organizationName: params.merchant.business_name || "StampWallet",
+      organizationName: params.merchant.business_name || "WalletOS",
       description: `${params.program.name} — ${params.merchant.business_name}`,
       logoText: params.merchant.business_name,
       webServiceURL: `${appUrl()}/api/wallet/apple`,

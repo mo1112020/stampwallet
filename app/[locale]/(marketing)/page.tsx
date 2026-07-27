@@ -4,6 +4,7 @@ import { CtaBand } from "@/components/marketing/cta-band";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { buttonVariants } from "@/components/ui/button";
+import { Logo } from "@/components/brand/logo";
 
 export default async function HomePage({
   params,
@@ -36,7 +37,7 @@ export default async function HomePage({
           </Reveal>
 
           <Reveal as="div" delay={0.1} className="relative flex w-full flex-1 flex-col justify-center lg:max-w-xl">
-            <p className="font-brand text-sm text-[var(--primary)] md:text-base">StampWallet</p>
+            <Logo className="h-5 md:h-6" />
             <h1 className="mt-5 max-w-[14ch] text-4xl font-bold tracking-tight text-[var(--ink)] md:text-5xl lg:text-6xl">
               {t("heroTitle")}
             </h1>

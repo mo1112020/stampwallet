@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { switchLocaleHref } from "@/lib/i18n-nav";
+import { Logo } from "@/components/brand/logo";
 
 const links = [
   { path: "about", key: "about" as const },
@@ -65,11 +66,8 @@ export function MarketingHeader({ locale }: { locale: string }) {
 
       <div className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:pt-5">
         <header className="mx-auto flex h-14 max-w-5xl items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)]/90 px-3 shadow-sm backdrop-blur-xl md:h-14 md:px-4">
-          <Link
-            href={`/${locale}`}
-            className="font-brand shrink-0 px-2 text-sm text-[var(--ink)] md:text-[15px]"
-          >
-            StampWallet
+          <Link href={`/${locale}`} className="shrink-0 px-2">
+            <Logo className="h-[18px] md:h-5" />
           </Link>
 
           <nav className="mx-auto hidden items-center gap-0.5 text-[13px] lg:flex">
