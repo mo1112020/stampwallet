@@ -20,6 +20,10 @@ function buildObjectId(passId: string) {
   return `${process.env.GOOGLE_WALLET_ISSUER_ID}.pass_${passId}`;
 }
 
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
+
 function isConflict(err: unknown) {
   const status = (err as { response?: { status?: number }; status?: number } | undefined);
   return status?.response?.status === 409 || status?.status === 409;
@@ -112,9 +116,14 @@ export async function generateGoogleWalletLink(params: {
       hexBackgroundColor: /^#[0-9a-f]{6}$/i.test(params.merchant.brand_color_primary)
         ? params.merchant.brand_color_primary
         : "#3E0856",
-      ...(params.merchant.logo_url
-        ? { programLogo: { sourceUri: { uri: params.merchant.logo_url } } }
-        : {}),
+      // Google rejects loyaltyClass creation outright ("cannot be created
+      // without a program logo") if this is missing — it's not optional the
+      // way it looks. Falls back to WalletOS's own hosted icon for
+      // merchants who haven't uploaded a business logo yet, so enrollment
+      // never silently fails for that reason.
+      programLogo: {
+        sourceUri: { uri: params.merchant.logo_url || `${appUrl()}/brand/icon-only.png` },
+      },
     });
 
     await upsertResource(
