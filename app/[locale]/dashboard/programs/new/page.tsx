@@ -1,6 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
 import { ProgramForm } from "@/components/dashboard/program-form";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 
 export default async function NewProgramPage({
   params,
@@ -13,9 +13,7 @@ export default async function NewProgramPage({
   const { name, primaryColor, secondaryColor, iconName, backgroundImage } = await searchParams;
   setRequestLocale(locale);
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   const { data: merchant } = await supabase
     .from("merchants")
     .select("*")

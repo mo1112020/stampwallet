@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
+import { getAuthUser } from "@/lib/supabase/server";
 import { STRIPE_PRICE_ENV, isStripeConfigured } from "@/lib/billing/plans";
 import { createStripeClient } from "@/lib/stripe";
 import { countSeats } from "@/lib/stripe/seats";
@@ -30,8 +31,9 @@ export async function POST(request: Request) {
 
   let customerId = auth.merchant.stripe_customer_id;
   if (!customerId) {
+    const user = await getAuthUser();
     const customer = await stripe.customers.create({
-      email: (await auth.supabase.auth.getUser()).data.user?.email,
+      email: user?.email,
       metadata: { merchant_id: auth.merchantId },
     });
     customerId = customer.id;

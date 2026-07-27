@@ -82,15 +82,6 @@ export default async function DashboardHome({
     redirect(`/${locale}/dashboard/onboarding`);
   }
 
-  const { data: programs } = await supabase
-    .from("loyalty_programs")
-    .select("*")
-    .eq("merchant_id", merchant.id)
-    .order("created_at", { ascending: false });
-
-  const hasPrograms = !!programs?.length;
-  const activeProgramCount = programs?.filter((p) => p.is_active).length ?? 0;
-
   const currentRange = resolveDateRange({});
   const spanMs = new Date(currentRange.to).getTime() - new Date(currentRange.from).getTime();
   const previousRange = {
@@ -98,10 +89,15 @@ export default async function DashboardHome({
     to: currentRange.from,
   };
 
-  const [overview, previousOverview, activity, { data: campaigns }] = await Promise.all([
-    getAnalyticsOverview(supabase, merchant, currentRange),
-    getAnalyticsOverview(supabase, merchant, previousRange),
-    getRecentActivity(supabase, merchant, { limit: 6 }),
+  // Programs and campaigns don't depend on each other — fetch them
+  // together, then feed the already-fetched programs into every analytics
+  // call below instead of each one re-querying loyalty_programs itself.
+  const [{ data: programs }, { data: campaigns }] = await Promise.all([
+    supabase
+      .from("loyalty_programs")
+      .select("*")
+      .eq("merchant_id", merchant.id)
+      .order("created_at", { ascending: false }),
     supabase
       .from("notification_campaigns")
       .select("id, title, status, updated_at")
@@ -109,6 +105,16 @@ export default async function DashboardHome({
       .neq("status", "draft")
       .order("updated_at", { ascending: false })
       .limit(4),
+  ]);
+
+  const hasPrograms = !!programs?.length;
+  const activeProgramCount = programs?.filter((p) => p.is_active).length ?? 0;
+  const programsLite = programs ?? [];
+
+  const [overview, previousOverview, activity] = await Promise.all([
+    getAnalyticsOverview(supabase, merchant, currentRange, programsLite),
+    getAnalyticsOverview(supabase, merchant, previousRange, programsLite),
+    getRecentActivity(supabase, merchant, { limit: 6 }, programsLite),
   ]);
 
   return (

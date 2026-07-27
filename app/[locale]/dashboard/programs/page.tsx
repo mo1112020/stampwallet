@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
 import { ProgramCard } from "@/components/dashboard/program-card";
 import type { ProgramConfig, ProgramType } from "@/types";
@@ -14,9 +14,7 @@ export default async function ProgramsPage({
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const { data: merchant } = await supabase
     .from("merchants")

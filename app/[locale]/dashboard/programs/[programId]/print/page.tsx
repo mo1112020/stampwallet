@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { PrintStudio } from "@/components/dashboard/print/print-studio";
 
 export default async function ProgramPrintPage({
@@ -13,9 +13,7 @@ export default async function ProgramPrintPage({
   const { locale, programId } = await params;
   setRequestLocale(locale);
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) notFound();
 
   const { data: program } = await supabase

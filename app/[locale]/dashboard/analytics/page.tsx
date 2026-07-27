@@ -46,14 +46,15 @@ export default async function AnalyticsPage({
 
   const { data: programs } = await session.supabase
     .from("loyalty_programs")
-    .select("id, name")
+    .select("id, name, type, config")
     .eq("merchant_id", session.merchantId)
     .order("name");
+  const programsLite = programs ?? [];
 
   const [overview, trend, activity] = await Promise.all([
-    getAnalyticsOverview(session.supabase, session.merchant, filters),
-    getScansTrend(session.supabase, session.merchant, filters),
-    getRecentActivity(session.supabase, session.merchant, { programId: sp.program_id }),
+    getAnalyticsOverview(session.supabase, session.merchant, filters, programsLite),
+    getScansTrend(session.supabase, session.merchant, filters, programsLite),
+    getRecentActivity(session.supabase, session.merchant, { programId: sp.program_id }, programsLite),
   ]);
 
   return (

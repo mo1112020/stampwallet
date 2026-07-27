@@ -1,5 +1,6 @@
+import { cache } from "react";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { roleHasCapability, type Capability } from "@/lib/auth/permissions";
 import type { Merchant, StaffRole } from "@/types";
 
@@ -22,9 +23,7 @@ export async function requireMerchant(): Promise<
   | { error: NextResponse }
 > {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return { error: jsonError("Unauthorized", "unauthorized", 401) };
@@ -67,11 +66,9 @@ type ResolvedSession = { ok: true; session: SessionContext } | { ok: false; reas
  * the Scanner PWA's auth-gated layout, where a redirect is more
  * appropriate than a JSON error).
  */
-async function resolveSession(): Promise<ResolvedSession> {
+const resolveSession = cache(async (): Promise<ResolvedSession> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     return { ok: false, reason: "unauthorized" };
@@ -123,7 +120,7 @@ async function resolveSession(): Promise<ResolvedSession> {
       merchant: staffRow.merchants as unknown as Merchant,
     },
   };
-}
+});
 
 export async function requireSession(): Promise<SessionContext | { error: NextResponse }> {
   const resolved = await resolveSession();

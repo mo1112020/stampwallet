@@ -39,6 +39,20 @@ export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   intlResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
 
+  const isDashboard = locales.some((l) => pathname.startsWith(`/${l}/dashboard`));
+  const isAuth =
+    locales.some((l) => pathname.startsWith(`/${l}/login`)) ||
+    locales.some((l) => pathname.startsWith(`/${l}/signup`));
+
+  // Every other route (marketing pages, /pass/*, etc.) doesn't gate on auth,
+  // so skip the Supabase round trip entirely there — auth.getUser() is a
+  // real network call to the Auth server, and doing it unconditionally on
+  // every request was adding hundreds of ms (up to seconds) to pages that
+  // never needed to know who the visitor is.
+  if (!isDashboard && !isAuth) {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
@@ -62,11 +76,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const isDashboard = locales.some((l) => pathname.startsWith(`/${l}/dashboard`));
-  const isAuth =
-    locales.some((l) => pathname.startsWith(`/${l}/login`)) ||
-    locales.some((l) => pathname.startsWith(`/${l}/signup`));
 
   if (isDashboard && !user) {
     const locale = pathname.split("/")[1] || defaultLocale;

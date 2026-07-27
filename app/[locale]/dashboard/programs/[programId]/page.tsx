@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { ProgramForm } from "@/components/dashboard/program-form";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import type { ProgramConfig, ProgramType } from "@/types";
 import NewProgramPage from "../new/page";
 
@@ -21,9 +21,7 @@ export default async function EditProgramPage({
 
   setRequestLocale(locale);
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const { data: program, error: programError } = await supabase
     .from("loyalty_programs")

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { setRequestLocale } from "next-intl/server";
 import { Download, Users } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthUser } from "@/lib/supabase/server";
 import { ProgressVisual } from "@/components/dashboard/progress-visual";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import type { ProgramConfig, ProgramType, Progress } from "@/types";
@@ -14,9 +14,7 @@ export default async function ProgramCustomersPage({
   const { locale, programId } = await params;
   setRequestLocale(locale);
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const { data: program } = await supabase
     .from("loyalty_programs")

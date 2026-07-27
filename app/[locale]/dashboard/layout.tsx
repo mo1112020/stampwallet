@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { DashboardNav } from "@/components/dashboard/nav";
-import { createClient } from "@/lib/supabase/server";
+import { getSessionOrNull } from "@/lib/api";
+import { getAuthUser } from "@/lib/supabase/server";
 
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 
@@ -14,21 +15,18 @@ export default async function DashboardLayout({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Both of these are request-memoized (see lib/api.ts / lib/supabase/server.ts)
+  // — every dashboard page that also calls them (directly, or via
+  // requireSession/requireCapability) shares the exact same lookup instead
+  // of each re-verifying the JWT and re-querying merchants from scratch.
+  const [session, user] = await Promise.all([getSessionOrNull(), getAuthUser()]);
 
-  if (!user) {
+  if (!session) {
     redirect(`/${locale}/login`);
   }
 
-  const userInitial = user.email ? user.email.charAt(0).toUpperCase() : "U";
-  const { data: merchant } = await supabase
-    .from("merchants")
-    .select("business_name, logo_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
+  const merchant = session.merchant;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[var(--background)]">

@@ -48,11 +48,21 @@ export type ActivityEntry = {
   createdAt: string;
 };
 
-async function getMerchantPrograms(
+export type ProgramLite = Pick<LoyaltyProgram, "id" | "name" | "type" | "config">;
+
+/**
+ * Fetches once per request by the page (dashboard home already needs the
+ * full program list for its own UI; analytics needs it for the filter
+ * dropdown) and passed into every function below, instead of each one
+ * independently re-querying loyalty_programs. That query doesn't change
+ * within a request, so refetching it per-function only added redundant
+ * round trips to every dashboard page's critical path.
+ */
+export async function getMerchantPrograms(
   supabase: SupabaseClient,
   merchantId: string,
   programId?: string
-): Promise<Pick<LoyaltyProgram, "id" | "name" | "type" | "config">[]> {
+): Promise<ProgramLite[]> {
   let query = supabase
     .from("loyalty_programs")
     .select("id, name, type, config")
@@ -62,13 +72,18 @@ async function getMerchantPrograms(
   return data ?? [];
 }
 
+function pickProgramIds(programs: ProgramLite[], programId?: string): string[] {
+  const filtered = programId ? programs.filter((p) => p.id === programId) : programs;
+  return filtered.map((p) => p.id);
+}
+
 export async function getAnalyticsOverview(
   supabase: SupabaseClient,
   merchant: Merchant,
-  filters: AnalyticsFilters
+  filters: AnalyticsFilters,
+  programs: ProgramLite[]
 ): Promise<AnalyticsOverview> {
-  const programs = await getMerchantPrograms(supabase, merchant.id, filters.programId);
-  const programIds = programs.map((p) => p.id);
+  const programIds = pickProgramIds(programs, filters.programId);
   const rewardValueByProgram = new Map(
     programs.map((p) => [p.id, (p.config as { reward_value?: number }).reward_value ?? null])
   );
@@ -116,20 +131,21 @@ export async function getAnalyticsOverview(
     };
   }
 
-  const { data: scanRows } = await supabase
-    .from("scan_events")
-    .select("id, customer_progress_id, delta, created_at")
-    .in("customer_progress_id", progressIds)
-    .gte("created_at", filters.from)
-    .lte("created_at", filters.to);
+  const [{ data: scanRows }, { data: redemptionRows }] = await Promise.all([
+    supabase
+      .from("scan_events")
+      .select("id, customer_progress_id, delta, created_at")
+      .in("customer_progress_id", progressIds)
+      .gte("created_at", filters.from)
+      .lte("created_at", filters.to),
+    supabase
+      .from("redemptions")
+      .select("id, customer_progress_id, redeemed_at")
+      .in("customer_progress_id", progressIds)
+      .gte("redeemed_at", filters.from)
+      .lte("redeemed_at", filters.to),
+  ]);
   const scans = scanRows ?? [];
-
-  const { data: redemptionRows } = await supabase
-    .from("redemptions")
-    .select("id, customer_progress_id, redeemed_at")
-    .in("customer_progress_id", progressIds)
-    .gte("redeemed_at", filters.from)
-    .lte("redeemed_at", filters.to);
   const redemptions = redemptionRows ?? [];
 
   const scansByProgress = new Map<string, number>();
@@ -186,10 +202,10 @@ export async function getAnalyticsOverview(
 export async function getScansTrend(
   supabase: SupabaseClient,
   merchant: Merchant,
-  filters: AnalyticsFilters
+  filters: AnalyticsFilters,
+  programs: ProgramLite[]
 ): Promise<TrendPoint[]> {
-  const programs = await getMerchantPrograms(supabase, merchant.id, filters.programId);
-  const programIds = programs.map((p) => p.id);
+  const programIds = pickProgramIds(programs, filters.programId);
   if (programIds.length === 0) return [];
 
   const { data: progressRows } = await supabase
@@ -236,11 +252,11 @@ export async function getScansTrend(
 export async function getRecentActivity(
   supabase: SupabaseClient,
   merchant: Merchant,
-  filters: { programId?: string; limit?: number }
+  filters: { programId?: string; limit?: number },
+  programs: ProgramLite[]
 ): Promise<ActivityEntry[]> {
   const limit = filters.limit ?? 15;
-  const programs = await getMerchantPrograms(supabase, merchant.id, filters.programId);
-  const programIds = programs.map((p) => p.id);
+  const programIds = pickProgramIds(programs, filters.programId);
   if (programIds.length === 0) return [];
 
   const { data: scanRows } = await supabase
