@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { Download, Users } from "lucide-react";
-import { createClient, getAuthUser } from "@/lib/supabase/server";
+import { getSessionOrNull } from "@/lib/api";
+import { roleHasCapability } from "@/lib/auth/permissions";
 import { ProgressVisual } from "@/components/dashboard/progress-visual";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import type { ProgramConfig, ProgramType, Progress } from "@/types";
@@ -13,21 +15,24 @@ export default async function ProgramCustomersPage({
 }) {
   const { locale, programId } = await params;
   setRequestLocale(locale);
-  const supabase = await createClient();
-  const user = await getAuthUser();
 
-  const { data: program } = await supabase
-    .from("loyalty_programs")
-    .select("name, type, config")
-    .eq("id", programId)
-    .eq("merchant_id", user!.id)
-    .maybeSingle();
+  const session = await getSessionOrNull();
+  if (!session) redirect(`/${locale}/login`);
+  if (!roleHasCapability(session.role, "manage_programs")) redirect(`/${locale}/dashboard/programs`);
 
-  const { data: rows } = await supabase
-    .from("customer_progress")
-    .select("id, pass_id, progress, customers(name, email, phone), loyalty_programs!inner(merchant_id)")
-    .eq("program_id", programId)
-    .eq("loyalty_programs.merchant_id", user!.id);
+  const [{ data: program }, { data: rows }] = await Promise.all([
+    session.supabase
+      .from("loyalty_programs")
+      .select("name, type, config")
+      .eq("id", programId)
+      .eq("merchant_id", session.merchantId)
+      .maybeSingle(),
+    session.supabase
+      .from("customer_progress")
+      .select("id, pass_id, progress, customers(name, email, phone), loyalty_programs!inner(merchant_id)")
+      .eq("program_id", programId)
+      .eq("loyalty_programs.merchant_id", session.merchantId),
+  ]);
 
   const customers = rows ?? [];
 

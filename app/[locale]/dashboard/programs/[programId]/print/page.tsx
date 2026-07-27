@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { createClient, getAuthUser } from "@/lib/supabase/server";
+import { getSessionOrNull } from "@/lib/api";
+import { roleHasCapability } from "@/lib/auth/permissions";
 import { PrintStudio } from "@/components/dashboard/print/print-studio";
 
 export default async function ProgramPrintPage({
@@ -12,19 +13,20 @@ export default async function ProgramPrintPage({
 }) {
   const { locale, programId } = await params;
   setRequestLocale(locale);
-  const supabase = await createClient();
-  const user = await getAuthUser();
-  if (!user) notFound();
 
-  const { data: program } = await supabase
+  const session = await getSessionOrNull();
+  if (!session) redirect(`/${locale}/login`);
+  if (!roleHasCapability(session.role, "manage_programs")) redirect(`/${locale}/dashboard/programs`);
+
+  const { data: program } = await session.supabase
     .from("loyalty_programs")
     .select("*")
     .eq("id", programId)
-    .eq("merchant_id", user.id)
+    .eq("merchant_id", session.merchantId)
     .single();
   if (!program) notFound();
 
-  const { data: merchant } = await supabase.from("merchants").select("*").eq("id", user.id).single();
+  const merchant = session.merchant;
   const config = program.config as any;
 
   return (

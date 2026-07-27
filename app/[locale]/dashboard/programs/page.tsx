@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { createClient, getAuthUser } from "@/lib/supabase/server";
+import { getSessionOrNull } from "@/lib/api";
+import { roleHasCapability } from "@/lib/auth/permissions";
 import { EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
 import { ProgramCard } from "@/components/dashboard/program-card";
 import type { ProgramConfig, ProgramType } from "@/types";
@@ -13,19 +15,24 @@ export default async function ProgramsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
-  const supabase = await createClient();
-  const user = await getAuthUser();
 
-  const { data: merchant } = await supabase
-    .from("merchants")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
+  const session = await getSessionOrNull();
+  if (!session) redirect(`/${locale}/login`);
 
-  const { data: programs } = await supabase
+  if (!roleHasCapability(session.role, "manage_programs")) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">Programs</h1>
+        <p className="mt-4 text-sm text-[var(--muted)]">{t("noAccess")}</p>
+      </div>
+    );
+  }
+
+  const merchant = session.merchant;
+  const { data: programs } = await session.supabase
     .from("loyalty_programs")
     .select("*")
-    .eq("merchant_id", user!.id)
+    .eq("merchant_id", session.merchantId)
     .order("created_at", { ascending: false });
 
   return (

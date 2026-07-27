@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { ProgramForm } from "@/components/dashboard/program-form";
-import { createClient, getAuthUser } from "@/lib/supabase/server";
+import { getSessionOrNull } from "@/lib/api";
+import { roleHasCapability } from "@/lib/auth/permissions";
 
 export default async function NewProgramPage({
   params,
@@ -12,13 +14,12 @@ export default async function NewProgramPage({
   const { locale } = await params;
   const { name, primaryColor, secondaryColor, iconName, backgroundImage } = await searchParams;
   setRequestLocale(locale);
-  const supabase = await createClient();
-  const user = await getAuthUser();
-  const { data: merchant } = await supabase
-    .from("merchants")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
+
+  const session = await getSessionOrNull();
+  if (!session) redirect(`/${locale}/login`);
+  if (!roleHasCapability(session.role, "manage_programs")) redirect(`/${locale}/dashboard/programs`);
+
+  const merchant = session.merchant;
 
   return (
     <div>

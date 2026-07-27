@@ -35,6 +35,20 @@ const nextConfig = {
   // which looks like "broken navbar, text missing, nothing clickable." Dev-only; no effect
   // on production builds.
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*"],
+  experimental: {
+    // Every dashboard page is fully dynamic (per-request auth + DB reads), so
+    // Next's default `dynamic: 0` means the Client Router Cache never reuses
+    // a page segment — clicking back to a page you just left re-runs the
+    // full server round trip every time. 30s lets that back-and-forth
+    // navigation feel instant from cache. Mutations still see fresh data
+    // immediately: every write flow in this app calls `router.refresh()`,
+    // which explicitly bypasses this cache for the current route. The only
+    // tradeoff is a page you're not currently viewing can show data that's
+    // up to 30s stale if it changed via a different tab/page in that window.
+    staleTimes: {
+      dynamic: 30,
+    },
+  },
 };
 
 export default withNextIntl(nextConfig);

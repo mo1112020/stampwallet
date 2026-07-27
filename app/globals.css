@@ -72,6 +72,14 @@
 html {
   scroll-behavior: smooth;
   color-scheme: light;
+  scrollbar-width: none; /* Firefox — inherited, so this covers every scrollable descendant too */
+  -ms-overflow-style: none; /* old Edge/IE */
+}
+
+/* Chrome/Safari/Chromium-Edge — webkit's scrollbar pseudo-element isn't
+   covered by the inherited property above, so it needs its own universal rule. */
+*::-webkit-scrollbar {
+  display: none;
 }
 
 html.dark {
@@ -151,7 +159,7 @@ button {
 
 /* Dashboard route change — app/[locale]/dashboard/template.tsx remounts this on every navigation. */
 .dashboard-page-enter {
-  animation: dashboardPageEnter 360ms var(--ease-out) both;
+  animation: dashboardPageEnter 160ms var(--ease-out) both;
 }
 
 @keyframes dashboardPageEnter {

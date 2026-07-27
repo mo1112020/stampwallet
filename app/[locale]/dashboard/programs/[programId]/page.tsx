@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { ProgramForm } from "@/components/dashboard/program-form";
-import { createClient, getAuthUser } from "@/lib/supabase/server";
+import { getSessionOrNull } from "@/lib/api";
+import { roleHasCapability } from "@/lib/auth/permissions";
 import type { ProgramConfig, ProgramType } from "@/types";
 import NewProgramPage from "../new/page";
 
@@ -14,20 +15,21 @@ export default async function EditProgramPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { locale, programId } = await params;
-  
+
   if (programId === "new") {
     return <NewProgramPage params={params} searchParams={searchParams} />;
   }
 
   setRequestLocale(locale);
-  const supabase = await createClient();
-  const user = await getAuthUser();
+  const session = await getSessionOrNull();
+  if (!session) redirect(`/${locale}/login`);
+  if (!roleHasCapability(session.role, "manage_programs")) redirect(`/${locale}/dashboard/programs`);
 
-  const { data: program, error: programError } = await supabase
+  const { data: program, error: programError } = await session.supabase
     .from("loyalty_programs")
     .select("*")
     .eq("id", programId)
-    .eq("merchant_id", user!.id)
+    .eq("merchant_id", session.merchantId)
     .single();
 
   if (programError && programError.code !== "PGRST116") {
@@ -37,12 +39,7 @@ export default async function EditProgramPage({
 
   if (!program) notFound();
 
-  const { data: merchant } = await supabase
-    .from("merchants")
-    .select("*")
-    .eq("id", user!.id)
-    .single();
-
+  const merchant = session.merchant;
   const enrollUrl = `/${locale}/pass/new?program=${program.id}`;
 
   return (
