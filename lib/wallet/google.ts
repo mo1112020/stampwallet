@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { JWT } from "google-auth-library";
-import type { LoyaltyProgram, Merchant, Progress } from "@/types";
+import type { CardAppearance, LoyaltyProgram, Merchant, Progress } from "@/types";
 import { renderPassFields, type PassFields } from "@/lib/wallet/renderPassFields";
 import { getServiceAccount, getWalletClient } from "@/lib/wallet/googleAuth";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
@@ -60,8 +60,13 @@ async function loyaltyObjectFields(
       balance: { string: fields.primaryValue },
     },
     textModulesData: [
-      { header: fields.secondaryLabel, body: secondaryValue },
-      ...(fields.expiry ? [{ header: fields.expiry.label, body: fields.expiry.value }] : []),
+      // `id` lets the class's cardTemplateOverride reference this module by
+      // fieldPath ("object.textModulesData['reward']") to promote it onto
+      // the front of the card — otherwise Google's default template only
+      // shows loyaltyPoints + barcode on the front and buries every text
+      // module behind "tap for details".
+      { id: "reward", header: fields.secondaryLabel, body: secondaryValue },
+      ...(fields.expiry ? [{ id: "expiry", header: fields.expiry.label, body: fields.expiry.value }] : []),
     ],
     barcode: { type: "QR_CODE", value: passId, alternateText: passId },
     // Phase 9: no customer app needed — Google Wallet natively surfaces
@@ -107,6 +112,12 @@ export async function generateGoogleWalletLink(params: {
     const client = getWalletClient();
     const classId = buildClassId(params.program.id);
     const objectId = buildObjectId(params.passId);
+    // Same field the dashboard's Print/Preview cover photo and the
+    // enrollment page pull from (CardAppearance.background_image_url) —
+    // it's already a public HTTPS URL out of the `card-backgrounds`
+    // Supabase Storage bucket, so it's usable as-is for Google's heroImage.
+    const backgroundImageUrl = (params.program.config as CardAppearance).background_image_url;
+    const website = (params.program.config as CardAppearance).details?.website;
 
     await upsertResource(client, "loyaltyClass", classId, {
       id: classId,
@@ -124,6 +135,24 @@ export async function generateGoogleWalletLink(params: {
       programLogo: {
         sourceUri: { uri: params.merchant.logo_url || `${appUrl()}/brand/icon-only.png` },
       },
+      // Banner image across the top of the card — this is the direct
+      // equivalent of the cover photo in the WalletOS preview. Omitted (not
+      // sent as a broken/empty sourceUri) when the merchant hasn't set one,
+      // since Google validates the URL and an empty string 400s the class.
+      ...(backgroundImageUrl ? { heroImage: { sourceUri: { uri: backgroundImageUrl } } } : {}),
+      // Promotes the reward textModulesData entry (set with id: "reward" in
+      // loyaltyObjectFields below) from the details view onto the front of
+      // the card, matching where the WalletOS preview shows it. Google's
+      // default template (no classTemplateInfo) only puts loyaltyPoints +
+      // barcode on the front.
+      classTemplateInfo: {
+        cardTemplateOverride: {
+          cardRowTemplateInfos: [
+            { oneItem: { item: { firstValue: { fields: [{ fieldPath: "object.textModulesData['reward']" }] } } } },
+          ],
+        },
+      },
+      ...(website ? { linksModuleData: { uris: [{ uri: website, description: "Visit website", id: "website" }] } } : {}),
     });
 
     await upsertResource(
@@ -194,9 +223,14 @@ export async function pushGooglePassUpdate(
       method: "PATCH",
       data: {
         loyaltyPoints: { label: fields.primaryLabel, balance: { string: fields.primaryValue } },
+        // `id`s must match loyaltyObjectFields above — the class's
+        // cardTemplateOverride references "reward" by fieldPath, and PATCH
+        // replaces this array wholesale, so dropping the id here would
+        // silently break the front-of-card row on the very next stamp/point
+        // update after pass creation.
         textModulesData: [
-          { header: fields.secondaryLabel, body: secondaryValue },
-          ...(fields.expiry ? [{ header: fields.expiry.label, body: fields.expiry.value }] : []),
+          { id: "reward", header: fields.secondaryLabel, body: secondaryValue },
+          ...(fields.expiry ? [{ id: "expiry", header: fields.expiry.label, body: fields.expiry.value }] : []),
         ],
         ...(locations.length > 0
           ? { locations: locations.map((l) => ({ latitude: l.latitude, longitude: l.longitude })) }
