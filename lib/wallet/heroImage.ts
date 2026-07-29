@@ -34,7 +34,15 @@ function iconGroupMarkup(iconName: string, color: string, x: number, y: number, 
 
 async function fetchAsPngDataUri(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url);
+    // An unbounded fetch here is a real outage risk, not a theoretical one —
+    // this function runs inside every stamp/points push (see google.ts), and
+    // a single slow/unreachable image previously hung the whole request
+    // indefinitely, wedging an entire notification campaign at "sending"
+    // (sequential per-target loop in campaigns.ts) since the platform's
+    // function timeout eventually kills the process before it can ever
+    // record success or failure. Bounded here so a bad image can only ever
+    // cost a few seconds, not the whole batch.
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const raw = Buffer.from(await res.arrayBuffer());
     // Never trust the server's declared content-type — a file saved with a

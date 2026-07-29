@@ -118,6 +118,28 @@ export async function recentlyNotifiedForTrigger(
   return (sends ?? []).length > 0;
 }
 
+/** Bounds one target's delivery so a single hung wallet-platform request
+ * (Apple/Google network calls, image generation/upload, etc.) can't wedge
+ * the whole sequential loop below forever — the individual network calls
+ * inside the push path already have their own timeouts, but this is a
+ * structural backstop: whatever misbehaves next still can't block the rest
+ * of the campaign from being attempted. */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 /** Manual/scheduled campaigns: one campaign row, fans out to every target
  * in its segment. */
 export async function sendCampaignNow(campaignId: string) {
@@ -135,7 +157,11 @@ export async function sendCampaignNow(campaignId: string) {
 
   for (const target of targets) {
     try {
-      await deliverToTarget(campaignId, campaign.title, campaign.message, target);
+      await withTimeout(
+        deliverToTarget(campaignId, campaign.title, campaign.message, target),
+        25000,
+        `delivery to ${target.customerProgressId}`
+      );
     } catch (err) {
       console.error("[notifications] send failed for", target.customerProgressId, err);
       await admin.from("notification_sends").insert({

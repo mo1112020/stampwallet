@@ -21,6 +21,8 @@ export async function sendApplePush(
     const settle = (result: { ok: boolean; status?: number; error?: string }) => {
       if (settled) return;
       settled = true;
+      clearTimeout(timeout);
+      client.close();
       resolve(result);
     };
 
@@ -29,6 +31,14 @@ export async function sendApplePush(
       key: certs.signerKeyPem,
       ca: certs.wwdr,
     });
+
+    // Neither an unreachable APNs host nor a stalled TLS handshake is
+    // guaranteed to ever fire the client's "error" event, so without this
+    // the returned promise can hang forever — this call sits inside every
+    // wallet push (lib/wallet/push.ts), and a sequential notification-send
+    // loop (campaigns.ts) awaits each push in turn, so one hung connection
+    // here previously wedged an entire campaign at "sending" indefinitely.
+    const timeout = setTimeout(() => settle({ ok: false, error: "APNs request timed out" }), 8000);
 
     client.on("error", (err) => settle({ ok: false, error: err.message }));
 
