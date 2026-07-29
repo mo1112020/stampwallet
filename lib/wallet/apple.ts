@@ -4,6 +4,7 @@ import { renderPassFields } from "@/lib/wallet/renderPassFields";
 import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
 import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib/wallet/assets";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
+import { resolveBrandColors } from "@/lib/wallet/colors";
 
 export function isAppleWalletConfigured() {
   return Boolean(
@@ -79,6 +80,7 @@ export async function generateApplePass(params: {
     const secondaryValue = fields.rewardAvailable
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
       : fields.secondaryValue;
+    const { primaryColor, secondaryColor } = resolveBrandColors(params.program, params.merchant);
 
     const passJson = {
       formatVersion: 1,
@@ -90,9 +92,9 @@ export async function generateApplePass(params: {
       logoText: params.merchant.business_name,
       webServiceURL: `${appUrl()}/api/wallet/apple`,
       authenticationToken: params.authenticationToken ?? params.passId,
-      backgroundColor: hexToRgb(params.merchant.brand_color_primary, "rgb(62, 8, 86)"),
+      backgroundColor: hexToRgb(primaryColor, "rgb(62, 8, 86)"),
       foregroundColor: "rgb(255, 255, 255)",
-      labelColor: hexToRgb(params.merchant.brand_color_secondary, "rgb(250, 174, 98)"),
+      labelColor: hexToRgb(secondaryColor, "rgb(250, 174, 98)"),
       barcodes: [
         {
           format: "PKBarcodeFormatQR",
@@ -126,16 +128,20 @@ export async function generateApplePass(params: {
           ...(params.program.config.details?.description
             ? [{ key: "details", label: "About", value: params.program.config.details.description }]
             : []),
-          ...(params.latestNotificationMessage
-            ? [
-                {
-                  key: "notification",
-                  label: "Latest update",
-                  value: params.latestNotificationMessage,
-                  changeMessage: "%@",
-                },
-              ]
-            : []),
+          // Apple's device-side notification check "compares the latest
+          // version of the pass against the version it had before" for this
+          // field's value — always including the field (even with an empty
+          // placeholder on a brand-new pass) gives every real notification a
+          // clean prior-value-to-new-value transition to detect. Making this
+          // conditional on latestNotificationMessage being set meant a
+          // customer's very first notification ever had no prior version of
+          // this field to diff against, and could be missed.
+          {
+            key: "notification",
+            label: "Latest update",
+            value: params.latestNotificationMessage ?? "",
+            changeMessage: "%@",
+          },
         ],
       },
     };
