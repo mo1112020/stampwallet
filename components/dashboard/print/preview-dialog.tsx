@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, FileText, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { printFont } from "@/lib/fonts/print";
 import type { TemplateDimension } from "./dimensions";
 
 export function PrintPreviewDialog({
@@ -68,7 +69,15 @@ export function PrintPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showClose={false}
-        className="flex h-[min(90vh,760px)] w-full max-w-2xl flex-col gap-3 p-4 sm:p-6"
+        // Radix portals DialogContent straight to document.body, outside the
+        // DOM subtree print-studio.tsx wraps in printFont.variable — CSS
+        // custom properties cascade through real DOM ancestry, not React
+        // tree ancestry, so the portaled preview never saw --font-print and
+        // silently fell back to the system font while the in-tree thumbnail
+        // and the exported PNG/PDF (captured from that same in-tree node)
+        // both rendered correctly. Applying the class here, inside the
+        // portaled content itself, is the fix.
+        className={`flex h-[min(90vh,760px)] w-full max-w-2xl flex-col gap-3 p-4 sm:p-6 ${printFont.variable}`}
       >
         <div className="flex items-center justify-between gap-4">
           <DialogTitle className="truncate text-base font-semibold text-[var(--ink)]">{label}</DialogTitle>

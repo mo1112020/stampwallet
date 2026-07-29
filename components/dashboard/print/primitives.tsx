@@ -1,4 +1,5 @@
 import type { PrintLocale } from "./copy";
+import type { BarcodeStyle } from "@/types";
 
 export type PrintTemplateData = {
   businessName: string;
@@ -8,6 +9,8 @@ export type PrintTemplateData = {
   primaryColor: string;
   secondaryColor: string;
   locale: PrintLocale;
+  /** Defaults to "qr" (BarcodeImage's own default) when unset. */
+  barcodeStyle?: BarcodeStyle;
 };
 
 export function PrintLogo({

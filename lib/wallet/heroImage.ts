@@ -81,11 +81,23 @@ export async function renderCoverHeroImage(backgroundImageUrl: string | undefine
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-/** Google Wallet has no native stamp-grid field — this renders the same
- * progress grid as the dashboard's WalletPreview (same column/scale rules
- * from lib/stamp-grid.ts, same Lucide icon, same filled/unfilled treatment)
- * as a single flattened image so it can occupy the object's heroImage slot. */
-export async function renderStampProgressHeroImage(params: {
+// Matches the actual proportions in components/dashboard/phone-mockup.tsx's
+// "Wallet card" live preview: a fixed-height cover image up top (with a dark
+// gradient for legibility), and the stamp grid directly beneath it on the
+// card's own primary-color background — not overlaid on the photo, and not
+// two separately-delivered images. Google Wallet has no field for either a
+// full-bleed background-with-overlaid-content layout (heroImage is always a
+// banner "under the data fields", not behind them — a platform constraint,
+// not a bug) or a native stamp grid — this composite is the closest
+// single-image equivalent the heroImage slot can hold.
+const COVER_HEIGHT_RATIO = 0.45;
+
+/** Google Wallet has no native stamp-grid field, so for stamp-type programs
+ * this single flattened image (cover photo on top, stamp grid directly
+ * underneath — see COVER_HEIGHT_RATIO comment above) becomes the object's
+ * heroImage. Grid layout uses the same column/scale rules and the same
+ * Lucide icon as everywhere else (lib/stamp-grid.ts). */
+export async function renderStampCardHeroImage(params: {
   config: StampConfig;
   collected: number;
   primaryColor: string;
@@ -93,6 +105,33 @@ export async function renderStampProgressHeroImage(params: {
   backgroundImageUrl?: string;
 }): Promise<Buffer> {
   const { config, collected, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
+  const gridAreaHeight = CANVAS_HEIGHT - coverHeight;
+
+  let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
+  if (backgroundImageUrl) {
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    if (dataUri) {
+      coverLayer = `
+        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
+        <rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="#000000" opacity="0.28" />
+      `;
+    }
+  }
+  // Fades the cover's bottom edge into the grid section's solid color —
+  // the same image-to-card transition the phone-mockup preview uses,
+  // avoiding a hard seam between the two sections of one flattened image.
+  const seamFadeHeight = Math.round(coverHeight * 0.25);
+  const seamFade = `
+    <defs>
+      <linearGradient id="seamFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${primaryColor}" stop-opacity="0" />
+        <stop offset="100%" stop-color="${primaryColor}" stop-opacity="1" />
+      </linearGradient>
+    </defs>
+    <rect x="0" y="${coverHeight - seamFadeHeight}" width="${CANVAS_WIDTH}" height="${seamFadeHeight}" fill="url(#seamFade)" />
+  `;
+
   const required = Math.max(1, config.stamps_required);
   const columns = getStampGridColumns(required);
   const rows = Math.ceil(required / columns);
@@ -103,13 +142,11 @@ export async function renderStampProgressHeroImage(params: {
   const gridWidth = columns * cell + (columns - 1) * gap;
   const gridHeight = rows * cell + (rows - 1) * gap;
   const startX = (CANVAS_WIDTH - gridWidth) / 2;
-  // Google's brand guidelines call for ~20dp breathing room top/bottom so
-  // content doesn't touch the card edges — 48px gives that room at this
-  // canvas size and still centers the grid when it's short.
-  const padding = 48;
-  const startY = Math.max(padding, (CANVAS_HEIGHT - gridHeight) / 2);
-
-  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor);
+  // Google's brand guidelines call for ~20dp breathing room so content
+  // doesn't touch the image edges — applied within the grid section only.
+  const padding = 40;
+  const availableHeight = gridAreaHeight - padding * 2;
+  const startY = coverHeight + padding + Math.max(0, (availableHeight - gridHeight) / 2);
 
   const cells: string[] = [];
   for (let i = 0; i < required; i++) {
@@ -131,7 +168,12 @@ export async function renderStampProgressHeroImage(params: {
     `);
   }
 
-  const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">${bg}${cells.join("")}</svg>`;
+  const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
+    ${coverLayer}
+    ${seamFade}
+    ${cells.join("")}
+  </svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 

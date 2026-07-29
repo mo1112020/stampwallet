@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { PRINT_COPY } from "./copy";
 import { PrintLogo, WalletBadges, QrPanel, type PrintTemplateData } from "./primitives";
-import { QrCodeImage } from "./qr-code";
+import { BarcodeImage } from "./barcode-image";
 import { TEMPLATE_DIMENSIONS } from "./dimensions";
 import { shade, readableTextColor } from "@/lib/print/color";
 
@@ -48,7 +48,7 @@ export const A4Poster = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
-        <QrPanel padding={28} label={t.scanToJoin} qrNode={<QrCodeImage value={data.qrValue} size={220} dark="#111111" />} />
+        <QrPanel padding={28} label={t.scanToJoin} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={220} dark="#111111" />} />
         <WalletBadges height={26} />
         <p style={{ maxWidth: 420, textAlign: "center", fontSize: 15, opacity: 0.85, margin: 0, lineHeight: 1.5 }}>{t.instructions}</p>
       </div>
@@ -82,7 +82,7 @@ export const CounterStand = forwardRef<HTMLDivElement, PrintTemplateData>((data,
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, padding: "20px 24px" }}>
         <h2 style={{ fontSize: 20, fontWeight: 800, color: "#111", textAlign: "center", margin: 0 }}>{data.programName}</h2>
-        <QrPanel padding={16} label={t.scanToJoin} qrNode={<QrCodeImage value={data.qrValue} size={150} dark="#111111" />} />
+        <QrPanel padding={16} label={t.scanToJoin} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={150} dark="#111111" />} />
         <WalletBadges height={18} />
       </div>
 
@@ -115,7 +115,7 @@ export const TableTent = forwardRef<HTMLDivElement, PrintTemplateData>((data, re
     >
       <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={44} />
       <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, lineHeight: 1.2, color: text }}>{data.programName}</h2>
-      <QrPanel padding={12} qrNode={<QrCodeImage value={data.qrValue} size={110} dark="#111111" />} />
+      <QrPanel padding={12} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={110} dark="#111111" />} />
       <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.5 }}>{t.scanToJoin}</span>
     </div>
   );
@@ -139,7 +139,7 @@ export const Flyer = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) =
         <p style={{ fontSize: 15, color: "#4b5563", lineHeight: 1.6, margin: 0 }}>{t.instructions}</p>
 
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 8 }}>
-          <QrPanel padding={14} qrNode={<QrCodeImage value={data.qrValue} size={128} dark="#111111" />} />
+          <QrPanel padding={14} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={128} dark="#111111" />} />
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>{t.scanToJoin}</span>
             <WalletBadges height={20} />
@@ -201,7 +201,7 @@ export const FlyerBold = forwardRef<HTMLDivElement, PrintTemplateData>((data, re
               <WalletBadges height={20} />
             </div>
           </div>
-          <QrPanel padding={16} qrNode={<QrCodeImage value={data.qrValue} size={130} dark="#111111" />} />
+          <QrPanel padding={16} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={130} dark="#111111" />} />
         </div>
       </div>
     </div>
@@ -242,7 +242,7 @@ export const FlyerMinimal = forwardRef<HTMLDivElement, PrintTemplateData>((data,
 
       <div style={{ display: "flex", alignItems: "center", gap: 24, paddingTop: 32, borderTop: "1px solid #e5e7eb" }}>
         <div style={{ padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
-          <QrCodeImage value={data.qrValue} size={104} dark="#111111" />
+          <BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={104} dark="#111111" />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#111" }}>{t.scanToJoin}</span>
@@ -310,7 +310,7 @@ export const FlyerGeometric = forwardRef<HTMLDivElement, PrintTemplateData>((dat
           <h1 style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.1, margin: 0, maxWidth: 400 }}>{data.programName}</h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 24 }}>
-          <QrPanel padding={16} qrNode={<QrCodeImage value={data.qrValue} size={120} dark="#111111" />} />
+          <QrPanel padding={16} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={120} dark="#111111" />} />
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 700 }}>{t.scanToJoin}</span>
             <WalletBadges height={20} />
@@ -351,7 +351,7 @@ export const FlyerCorporate = forwardRef<HTMLDivElement, PrintTemplateData>((dat
         <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, margin: 0 }}>{t.instructions}</p>
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <QrPanel padding={14} qrNode={<QrCodeImage value={data.qrValue} size={116} dark="#111111" />} />
+          <QrPanel padding={14} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={116} dark="#111111" />} />
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>{t.scanToJoin}</span>
             <WalletBadges height={18} />
@@ -389,7 +389,7 @@ export const WindowSticker = forwardRef<HTMLDivElement, PrintTemplateData>((data
       <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={40} />
       <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 0.4 }}>{t.scanToJoin}</span>
       <div style={{ background: "#fff", borderRadius: 14, padding: 10 }}>
-        <QrCodeImage value={data.qrValue} size={100} dark="#111111" />
+        <BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={100} dark="#111111" />
       </div>
       <WalletBadges height={14} />
     </div>
@@ -417,7 +417,7 @@ export const QrOnly = forwardRef<HTMLDivElement, PrintTemplateData>((data, ref) 
       }}
     >
       <PrintLogo logoUrl={data.logoUrl} businessName={data.businessName} size={40} />
-      <QrCodeImage value={data.qrValue} size={240} dark="#111111" />
+      <BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={240} dark="#111111" />
       <span style={{ fontSize: 15, fontWeight: 800, color: "#111" }}>{t.scanToJoin}</span>
       <span style={{ fontSize: 11, color: "#9ca3af" }}>{t.poweredBy}</span>
     </div>
@@ -451,7 +451,7 @@ export const SocialSquare = forwardRef<HTMLDivElement, PrintTemplateData>((data,
         <span style={{ fontSize: 26, fontWeight: 700, opacity: 0.9 }}>{data.businessName}</span>
       </div>
       <h1 style={{ fontSize: 64, fontWeight: 800, margin: 0, lineHeight: 1.1, maxWidth: 800, color: text }}>{data.programName}</h1>
-      <QrPanel padding={32} label={t.scanToJoin} qrNode={<QrCodeImage value={data.qrValue} size={260} dark="#111111" />} />
+      <QrPanel padding={32} label={t.scanToJoin} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={260} dark="#111111" />} />
       <WalletBadges height={30} />
     </div>
   );
@@ -484,7 +484,7 @@ export const InstagramStory = forwardRef<HTMLDivElement, PrintTemplateData>((dat
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 40 }}>
         <h1 style={{ fontSize: 68, fontWeight: 800, margin: 0, lineHeight: 1.1, color: text }}>{data.programName}</h1>
-        <QrPanel padding={32} label={t.scanToJoin} qrNode={<QrCodeImage value={data.qrValue} size={280} dark="#111111" />} />
+        <QrPanel padding={32} label={t.scanToJoin} qrNode={<BarcodeImage value={data.qrValue} style={data.barcodeStyle} size={280} dark="#111111" />} />
       </div>
 
       <WalletBadges height={30} />

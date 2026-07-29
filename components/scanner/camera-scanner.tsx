@@ -28,9 +28,16 @@ export function CameraScanner({
     let cancelled = false;
     setError(null);
 
-    import("@zxing/browser").then(({ BrowserQRCodeReader }) => {
+    Promise.all([import("@zxing/browser"), import("@zxing/library")]).then(([{ BrowserMultiFormatReader }, { BarcodeFormat, DecodeHintType }]) => {
       if (cancelled) return;
-      const reader = new BrowserQRCodeReader();
+      // Merchants can choose a barcode style per program (standard QR,
+      // rounded/dot QR — which decodes identically to standard QR, or a
+      // linear Code 128 barcode) — the scanner must read whichever style a
+      // pass was issued with, without any merchant-side configuration. A
+      // single reader hinted for both formats handles that automatically.
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128]);
+      const reader = new BrowserMultiFormatReader(hints);
 
       reader
         .decodeFromConstraints(

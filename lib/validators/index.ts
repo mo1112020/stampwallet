@@ -25,6 +25,7 @@ const cardAppearanceSchema = z.object({
       days: z.number().int().min(1).max(365),
     })
     .optional(),
+  barcode_style: z.enum(["qr", "code128"]).optional(),
 });
 
 export const stampConfigSchema = cardAppearanceSchema

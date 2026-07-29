@@ -45,6 +45,7 @@ export function ProgramCard({
       primaryColor,
       secondaryColor,
       locale: "en",
+      barcodeStyle: phoneMockupProps.barcodeStyle,
     });
 
     await new Promise((resolve) => setTimeout(resolve, QR_RENDER_DELAY_MS));

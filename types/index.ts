@@ -26,6 +26,11 @@ export type CardExpirationConfig = {
   days: number;
 };
 
+/** "code128" is a real linear-barcode format both Apple and Google Wallet
+ * support natively; "qr" is the standard square QR code. See
+ * lib/wallet/barcode.ts and components/dashboard/print/barcode-image.tsx. */
+export type BarcodeStyle = "qr" | "code128";
+
 export type CardAppearance = {
   primary_color?: string;
   secondary_color?: string;
@@ -36,6 +41,8 @@ export type CardAppearance = {
   reward_value?: number;
   /** Paid-plan only — see lib/billing/plans.ts `cardExpiration`. Disabled by default. */
   expiration?: CardExpirationConfig;
+  /** Defaults to "qr" when unset. */
+  barcode_style?: BarcodeStyle;
 };
 
 export type StampConfig = CardAppearance & {

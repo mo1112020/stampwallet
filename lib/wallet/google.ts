@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken";
 import type { JWT } from "google-auth-library";
-import type { CardAppearance, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
+import type { BarcodeStyle, CardAppearance, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
+import { googleBarcodeType } from "@/lib/wallet/barcode";
 import { renderPassFields, type PassFields } from "@/lib/wallet/renderPassFields";
 import { getServiceAccount, getWalletClient } from "@/lib/wallet/googleAuth";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { renderCoverHeroImage, renderStampProgressHeroImage, uploadHeroImage } from "@/lib/wallet/heroImage";
+import { renderCoverHeroImage, renderStampCardHeroImage, uploadHeroImage } from "@/lib/wallet/heroImage";
 import { resolveBrandColors } from "@/lib/wallet/colors";
 
 const WALLET_API = "https://walletobjects.googleapis.com/walletobjects/v1";
@@ -59,7 +60,7 @@ async function stampObjectHeroImage(
   try {
     const config = program.config as StampConfig;
     const collected = (progress as StampProgress).stamps_collected;
-    const buffer = await renderStampProgressHeroImage({
+    const buffer = await renderStampCardHeroImage({
       config,
       collected,
       primaryColor,
@@ -80,7 +81,8 @@ async function loyaltyObjectFields(
   fields: PassFields,
   merchantId: string,
   programId: string,
-  heroImageUrl: string | undefined
+  heroImageUrl: string | undefined,
+  barcodeStyle: BarcodeStyle | undefined
 ) {
   const secondaryValue = fields.rewardAvailable
     ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
@@ -105,7 +107,7 @@ async function loyaltyObjectFields(
       { id: "reward", header: fields.secondaryLabel, body: secondaryValue },
       ...(fields.expiry ? [{ id: "expiry", header: fields.expiry.label, body: fields.expiry.value }] : []),
     ],
-    barcode: { type: "QR_CODE", value: passId, alternateText: passId },
+    barcode: { type: googleBarcodeType(barcodeStyle), value: passId, alternateText: passId },
     // Object-level heroImage overrides the class-level one — this is how a
     // per-customer stamp-progress image can be shown while every other
     // customer's (and the class's own default) heroImage stays untouched.
@@ -158,6 +160,7 @@ export async function generateGoogleWalletLink(params: {
     // enrollment page pull from (CardAppearance.background_image_url).
     const backgroundImageUrl = (params.program.config as CardAppearance).background_image_url;
     const website = (params.program.config as CardAppearance).details?.website;
+    const barcodeStyle = (params.program.config as CardAppearance).barcode_style;
 
     // Pre-composited to Google's documented heroImage canvas (1032x812,
     // ~5:4) with the same darkening treatment the WalletOS preview uses —
@@ -212,7 +215,7 @@ export async function generateGoogleWalletLink(params: {
       objectId,
       {
         id: objectId,
-        ...(await loyaltyObjectFields(params.passId, classId, fields, params.merchant.id, params.program.id, objectHeroImageUrl)),
+        ...(await loyaltyObjectFields(params.passId, classId, fields, params.merchant.id, params.program.id, objectHeroImageUrl, barcodeStyle)),
       }
     );
 
@@ -283,6 +286,10 @@ export async function pushGooglePassUpdate(
       method: "PATCH",
       data: {
         loyaltyPoints: { label: fields.primaryLabel, balance: { string: fields.primaryValue } },
+        // Re-sent on every push (not just at enrollment) so a merchant
+        // changing their barcode style later is reflected on passes
+        // already saved to a customer's device, not just new enrollments.
+        barcode: { type: googleBarcodeType((program.config as CardAppearance).barcode_style), value: passId, alternateText: passId },
         // `id`s must match loyaltyObjectFields above — the class's
         // cardTemplateOverride references "reward" by fieldPath, and PATCH
         // replaces this array wholesale, so dropping the id here would

@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
 import { Clock, ExternalLink, type LucideIcon } from "lucide-react";
-import type { CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import type { BarcodeStyle, CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { BarcodeImage } from "@/components/dashboard/print/barcode-image";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { getStampCellScale, getStampGridColumns } from "@/lib/stamp-grid";
 import { computeExpirationStatus, formatDaysRemaining } from "@/lib/wallet/expiration";
@@ -51,14 +52,13 @@ export type PhoneMockupProps = {
   cardDetails?: { description?: string; terms?: string; website?: string };
   /** Small icon button rendered next to the primary action (e.g. quick "Download A4 poster"). */
   secondaryAction?: { icon: LucideIcon; label: string; onClick: () => void; loading?: boolean };
+  barcodeStyle?: BarcodeStyle;
 };
 
 export function getIconComponent(iconName: string): LucideIcon {
   const icon = (LucideIcons as any)[iconName];
   return icon || LucideIcons.Star;
 }
-
-const BARCODE_WIDTHS = [2,1,3,1,2,1,1,2,3,1,2,1,1,3,2,1,2,1,3,1,1,2,1,2];
 
 export function PhoneMockup({
   name,
@@ -79,6 +79,7 @@ export function PhoneMockup({
   flipped,
   cardDetails,
   secondaryAction,
+  barcodeStyle = "qr",
 }: PhoneMockupProps) {
   const Icon = getIconComponent(iconName);
   const reduced = useReducedMotion();
@@ -251,17 +252,18 @@ export function PhoneMockup({
                 </div>
               </div>
 
-              {/* Barcode */}
+              {/* Barcode — same BarcodeImage every real pass/print asset uses,
+                  so this preview accurately reflects the selected barcode
+                  style (not just a fixed decorative mockup). The value here
+                  is a placeholder: this preview has no real customer pass id
+                  yet, only the visual style is meaningful. */}
               <div className="mx-3 mb-3 mt-2 flex flex-col items-center rounded-xl bg-white px-2 py-1.5">
-                <div className="flex h-7 w-full items-end gap-[1.5px]">
-                  {BARCODE_WIDTHS.map((w, i) => (
-                    <div
-                      key={i}
-                      className="bg-black"
-                      style={{ width: `${w * 3}px`, height: `${80 + (i % 3) * 6}%` }}
-                    />
-                  ))}
-                </div>
+                <BarcodeImage
+                  value="00000000-0000-0000-0000-000000000000"
+                  style={barcodeStyle}
+                  size={barcodeStyle === "code128" ? 140 : 56}
+                  dark="#000000"
+                />
                 <p className="mt-0.5 text-[8px] text-gray-400">Tap ••• for details</p>
               </div>
             </div>

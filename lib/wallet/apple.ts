@@ -1,10 +1,11 @@
 import { PKPass } from "passkit-generator";
-import type { LoyaltyProgram, Merchant, Progress } from "@/types";
+import type { CardAppearance, LoyaltyProgram, Merchant, Progress } from "@/types";
 import { renderPassFields } from "@/lib/wallet/renderPassFields";
 import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
 import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib/wallet/assets";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { resolveBrandColors } from "@/lib/wallet/colors";
+import { appleBarcodeFormat } from "@/lib/wallet/barcode";
 
 export function isAppleWalletConfigured() {
   return Boolean(
@@ -97,7 +98,7 @@ export async function generateApplePass(params: {
       labelColor: hexToRgb(secondaryColor, "rgb(250, 174, 98)"),
       barcodes: [
         {
-          format: "PKBarcodeFormatQR",
+          format: appleBarcodeFormat((params.program.config as CardAppearance).barcode_style),
           message: params.passId,
           messageEncoding: "iso-8859-1",
         },

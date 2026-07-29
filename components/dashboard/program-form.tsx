@@ -9,7 +9,7 @@ import { JoinPagePhonePreview } from "@/components/dashboard/join-page-phone-pre
 import { PreviewCrossfade } from "@/components/motion/preview-crossfade";
 import { cn } from "@/lib/utils";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
-import type { CardExpirationConfig, EnrollmentPageConfig, EnrollmentPageStyle, Plan, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import type { BarcodeStyle, CardExpirationConfig, EnrollmentPageConfig, EnrollmentPageStyle, Plan, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import { Lock } from "lucide-react";
 import {
   Coffee, Pizza, Scissors, ShoppingBag, Gift, Star,
@@ -105,6 +105,11 @@ const ICON_CATEGORIES = [
       { name: "Moon", icon: Moon },
     ],
   },
+];
+
+const BARCODE_STYLE_OPTIONS: { value: BarcodeStyle; label: string; description: string }[] = [
+  { value: "qr", label: "Standard QR", description: "Classic square QR code" },
+  { value: "code128", label: "Linear barcode", description: "Code 128 style" },
 ];
 
 const defaultConfigs: Record<ProgramType, ProgramConfig> = {
@@ -204,6 +209,11 @@ export function ProgramForm({
   const logoUploadInputRef = useRef<HTMLInputElement>(null);
   const enrollment = ((config as any).enrollment_page ?? {}) as EnrollmentPageConfig;
   const expiration = ((config as any).expiration ?? { enabled: false, days: 7 }) as CardExpirationConfig;
+  // Coerces any unrecognized/legacy value (e.g. a still-open session that
+  // had the now-removed "qr_rounded" option selected before a save) to a
+  // valid style instead of carrying an invalid one forward into the next
+  // save, which the server schema would otherwise reject outright.
+  const barcodeStyle = ((config as any).barcode_style === "code128" ? "code128" : "qr") as BarcodeStyle;
 
   function updateExpiration(next: Partial<CardExpirationConfig>) {
     if (!canUseCardExpiration) return;
@@ -211,6 +221,10 @@ export function ProgramForm({
       ...(prev as any),
       expiration: { ...((prev as any).expiration ?? { enabled: false, days: 7 }), ...next },
     } as ProgramConfig));
+  }
+
+  function updateBarcodeStyle(next: BarcodeStyle) {
+    setConfig((prev) => ({ ...(prev as any), barcode_style: next } as ProgramConfig));
   }
 
   // The preview follows the step being edited — join page only while editing Wallet
@@ -229,6 +243,7 @@ export function ProgramForm({
       ...(backgroundImage ? { background_image_url: backgroundImage } : {}),
       ...((config as any).details ? { details: (config as any).details } : {}),
       ...((config as any).enrollment_page ? { enrollment_page: (config as any).enrollment_page } : {}),
+      barcode_style: barcodeStyle,
     };
     setConfig(
       next === "stamp"
@@ -314,10 +329,15 @@ export function ProgramForm({
 
     const url = mode === "create" ? "/api/programs" : `/api/programs/${initial!.id}`;
     const method = mode === "create" ? "POST" : "PATCH";
+    // Forces barcode_style back to a currently-valid value at submit time —
+    // guards against a session left open with the removed "qr_rounded"
+    // option still selected in memory, which would otherwise fail the
+    // server's (now narrower) validation on save.
+    const sanitizedConfig = { ...(config as any), barcode_style: barcodeStyle };
     const body =
       mode === "create"
-        ? { name, type, config }
-        : { name, config, is_active: isActive };
+        ? { name, type, config: sanitizedConfig }
+        : { name, config: sanitizedConfig, is_active: isActive };
 
     const res = await fetch(url, {
       method,
@@ -354,7 +374,7 @@ export function ProgramForm({
   }
 
   return (
-    <div className="flex flex-col-reverse lg:flex-row lg:items-start gap-10">
+    <div className="flex flex-col lg:flex-row lg:items-start gap-10">
       <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-8 pb-10">
 
         <nav aria-label="Program steps" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -399,7 +419,7 @@ export function ProgramForm({
             {mode === "create" && (
               <div>
                 <Label className="text-[var(--muted)]">Program Type</Label>
-                <div className="mt-2 grid grid-cols-3 gap-3">
+                <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {(["stamp", "points", "steps"] as ProgramType[]).map((t) => (
                     <button
                       key={t}
@@ -480,8 +500,8 @@ export function ProgramForm({
             <Label className="text-[var(--muted)]">Background Image</Label>
             <p className="mt-1 mb-4 text-sm text-[var(--muted)]">Choose a photo for your card background.</p>
             
-            <div className="flex items-center gap-4">
-              <div className="relative h-20 w-32 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-3)] shadow-sm flex items-center justify-center">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-3)] shadow-sm flex items-center justify-center">
                 {backgroundImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={backgroundImage} alt="Background" className="h-full w-full object-cover" />
@@ -499,7 +519,33 @@ export function ProgramForm({
               </Button>
             </div>
           </div>
-          
+
+          {/* Barcode style selection */}
+          <div className="mt-6">
+            <Label className="text-[var(--muted)]">Barcode Style</Label>
+            <p className="mt-1 mb-4 text-sm text-[var(--muted)]">
+              Used for the scannable code on the wallet card, printed materials, and staff scanning — applies everywhere automatically.
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {BARCODE_STYLE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={barcodeStyle === opt.value}
+                  onClick={() => updateBarcodeStyle(opt.value)}
+                  className={`rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-all ${
+                    barcodeStyle === opt.value
+                      ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] shadow-sm"
+                      : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"
+                  }`}
+                >
+                  <span className="block">{opt.label}</span>
+                  <span className="mt-0.5 block text-xs font-normal opacity-75">{opt.description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Photo Selection Modal */}
           {showAllPhotos && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 animate-in fade-in duration-200">
@@ -829,7 +875,7 @@ export function ProgramForm({
                           type="button"
                           title={iconName}
                           onClick={() => pickIcon(iconName)}
-                          className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
+                          className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-all ${
                             selectedIcon === iconName
                               ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] scale-110 shadow-sm"
                               : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
@@ -899,7 +945,7 @@ export function ProgramForm({
             <div className="rounded-xl border border-[var(--line)] p-4 bg-[var(--surface-2)]">
               <div className="space-y-3">
                 {(config as StepsConfig).stages.map((stage, idx) => (
-                  <div key={stage.key} className="grid grid-cols-[1fr_100px_auto] items-center gap-3">
+                  <div key={stage.key} className="grid grid-cols-[minmax(0,1fr)_100px_auto] items-center gap-3">
                     <Input
                       value={stage.label}
                       onChange={(e) => {
@@ -1078,6 +1124,7 @@ export function ProgramForm({
                     previewOnly
                     flipped={step === STEP_CARD}
                     cardDetails={(config as any).details}
+                    barcodeStyle={barcodeStyle}
                   />
                 ),
               },
