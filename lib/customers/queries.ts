@@ -3,7 +3,7 @@ import type { SessionContext } from "@/lib/api";
 type ProgressRow = {
   id: string;
   program_id: string;
-  apple_push_token: string | null;
+  pass_id: string;
   google_object_id: string | null;
   loyalty_programs: { name: string } | null;
 };
@@ -47,7 +47,7 @@ export async function listAllCustomers(
   let query = session.supabase
     .from("customers")
     .select(
-      "id, name, phone, email, birthday, created_at, customer_progress(id, program_id, apple_push_token, google_object_id, loyalty_programs(name))"
+      "id, name, phone, email, birthday, created_at, customer_progress(id, program_id, pass_id, google_object_id, loyalty_programs(name))"
     )
     .eq("merchant_id", session.merchantId)
     .order("created_at", { ascending: false })
@@ -70,6 +70,21 @@ export async function listAllCustomers(
     rows = rows.filter((r) => r.customer_progress.some((cp) => cp.program_id === filterProgramId));
   }
 
+  // "Has Apple Wallet" can only be known once the device actually registers
+  // with our PassKit web service (apple_device_registrations, keyed by
+  // pass_id/serial_number) — customer_progress.apple_push_token is never
+  // written anywhere and always null, so checking it here meant a real,
+  // successfully-installed pass could never show as installed.
+  const passIds = rows.flatMap((r) => r.customer_progress.map((cp) => cp.pass_id));
+  const registeredPassIds = new Set<string>();
+  if (passIds.length > 0) {
+    const { data: registrations } = await session.supabase
+      .from("apple_device_registrations")
+      .select("serial_number")
+      .in("serial_number", passIds);
+    for (const row of registrations ?? []) registeredPassIds.add(row.serial_number as string);
+  }
+
   const customers = rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -79,7 +94,7 @@ export async function listAllCustomers(
     created_at: r.created_at,
     cardsCount: r.customer_progress.length,
     programs: r.customer_progress.map((cp) => cp.loyalty_programs?.name).filter(Boolean) as string[],
-    hasApple: r.customer_progress.some((cp) => cp.apple_push_token),
+    hasApple: r.customer_progress.some((cp) => registeredPassIds.has(cp.pass_id)),
     hasGoogle: r.customer_progress.some((cp) => cp.google_object_id),
   }));
 

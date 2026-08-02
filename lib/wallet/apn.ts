@@ -27,9 +27,16 @@ export async function sendApplePush(
     };
 
     const client = http2.connect(APNS_HOST, {
-      cert: certs.signerCert,
+      // `cert` is OUR client certificate chain for mutual TLS: the leaf pass
+      // cert followed by its issuing intermediate (WWDR) so Apple's push
+      // server can build the chain up to its own already-trusted root.
+      // `ca` (deliberately omitted) is for validating APPLE's server
+      // certificate instead — it is a completely different PKI branch than
+      // WWDR (which only signs pass/code-signing certs), so setting it to
+      // WWDR replaced Node's trusted root store and made every connection
+      // fail with "unable to get local issuer certificate".
+      cert: certs.signerCert + certs.wwdr,
       key: certs.signerKeyPem,
-      ca: certs.wwdr,
     });
 
     // Neither an unreachable APNs host nor a stalled TLS handshake is

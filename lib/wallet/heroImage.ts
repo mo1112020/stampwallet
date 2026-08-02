@@ -60,17 +60,22 @@ async function fetchAsPngDataUri(url: string): Promise<string | null> {
 /** Cover-fit background layer shared by both the plain cover photo and the
  * stamp-progress composite — darkened the same way the WalletOS live
  * preview darkens it (rgba(0,0,0,0.28)), so brand colors/contrast match. */
-async function backgroundLayerSvg(backgroundImageUrl: string | undefined, primaryColor: string): Promise<string> {
+async function backgroundLayerSvg(
+  backgroundImageUrl: string | undefined,
+  primaryColor: string,
+  width: number = CANVAS_WIDTH,
+  height: number = CANVAS_HEIGHT
+): Promise<string> {
   if (backgroundImageUrl) {
     const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
     if (dataUri) {
       return `
-        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" preserveAspectRatio="xMidYMid slice" />
-        <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="#000000" opacity="0.28" />
+        <image href="${dataUri}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />
+        <rect width="${width}" height="${height}" fill="#000000" opacity="0.28" />
       `;
     }
   }
-  return `<rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />`;
+  return `<rect width="${width}" height="${height}" fill="${primaryColor}" />`;
 }
 
 /** Plain cover-photo heroImage (points/steps programs, and stamp programs'
@@ -175,6 +180,112 @@ export async function renderStampCardHeroImage(params: {
     ${cells.join("")}
   </svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
+}
+
+// Apple's PassKit Package Format Reference gives 375x123pt (@1x) as the
+// storeCard "strip" image size when no square/thumbnail image is present —
+// unlike Google's heroImage this is embedded directly in the .pkpass (no
+// public URL needed), and it's the ONLY region of an Apple Wallet pass that
+// can hold custom graphics; the primary/secondary/auxiliary fields below it
+// are always plain platform-rendered text, which is why the stamp grid has
+// to live in this image rather than being a "field" of some kind.
+const STRIP_WIDTH_1X = 375;
+const STRIP_HEIGHT_1X = 123;
+const STRIP_SCALE = 3; // generate at @3x, downsample for @2x/@1x
+
+/** Apple equivalent of renderStampCardHeroImage — same brand cover photo +
+ * circular stamp grid look as the dashboard live preview and Google Wallet's
+ * heroImage, but composited as one overlay (photo/color behind, grid on top)
+ * rather than stacked top/bottom: at 123pt tall there isn't room to devote a
+ * separate band to the cover photo AND keep the stamp circles legible, so
+ * the photo becomes a full-bleed darkened backdrop instead. Grid cell size
+ * is solved for the available space rather than using renderStampCardHeroImage's
+ * fixed lg/md/sm/xs table, since that table was tuned for Google's much
+ * taller canvas and would overflow or look tiny at this aspect ratio. */
+export async function renderAppleStripImage(params: {
+  config: StampConfig;
+  collected: number;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundImageUrl?: string;
+}): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
+  const { config, collected, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const width = STRIP_WIDTH_1X * STRIP_SCALE;
+  const height = STRIP_HEIGHT_1X * STRIP_SCALE;
+
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+
+  const required = Math.max(1, config.stamps_required);
+  const columns = getStampGridColumns(required);
+  const rows = Math.ceil(required / columns);
+
+  const padding = 18 * STRIP_SCALE;
+  const gapRatio = 0.22; // gap as a fraction of cell size
+  const availableWidth = width - padding * 2;
+  const availableHeight = height - padding * 2;
+  const cellFromWidth = availableWidth / (columns + (columns - 1) * gapRatio);
+  const cellFromHeight = availableHeight / (rows + (rows - 1) * gapRatio);
+  const cell = Math.max(8, Math.floor(Math.min(cellFromWidth, cellFromHeight)));
+  const gap = Math.round(cell * gapRatio);
+
+  const gridWidth = columns * cell + (columns - 1) * gap;
+  const gridHeight = rows * cell + (rows - 1) * gap;
+  const startX = (width - gridWidth) / 2;
+  const startY = (height - gridHeight) / 2;
+
+  const cells: string[] = [];
+  for (let i = 0; i < required; i++) {
+    const col = i % columns;
+    const row = Math.floor(i / columns);
+    const x = startX + col * (cell + gap);
+    const y = startY + row * (cell + gap);
+    const filled = i < collected;
+    const iconColor = filled ? "#ffffff" : secondaryColor;
+    const iconSize = cell * 0.5;
+
+    cells.push(`
+      <g opacity="${filled ? 1 : 0.55}">
+        <circle cx="${x + cell / 2}" cy="${y + cell / 2}" r="${cell / 2}"
+          fill="${filled ? secondaryColor : "rgba(255,255,255,0.12)"}"
+          stroke="${filled ? secondaryColor : "rgba(255,255,255,0.6)"}" stroke-width="${Math.max(1, cell * 0.05)}" />
+        ${iconGroupMarkup(config.icon, iconColor, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize)}
+      </g>
+    `);
+  }
+
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${bg}
+    ${cells.join("")}
+  </svg>`;
+
+  const master = await sharp(Buffer.from(svg)).png().toBuffer();
+  const [oneX, twoX, threeX] = await Promise.all([
+    sharp(master).resize(STRIP_WIDTH_1X, STRIP_HEIGHT_1X).png().toBuffer(),
+    sharp(master).resize(STRIP_WIDTH_1X * 2, STRIP_HEIGHT_1X * 2).png().toBuffer(),
+    Promise.resolve(master),
+  ]);
+
+  return { "1x": oneX, "2x": twoX, "3x": threeX };
+}
+
+/** Plain-cover variant of renderAppleStripImage for points/steps programs
+ * (no discrete per-unit icon to grid, same as renderCoverHeroImage's role
+ * for Google Wallet). */
+export async function renderAppleStripCover(
+  backgroundImageUrl: string | undefined,
+  primaryColor: string
+): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
+  const width = STRIP_WIDTH_1X * STRIP_SCALE;
+  const height = STRIP_HEIGHT_1X * STRIP_SCALE;
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${bg}</svg>`;
+  const master = await sharp(Buffer.from(svg)).png().toBuffer();
+  const [oneX, twoX, threeX] = await Promise.all([
+    sharp(master).resize(STRIP_WIDTH_1X, STRIP_HEIGHT_1X).png().toBuffer(),
+    sharp(master).resize(STRIP_WIDTH_1X * 2, STRIP_HEIGHT_1X * 2).png().toBuffer(),
+    Promise.resolve(master),
+  ]);
+  return { "1x": oneX, "2x": twoX, "3x": threeX };
 }
 
 /** Uploads to the same public `card-backgrounds` bucket merchants' own cover

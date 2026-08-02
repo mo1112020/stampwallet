@@ -1,11 +1,44 @@
 import { PKPass } from "passkit-generator";
-import type { CardAppearance, LoyaltyProgram, Merchant, Progress } from "@/types";
+import type { CardAppearance, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
 import { renderPassFields } from "@/lib/wallet/renderPassFields";
 import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
 import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib/wallet/assets";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { resolveBrandColors } from "@/lib/wallet/colors";
 import { appleBarcodeFormat } from "@/lib/wallet/barcode";
+import { renderAppleStripImage, renderAppleStripCover } from "@/lib/wallet/heroImage";
+
+/** The strip is the only region of an Apple Wallet pass that can hold custom
+ * graphics (see renderAppleStripImage) — without it, storeCard passes show
+ * nothing but plain text fields on a flat background. Stamp programs get the
+ * live circular progress grid; points/steps get the plain cover photo, same
+ * split Google Wallet's heroImage already makes. Never fails pass generation
+ * — a missing decorative image is better than no pass at all. */
+async function buildStripBuffers(
+  program: LoyaltyProgram,
+  progress: Progress,
+  primaryColor: string,
+  secondaryColor: string
+): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer } | null> {
+  try {
+    const config = program.config as CardAppearance;
+    if (program.type === "stamp") {
+      const stampConfig = program.config as StampConfig;
+      const collected = (progress as StampProgress).stamps_collected;
+      return await renderAppleStripImage({
+        config: stampConfig,
+        collected,
+        primaryColor,
+        secondaryColor,
+        backgroundImageUrl: config.background_image_url,
+      });
+    }
+    return await renderAppleStripCover(config.background_image_url, primaryColor);
+  } catch (err) {
+    console.error("[wallet:apple] strip image render failed", program.id, err);
+    return null;
+  }
+}
 
 export function isAppleWalletConfigured() {
   return Boolean(
@@ -82,6 +115,7 @@ export async function generateApplePass(params: {
       ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
       : fields.secondaryValue;
     const { primaryColor, secondaryColor } = resolveBrandColors(params.program, params.merchant);
+    const strip = await buildStripBuffers(params.program, params.progress, primaryColor, secondaryColor);
 
     const passJson = {
       formatVersion: 1,
@@ -155,6 +189,13 @@ export async function generateApplePass(params: {
         "icon@3x.png": ICON_3X_PNG,
         "logo.png": LOGO_PNG,
         "logo@2x.png": LOGO_2X_PNG,
+        ...(strip
+          ? {
+              "strip.png": strip["1x"],
+              "strip@2x.png": strip["2x"],
+              "strip@3x.png": strip["3x"],
+            }
+          : {}),
       },
       {
         wwdr: certs.wwdr,
