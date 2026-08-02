@@ -19,6 +19,12 @@ export type PassFields = {
   secondaryValue: string;
   auxiliaryLabel: string;
   auxiliaryValue: string;
+  /** Same "left to redeem" phrasing as the dashboard live preview's info row
+   * (components/dashboard/phone-mockup.tsx) — used in place of primaryLabel/
+   * primaryValue on Apple/Google wallet cards, which now show the stamp grid
+   * as an image instead of a big numeric counter (see apple.ts/google.ts). */
+  remainingLabel: string;
+  remainingValue: string;
   rewardAvailable: boolean;
   /** Only present when config.expiration is enabled and enrolledAt was supplied. */
   expiry?: { label: string; value: string; expiresAt: Date; expired: boolean };
@@ -71,6 +77,8 @@ export function renderPassFields(
       secondaryValue: c.reward_description,
       auxiliaryLabel: "Business",
       auxiliaryValue: businessName,
+      remainingLabel: "Stamps to reward",
+      remainingValue: rewardAvailable ? "Ready!" : `${Math.max(0, c.stamps_required - p.stamps_collected)} left`,
       rewardAvailable,
       expiry,
     };
@@ -87,6 +95,8 @@ export function renderPassFields(
       secondaryValue: c.reward_description,
       auxiliaryLabel: "Business",
       auxiliaryValue: businessName,
+      remainingLabel: "Points to reward",
+      remainingValue: rewardAvailable ? "Ready!" : `${Math.max(0, c.points_per_reward - p.points)} left`,
       rewardAvailable,
       expiry,
     };
@@ -102,6 +112,8 @@ export function renderPassFields(
     p.current_value >= (current?.threshold ?? 0) &&
     current !== undefined &&
     !p.completed_stage_keys.includes(current.key);
+  const currentIndex = current ? stages.findIndex((s) => s.key === current.key) : -1;
+  const nextStage = currentIndex >= 0 ? stages[currentIndex + 1] : undefined;
 
   return {
     primaryLabel: "Stage",
@@ -110,6 +122,8 @@ export function renderPassFields(
     secondaryValue: String(p.current_value),
     auxiliaryLabel: "Business",
     auxiliaryValue: businessName,
+    remainingLabel: "Next stage",
+    remainingValue: rewardAvailable ? "Ready!" : (nextStage?.label ?? "Complete"),
     rewardAvailable,
     expiry,
   };

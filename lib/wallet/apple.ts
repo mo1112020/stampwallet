@@ -147,14 +147,19 @@ export async function generateApplePass(params: {
       ...(fields.expiry ? { expirationDate: fields.expiry.expiresAt.toISOString() } : {}),
       storeCard: {
         headerFields: [],
-        primaryFields: [
-          { key: "primary", label: fields.primaryLabel, value: fields.primaryValue },
-        ],
+        // No primaryFields: Apple renders storeCard's primary field text
+        // overlaid directly on top of the strip image, which collided with
+        // the stamp grid now drawn into that same image (see strip image
+        // above) — the grid itself already shows progress visually, so the
+        // numeric counter is dropped rather than repositioned. secondary/
+        // auxiliary render below the strip instead, matching the dashboard
+        // live preview's info row (Reward | stamps-to-reward).
+        primaryFields: [],
         secondaryFields: [
           { key: "secondary", label: fields.secondaryLabel, value: secondaryValue },
         ],
         auxiliaryFields: [
-          { key: "auxiliary", label: fields.auxiliaryLabel, value: fields.auxiliaryValue },
+          { key: "auxiliary", label: fields.remainingLabel, value: fields.remainingValue },
           ...(fields.expiry
             ? [{ key: "expiry", label: fields.expiry.label, value: fields.expiry.value }]
             : []),

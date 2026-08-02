@@ -94,9 +94,14 @@ async function loyaltyObjectFields(
     state: "ACTIVE",
     accountId: passId,
     accountName: fields.auxiliaryValue,
+    // Same reasoning as apple.ts: the heroImage now draws the stamp grid
+    // itself, so loyaltyPoints (Google's own prominent counter) is
+    // repurposed to the same non-numeric "left to reward" phrasing used in
+    // Apple's auxiliary field and the dashboard preview's info row, instead
+    // of a redundant raw "X / Y" count.
     loyaltyPoints: {
-      label: fields.primaryLabel,
-      balance: { string: fields.primaryValue },
+      label: fields.remainingLabel,
+      balance: { string: fields.remainingValue },
     },
     textModulesData: [
       // `id` lets the class's cardTemplateOverride reference this module by

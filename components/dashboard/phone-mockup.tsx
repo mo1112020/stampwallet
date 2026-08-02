@@ -141,8 +141,16 @@ export function PhoneMockup({
               )}
               style={{ backgroundColor: primaryColor }}
             >
-              {/* Top image area — fixed height 100px */}
-              <div className="relative h-[100px] w-full overflow-hidden">
+              {/* Top image area — no text drawn on it, matching the real
+                  generated wallet-card image exactly (Apple's strip.png /
+                  Google's heroImage never bake in the program name; that's
+                  shown by the platform's own native chrome instead). For
+                  stamp programs the grid is overlaid directly on the photo
+                  here too, same as lib/wallet/heroImage.ts's composite —
+                  the card only has one image slot, not a separate section
+                  for the grid, so the preview needs the taller area to fit
+                  it legibly. */}
+              <div className={cn("relative w-full overflow-hidden", programType === "stamp" ? "h-[168px]" : "h-[100px]")}>
                 {backgroundImage ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -151,8 +159,8 @@ export function PhoneMockup({
                       alt={name}
                       className="h-full w-full object-cover"
                     />
-                    {/* dark gradient overlay so text is readable */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-transparent" />
+                    {/* dark gradient overlay so the grid/icons stay legible */}
+                    <div className="absolute inset-0 bg-black/28" />
                   </>
                 ) : (
                   /* Colour gradient fallback */
@@ -164,23 +172,13 @@ export function PhoneMockup({
                   />
                 )}
 
-                {/* Card name overlaid on the image */}
-                <div className="absolute bottom-0 left-0 right-0 px-3 pb-2 pt-6 bg-gradient-to-t from-black/40 to-transparent">
-                  <h4 className="text-[11px] font-bold leading-tight text-white drop-shadow-md truncate">
-                    {name || "Program Name"}
-                  </h4>
-                </div>
-              </div>
-
-              {/* Reward progress */}
-              <div className="px-3 pt-2">
                 {programType === "stamp" && (() => {
                   const clampedRequired = Math.min(25, Math.max(1, stampsRequired));
                   const columns = getStampGridColumns(clampedRequired);
                   const scale = getStampCellScale(clampedRequired);
                   return (
                     <div
-                      className={`grid ${STAMP_GAP[scale]}`}
+                      className={`absolute inset-0 grid place-content-center px-3 ${STAMP_GAP[scale]}`}
                       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
                     >
                       {Array.from({ length: clampedRequired }).map((_, i) => {
@@ -190,13 +188,14 @@ export function PhoneMockup({
                             key={i}
                             className="flex aspect-square items-center justify-center rounded-full"
                             style={{
-                              backgroundColor: filled ? secondaryColor : "rgba(255,255,255,0.18)",
-                              border: `${STAMP_BORDER_WIDTH[scale]} solid ${filled ? secondaryColor : "rgba(255,255,255,0.45)"}`,
+                              opacity: filled ? 1 : 0.55,
+                              backgroundColor: filled ? secondaryColor : "rgba(255,255,255,0.12)",
+                              border: `${STAMP_BORDER_WIDTH[scale]} solid ${filled ? secondaryColor : "rgba(255,255,255,0.6)"}`,
                             }}
                           >
                             <Icon
                               className={STAMP_ICON_SIZE[scale]}
-                              style={{ color: filled ? "#fff" : "rgba(255,255,255,0.7)" }}
+                              style={{ color: filled ? "#fff" : secondaryColor }}
                             />
                           </div>
                         );
@@ -204,6 +203,11 @@ export function PhoneMockup({
                     </div>
                   );
                 })()}
+              </div>
+
+              {/* Reward progress (points/steps only — stamp progress is now
+                  drawn into the image above, matching the real card) */}
+              <div className="px-3 pt-2">
                 {programType === "points" && (
                   <div className="overflow-hidden rounded-lg bg-white/90 py-2.5 text-[#1f57e7]">
                     <div className="flex items-baseline justify-center gap-1">

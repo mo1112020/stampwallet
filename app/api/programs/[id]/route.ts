@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { updateProgramSchema } from "@/lib/validators";
+import { pushProgramUpdateToAllCustomers } from "@/lib/wallet/push";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -60,6 +61,14 @@ export async function PATCH(request: Request, { params }: Ctx) {
     .single();
 
   if (error) return jsonError(error.message, "update_failed", 500);
+
+  // Fire-and-forget (same pattern as the manual campaign-send route below
+  // it in this file's sibling): don't make the merchant wait on a
+  // potentially-large fan-out of wallet pushes just to save their edits.
+  pushProgramUpdateToAllCustomers(existing.merchant_id, id).catch((err) =>
+    console.error("[wallet:push] program update broadcast failed for", id, err)
+  );
+
   return jsonOk(data);
 }
 

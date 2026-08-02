@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pushApplePassUpdate } from "@/lib/wallet/apple";
 import { pushGooglePassUpdate } from "@/lib/wallet/google";
+import { resolveSegmentTargets } from "@/lib/notifications/segments";
 import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
 export async function pushWalletUpdate(params: {
@@ -39,4 +40,56 @@ export async function pushWalletUpdate(params: {
       params.enrolledAt
     ),
   ]);
+}
+
+/** Bounds one target's push so a single hung wallet-platform request can't
+ * wedge the whole broadcast loop below forever — same structural backstop
+ * lib/notifications/campaigns.ts uses for the same reason. */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+/**
+ * Refreshes every enrolled customer's Apple/Google wallet card for one
+ * program — called after a merchant edits program config (reward text,
+ * colors, background image, icon, stamps required, etc.) so existing
+ * installed cards pick up the change instead of silently going stale until
+ * the customer's next scan. Reuses resolveSegmentTargets (same targeting
+ * logic notification campaigns already use) with scope "program" to get
+ * every current customer_progress row for it, each with the freshly-updated
+ * program config attached.
+ */
+export async function pushProgramUpdateToAllCustomers(merchantId: string, programId: string) {
+  const targets = await resolveSegmentTargets(merchantId, { scope: "program", program_id: programId });
+
+  for (const target of targets) {
+    try {
+      await withTimeout(
+        pushWalletUpdate({
+          passId: target.passId,
+          googleObjectId: target.googleObjectId,
+          program: target.program,
+          merchant: target.merchant,
+          progress: target.progress,
+          enrolledAt: target.enrolledAt,
+        }),
+        25000,
+        `program update push to ${target.customerProgressId}`
+      );
+    } catch (err) {
+      console.error("[wallet:push] program update push failed for", target.customerProgressId, err);
+    }
+  }
 }
