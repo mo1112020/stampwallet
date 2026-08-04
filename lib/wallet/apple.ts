@@ -1,19 +1,27 @@
 import { PKPass } from "passkit-generator";
-import type { CardAppearance, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
+import type { CardAppearance, LoyaltyProgram, Merchant, PointsConfig, PointsProgress, Progress, StampConfig, StampProgress, StepsConfig, StepsProgress } from "@/types";
 import { renderPassFields } from "@/lib/wallet/renderPassFields";
 import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
 import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib/wallet/assets";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { resolveBrandColors } from "@/lib/wallet/colors";
 import { appleBarcodeFormat } from "@/lib/wallet/barcode";
-import { renderAppleStripImage, renderAppleStripCover, renderMerchantIconAndLogo } from "@/lib/wallet/heroImage";
+import {
+  renderAppleStripImage,
+  renderAppleStripCover,
+  renderAppleStepsStrip,
+  renderApplePointsStrip,
+  renderMerchantIconAndLogo,
+} from "@/lib/wallet/heroImage";
 
 /** The strip is the only region of an Apple Wallet pass that can hold custom
  * graphics (see renderAppleStripImage) — without it, storeCard passes show
- * nothing but plain text fields on a flat background. Stamp programs get the
- * live circular progress grid; points/steps get the plain cover photo, same
- * split Google Wallet's heroImage already makes. Never fails pass generation
- * — a missing decorative image is better than no pass at all. */
+ * nothing but plain text fields on a flat background. Every program type now
+ * gets a real progress visualization matching the dashboard's live preview
+ * (stamp: circular grid, steps: milestone list, points: balance + bar) —
+ * points/steps previously fell back to a plain cover photo with no progress
+ * shown at all. Never fails pass generation — a missing decorative image is
+ * better than no pass at all. */
 async function buildStripBuffers(
   program: LoyaltyProgram,
   progress: Progress,
@@ -28,6 +36,24 @@ async function buildStripBuffers(
       return await renderAppleStripImage({
         config: stampConfig,
         collected,
+        primaryColor,
+        secondaryColor,
+        backgroundImageUrl: config.background_image_url,
+      });
+    }
+    if (program.type === "steps") {
+      return await renderAppleStepsStrip({
+        config: program.config as StepsConfig,
+        progress: progress as StepsProgress,
+        primaryColor,
+        secondaryColor,
+        backgroundImageUrl: config.background_image_url,
+      });
+    }
+    if (program.type === "points") {
+      return await renderApplePointsStrip({
+        config: program.config as PointsConfig,
+        progress: progress as PointsProgress,
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,

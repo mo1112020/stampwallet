@@ -1,8 +1,46 @@
 import sharp from "sharp";
+import path from "path";
+import { Resvg } from "@resvg/resvg-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStampGridColumns, getStampCellScale, type StampCellScale } from "@/lib/stamp-grid";
 import { getIconNode } from "@/lib/wallet/stampIcons";
-import type { StampConfig } from "@/types";
+import type { PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
+
+/** Stage labels/reward text are merchant-authored free text embedded
+ * directly into generated SVG markup below — unescaped, a name containing
+ * `&`, `<`, or `>` would produce malformed XML and silently fail the whole
+ * image render. */
+function escapeXml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/** sharp/librsvg's <text> rendering goes through Pango, which needs a
+ * working fontconfig setup to do ANY text shaping at all — not just a
+ * missing font, a missing *fontconfig config file* (which is what Vercel's
+ * and this project's own Alpine Docker image both lack) breaks it
+ * completely, producing tofu boxes regardless of whether a font is embedded
+ * in the SVG via @font-face. Confirmed directly: the base64-@font-face
+ * approach rendered perfectly on a local Windows machine and then produced
+ * broken glyphs inside this project's actual Alpine Docker build — so
+ * sharp is only used below for non-text image work (resizing, background
+ * photo compositing), and every render that includes <text> goes through
+ * resvg-js instead, which ships its own text/font stack and loads fonts
+ * directly by file path via `fontFiles` with `loadSystemFonts: false` —
+ * verified in the same Alpine container to render correctly where sharp
+ * did not. */
+const EMBEDDED_FONT_PATH = path.join(process.cwd(), "lib/wallet/fonts/Inconsolata.otf");
+const FONT_FAMILY = "Inconsolata";
+
+function rasterizeSvgWithText(svg: string): Buffer {
+  const resvg = new Resvg(svg, {
+    font: {
+      loadSystemFonts: false,
+      fontFiles: [EMBEDDED_FONT_PATH],
+      defaultFontFamily: FONT_FAMILY,
+    },
+  });
+  return Buffer.from(resvg.render().asPng());
+}
 
 // Google's documented heroImage guidance (developers.google.com/wallet/generic/resources/brand-guidelines):
 // "1032x812 px", "approximately 5:4" aspect ratio, rendered "as a full-width
@@ -237,6 +275,116 @@ export async function renderStampCardHeroImage(params: {
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
+/** Same cover-photo-on-top-of-content split as renderStampCardHeroImage,
+ * for steps-type programs — previously steps/points programs got only the
+ * plain cover photo (renderCoverHeroImage) with no progress visualization
+ * at all, unlike stamp's grid; the dashboard's live preview (phone-mockup.tsx)
+ * has always shown the milestone list, so the real card silently fell short
+ * of what the merchant was shown while designing it. Capped at 6 visible
+ * stages (Google's canvas has more vertical room than Apple's strip, so a
+ * slightly higher cap than the dashboard preview's 4 is fine here). */
+export async function renderStepsCardHeroImage(params: {
+  config: StepsConfig;
+  progress: StepsProgress;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundImageUrl?: string;
+}): Promise<Buffer> {
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
+  const contentHeight = CANVAS_HEIGHT - coverHeight;
+
+  let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
+  if (backgroundImageUrl) {
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    if (dataUri) {
+      coverLayer = `
+        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
+        <rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="#000000" opacity="0.28" />
+      `;
+    }
+  }
+
+  const stages = [...config.stages].sort((a, b) => a.threshold - b.threshold);
+  const currentIndex = (() => {
+    const idx = stages.findIndex((s) => !progress.completed_stage_keys.includes(s.key));
+    return idx === -1 ? stages.length - 1 : idx;
+  })();
+  const visible = stages.slice(0, 6);
+
+  const padding = 48;
+  const rowHeight = (contentHeight - padding * 2) / Math.max(1, visible.length);
+  const circleR = Math.min(18, rowHeight * 0.28);
+  const rows = visible.map((stage, i) => {
+    const y = coverHeight + padding + rowHeight * i + rowHeight / 2;
+    const done = i < currentIndex;
+    const current = i === currentIndex;
+    const opacity = done || current ? 1 : 0.5;
+    const circleFill = done || current ? secondaryColor : "transparent";
+    return `
+      <g opacity="${opacity}">
+        <circle cx="${padding + circleR}" cy="${y}" r="${circleR}" fill="${circleFill}" stroke="${secondaryColor}" stroke-width="3" />
+        ${done ? `<path d="M ${padding + circleR - circleR * 0.5} ${y} l ${circleR * 0.3} ${circleR * 0.35} l ${circleR * 0.55} -${circleR * 0.6}" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />` : ""}
+        <text x="${padding + circleR * 2 + 24}" y="${y + 11}" font-family="${FONT_FAMILY}" font-size="${current ? 32 : 28}" font-weight="${current ? 700 : 400}" fill="#ffffff">${escapeXml(stage.label)}</text>
+        <text x="${CANVAS_WIDTH - padding}" y="${y + 10}" font-family="${FONT_FAMILY}" font-size="26" fill="#ffffff" opacity="0.8" text-anchor="end">${stage.threshold}</text>
+      </g>
+    `;
+  });
+
+  const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
+    ${coverLayer}
+    ${rows.join("")}
+  </svg>`;
+  return rasterizeSvgWithText(svg);
+}
+
+/** Points equivalent of renderStepsCardHeroImage — big current-balance
+ * number plus a progress bar toward the next reward, in the same
+ * cover-photo-on-top-of-content layout. */
+export async function renderPointsCardHeroImage(params: {
+  config: PointsConfig;
+  progress: PointsProgress;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundImageUrl?: string;
+}): Promise<Buffer> {
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
+  const contentHeight = CANVAS_HEIGHT - coverHeight;
+
+  let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
+  if (backgroundImageUrl) {
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    if (dataUri) {
+      coverLayer = `
+        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
+        <rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="#000000" opacity="0.28" />
+      `;
+    }
+  }
+
+  const target = Math.max(1, config.points_per_reward);
+  const current = Math.max(0, Math.min(target, progress.points));
+  const percent = current / target;
+
+  const barWidth = CANVAS_WIDTH - 96;
+  const barHeight = 28;
+  const barX = 48;
+  const barY = coverHeight + contentHeight * 0.62;
+  const numberY = coverHeight + contentHeight * 0.4;
+
+  const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
+    ${coverLayer}
+    <text x="${CANVAS_WIDTH / 2}" y="${numberY}" font-family="${FONT_FAMILY}" font-size="96" font-weight="700" fill="#ffffff" text-anchor="middle">${current}</text>
+    <text x="${CANVAS_WIDTH / 2}" y="${numberY + 44}" font-family="${FONT_FAMILY}" font-size="28" fill="#ffffff" opacity="0.75" text-anchor="middle">${escapeXml(config.points_label)} — ${target} to reward</text>
+    <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="#ffffff" opacity="0.22" />
+    <rect x="${barX}" y="${barY}" width="${Math.max(barHeight, barWidth * percent)}" height="${barHeight}" rx="${barHeight / 2}" fill="${secondaryColor}" />
+  </svg>`;
+  return rasterizeSvgWithText(svg);
+}
+
 // Apple's PassKit Package Format Reference gives 375x123pt (@1x) as the
 // storeCard "strip" image size when no square/thumbnail image is present —
 // unlike Google's heroImage this is embedded directly in the .pkpass (no
@@ -335,6 +483,104 @@ export async function renderAppleStripCover(
   const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${bg}</svg>`;
   const master = await sharp(Buffer.from(svg)).png().toBuffer();
+  const [oneX, twoX, threeX] = await Promise.all([
+    sharp(master).resize(STRIP_WIDTH_1X, STRIP_HEIGHT_1X).png().toBuffer(),
+    sharp(master).resize(STRIP_WIDTH_1X * 2, STRIP_HEIGHT_1X * 2).png().toBuffer(),
+    Promise.resolve(master),
+  ]);
+  return { "1x": oneX, "2x": twoX, "3x": threeX };
+}
+
+/** Apple equivalent of renderStepsCardHeroImage — overlaid on the full-bleed
+ * darkened photo rather than stacked below it, same reasoning as
+ * renderAppleStripImage (no room at 123pt tall for a separate band).
+ * Previously steps programs got renderAppleStripCover here — a plain photo
+ * with zero progress indication, unlike stamp's grid. Capped at 3 visible
+ * stages (less room than Google's canvas). */
+export async function renderAppleStepsStrip(params: {
+  config: StepsConfig;
+  progress: StepsProgress;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundImageUrl?: string;
+}): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const width = STRIP_WIDTH_1X * STRIP_SCALE;
+  const height = STRIP_HEIGHT_1X * STRIP_SCALE;
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+
+  const stages = [...config.stages].sort((a, b) => a.threshold - b.threshold);
+  const currentIndex = (() => {
+    const idx = stages.findIndex((s) => !progress.completed_stage_keys.includes(s.key));
+    return idx === -1 ? stages.length - 1 : idx;
+  })();
+  const visible = stages.slice(0, 3);
+
+  const padding = 20 * STRIP_SCALE;
+  const rowHeight = (height - padding * 2) / Math.max(1, visible.length);
+  const circleR = Math.min(12 * STRIP_SCALE * 0.5, rowHeight * 0.24);
+  const rows = visible.map((stage, i) => {
+    const y = padding + rowHeight * i + rowHeight / 2;
+    const done = i < currentIndex;
+    const current = i === currentIndex;
+    const opacity = done || current ? 1 : 0.55;
+    const circleFill = done || current ? secondaryColor : "rgba(255,255,255,0.12)";
+    return `
+      <g opacity="${opacity}">
+        <circle cx="${padding + circleR}" cy="${y}" r="${circleR}" fill="${circleFill}" stroke="${secondaryColor}" stroke-width="2" />
+        <text x="${padding + circleR * 2 + 16}" y="${y + 9}" font-family="${FONT_FAMILY}" font-size="${current ? 26 : 22}" font-weight="${current ? 700 : 400}" fill="#ffffff">${escapeXml(stage.label)}</text>
+        <text x="${width - padding}" y="${y + 8}" font-family="${FONT_FAMILY}" font-size="20" fill="#ffffff" opacity="0.8" text-anchor="end">${stage.threshold}</text>
+      </g>
+    `;
+  });
+
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${bg}
+    ${rows.join("")}
+  </svg>`;
+
+  const master = rasterizeSvgWithText(svg);
+  const [oneX, twoX, threeX] = await Promise.all([
+    sharp(master).resize(STRIP_WIDTH_1X, STRIP_HEIGHT_1X).png().toBuffer(),
+    sharp(master).resize(STRIP_WIDTH_1X * 2, STRIP_HEIGHT_1X * 2).png().toBuffer(),
+    Promise.resolve(master),
+  ]);
+  return { "1x": oneX, "2x": twoX, "3x": threeX };
+}
+
+/** Apple equivalent of renderPointsCardHeroImage — current balance plus a
+ * thin progress bar, overlaid on the full-bleed darkened photo. */
+export async function renderApplePointsStrip(params: {
+  config: PointsConfig;
+  progress: PointsProgress;
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundImageUrl?: string;
+}): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const width = STRIP_WIDTH_1X * STRIP_SCALE;
+  const height = STRIP_HEIGHT_1X * STRIP_SCALE;
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+
+  const target = Math.max(1, config.points_per_reward);
+  const current = Math.max(0, Math.min(target, progress.points));
+  const percent = current / target;
+
+  const barWidth = width - 64;
+  const barHeight = 10;
+  const barX = 32;
+  const barY = height - 28;
+  const numberY = height * 0.42;
+
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${bg}
+    <text x="${width / 2}" y="${numberY}" font-family="${FONT_FAMILY}" font-size="52" font-weight="700" fill="#ffffff" text-anchor="middle">${current}</text>
+    <text x="${width / 2}" y="${numberY + 26}" font-family="${FONT_FAMILY}" font-size="18" fill="#ffffff" opacity="0.8" text-anchor="middle">${escapeXml(config.points_label)} of ${target}</text>
+    <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="#ffffff" opacity="0.22" />
+    <rect x="${barX}" y="${barY}" width="${Math.max(barHeight, barWidth * percent)}" height="${barHeight}" rx="${barHeight / 2}" fill="${secondaryColor}" />
+  </svg>`;
+
+  const master = rasterizeSvgWithText(svg);
   const [oneX, twoX, threeX] = await Promise.all([
     sharp(master).resize(STRIP_WIDTH_1X, STRIP_HEIGHT_1X).png().toBuffer(),
     sharp(master).resize(STRIP_WIDTH_1X * 2, STRIP_HEIGHT_1X * 2).png().toBuffer(),

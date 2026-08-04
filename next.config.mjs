@@ -16,6 +16,12 @@ const nextConfig = {
   // Dockerfile explicitly opts in via STANDALONE_BUILD=1; everyone else — including
   // Vercel — gets the safe default.
   ...(process.env.STANDALONE_BUILD ? { output: "standalone" } : {}),
+  // @resvg/resvg-js loads a native .node addon through a pattern Turbopack's
+  // bundler can't place a module id for ("non-ecmascript placeable asset"),
+  // failing the whole build — sharp doesn't need this (Next already
+  // special-cases it), but resvg-js does. This tells Next to leave it as a
+  // plain runtime require instead of trying to bundle it.
+  serverExternalPackages: ["@resvg/resvg-js"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },

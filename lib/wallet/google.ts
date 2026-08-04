@@ -1,12 +1,18 @@
 import jwt from "jsonwebtoken";
 import type { JWT } from "google-auth-library";
-import type { BarcodeStyle, CardAppearance, CardDetails, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
+import type { BarcodeStyle, CardAppearance, CardDetails, LoyaltyProgram, Merchant, PointsConfig, PointsProgress, Progress, StampConfig, StampProgress, StepsConfig, StepsProgress } from "@/types";
 import { googleBarcodeType } from "@/lib/wallet/barcode";
 import { renderPassFields, type PassFields } from "@/lib/wallet/renderPassFields";
 import { getServiceAccount, getWalletClient } from "@/lib/wallet/googleAuth";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { renderCoverHeroImage, renderStampCardHeroImage, uploadHeroImage } from "@/lib/wallet/heroImage";
+import {
+  renderCoverHeroImage,
+  renderStampCardHeroImage,
+  renderStepsCardHeroImage,
+  renderPointsCardHeroImage,
+  uploadHeroImage,
+} from "@/lib/wallet/heroImage";
 import { resolveBrandColors } from "@/lib/wallet/colors";
 
 const WALLET_API = "https://walletobjects.googleapis.com/walletobjects/v1";
@@ -41,36 +47,60 @@ async function upsertResource(client: JWT, collection: "loyaltyClass" | "loyalty
   }
 }
 
-/** Google Wallet has no native stamp-grid field, so for stamp-type programs
- * the object's heroImage IS the progress indicator — regenerated and
- * re-uploaded every time this runs (enrollment, and every scan via
- * pushGooglePassUpdate) so the card always shows current progress. Points
- * and steps programs have no discrete per-unit icon to render this way, so
- * they keep whatever cover-photo heroImage the class provides. Returns
- * undefined (leaving heroImage untouched) if generation/upload fails, since
- * a stale progress image is better than failing the whole pass update. */
-async function stampObjectHeroImage(
+/** Google Wallet has no native progress field for any program type, so the
+ * object's heroImage IS the progress indicator — regenerated and
+ * re-uploaded every time this runs (enrollment, and every scan/notification
+ * push via pushGooglePassUpdate) so the card always shows current progress,
+ * matching the dashboard's live preview for all three program types (stamp:
+ * grid, steps: milestone list, points: balance + bar). Points/steps
+ * previously fell through to undefined here and kept whatever plain
+ * cover-photo heroImage the class provided at enrollment — no progress
+ * shown at all. Returns undefined (leaving heroImage untouched) if
+ * generation/upload fails, since a stale progress image is better than
+ * failing the whole pass update. */
+async function objectHeroImage(
   passId: string,
   program: LoyaltyProgram,
   progress: Progress,
   primaryColor: string,
   secondaryColor: string
 ): Promise<string | undefined> {
-  if (program.type !== "stamp") return undefined;
   try {
-    const config = program.config as StampConfig;
-    const collected = (progress as StampProgress).stamps_collected;
-    const buffer = await renderStampCardHeroImage({
-      config,
-      collected,
-      primaryColor,
-      secondaryColor,
-      backgroundImageUrl: config.background_image_url,
-    });
-    const url = await uploadHeroImage(`stamp-${passId}`, buffer);
+    const config = program.config as CardAppearance;
+    let buffer: Buffer;
+    let key: string;
+    if (program.type === "stamp") {
+      buffer = await renderStampCardHeroImage({
+        config: config as StampConfig,
+        collected: (progress as StampProgress).stamps_collected,
+        primaryColor,
+        secondaryColor,
+        backgroundImageUrl: config.background_image_url,
+      });
+      key = `stamp-${passId}`;
+    } else if (program.type === "steps") {
+      buffer = await renderStepsCardHeroImage({
+        config: config as StepsConfig,
+        progress: progress as StepsProgress,
+        primaryColor,
+        secondaryColor,
+        backgroundImageUrl: config.background_image_url,
+      });
+      key = `steps-${passId}`;
+    } else {
+      buffer = await renderPointsCardHeroImage({
+        config: config as PointsConfig,
+        progress: progress as PointsProgress,
+        primaryColor,
+        secondaryColor,
+        backgroundImageUrl: config.background_image_url,
+      });
+      key = `points-${passId}`;
+    }
+    const url = await uploadHeroImage(key, buffer);
     return url ?? undefined;
   } catch (err) {
-    console.error("[wallet:google] stamp hero image render failed", passId, err);
+    console.error("[wallet:google] object hero image render failed", passId, err);
     return undefined;
   }
 }
@@ -236,7 +266,7 @@ export async function generateGoogleWalletLink(params: {
       ...(website ? { linksModuleData: { uris: [{ uri: website, description: "Visit website", id: "website" }] } } : {}),
     });
 
-    const objectHeroImageUrl = await stampObjectHeroImage(params.passId, params.program, params.progress, primaryColor, secondaryColor);
+    const objectHeroImageUrl = await objectHeroImage(params.passId, params.program, params.progress, primaryColor, secondaryColor);
 
     await upsertResource(
       client,
@@ -317,7 +347,7 @@ export async function pushGooglePassUpdate(
     // image so the pass reflects current progress — undefined (rather than
     // an empty heroImage) leaves the previous image in place if this fails,
     // instead of blanking out a working banner over a decorative miss.
-    const heroImageUrl = await stampObjectHeroImage(passId, program, progress, primaryColor, secondaryColor);
+    const heroImageUrl = await objectHeroImage(passId, program, progress, primaryColor, secondaryColor);
     const { textModulesData: detailTextModules, linksModuleData } = detailModules(
       (program.config as CardAppearance).details
     );
