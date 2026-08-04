@@ -58,7 +58,12 @@ export async function resolveSegmentTargets(
     .select("id, merchant_id, name, type, is_active, config, created_at, updated_at")
     .eq("merchant_id", merchantId)
     .eq("is_active", true);
-  if (segment.scope === "program" && segment.program_id) {
+  // "customers" scope also honors program_id when the merchant set one — a
+  // hand-picked customer enrolled in more than one program otherwise gets
+  // every one of their cards notified, even for an update meant for just
+  // one (two real, distinct push notifications landing on the same phone,
+  // which reads as a duplicate even though it isn't one).
+  if (segment.program_id && (segment.scope === "program" || segment.scope === "customers")) {
     programsQuery = programsQuery.eq("id", segment.program_id);
   }
   const { data: programs } = await programsQuery;
@@ -75,9 +80,10 @@ export async function resolveSegmentTargets(
 
   if (segment.scope === "customers" && segment.customer_ids) {
     // Merchant hand-picked specific customers from the notifications
-    // dashboard rather than a rule — notify every pass they hold (a
-    // customer enrolled in more than one of this merchant's programs gets
-    // all of their cards updated, not just one).
+    // dashboard rather than a rule. With no program_id set, every pass they
+    // hold gets notified (a customer enrolled in more than one program gets
+    // all of their cards updated) — with one set (the programsQuery filter
+    // above), only their card for that specific program is targeted.
     const wanted = new Set(segment.customer_ids);
     rows = rows.filter((r) => wanted.has(r.customer_id as string));
   }

@@ -172,6 +172,11 @@ export function NotificationsContent({
   const [inactiveDays, setInactiveDays] = useState(30);
   const [minPercent, setMinPercent] = useState(80);
   const [selectedCustomers, setSelectedCustomers] = useState<PickableCustomer[]>([]);
+  // Empty = notify every program the picked customer(s) are enrolled in
+  // (the original behavior) — set = only their card for that one program,
+  // so picking a customer who happens to hold more than one of this
+  // merchant's cards doesn't fan out to all of them by default.
+  const [customerProgramFilter, setCustomerProgramFilter] = useState("");
   const [sendType, setSendType] = useState<"manual" | "scheduled">("manual");
   const [scheduledFor, setScheduledFor] = useState("");
   const [sending, setSending] = useState(false);
@@ -190,7 +195,10 @@ export function NotificationsContent({
     if (scope === "program") segment.program_id = programId;
     if (scope === "inactive_days") segment.inactive_days = inactiveDays;
     if (scope === "progress_threshold") segment.min_progress_percent = minPercent;
-    if (scope === "customers") segment.customer_ids = selectedCustomers.map((c) => c.id);
+    if (scope === "customers") {
+      segment.customer_ids = selectedCustomers.map((c) => c.id);
+      if (customerProgramFilter) segment.program_id = customerProgramFilter;
+    }
 
     const res = await fetch("/api/notifications/campaigns", {
       method: "POST",
@@ -214,6 +222,7 @@ export function NotificationsContent({
     setTitle("");
     setMessage("");
     setSelectedCustomers([]);
+    setCustomerProgramFilter("");
     toast.success(sendType === "manual" ? t("send") : t("scheduleButton"));
     router.refresh();
   }
@@ -300,7 +309,27 @@ export function NotificationsContent({
             )}
 
             {scope === "customers" && (
-              <CustomerPicker selected={selectedCustomers} onChange={setSelectedCustomers} />
+              <>
+                <CustomerPicker selected={selectedCustomers} onChange={setSelectedCustomers} />
+                {programs.length > 0 && (
+                  <div>
+                    <Label htmlFor="customerProgramFilter">{t("limitToProgram")}</Label>
+                    <Select
+                      id="customerProgramFilter"
+                      value={customerProgramFilter}
+                      onChange={(e) => setCustomerProgramFilter(e.target.value)}
+                    >
+                      <option value="">{t("allTheirPrograms")}</option>
+                      {programs.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <p className="mt-1 text-xs text-[var(--muted)]">{t("limitToProgramHint")}</p>
+                  </div>
+                )}
+              </>
             )}
 
             <div>
