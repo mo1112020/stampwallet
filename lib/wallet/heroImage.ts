@@ -70,7 +70,7 @@ function iconGroupMarkup(iconName: string, color: string, x: number, y: number, 
   return `<g transform="translate(${x},${y}) scale(${size / 24})" stroke="${color}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${shapes}</g>`;
 }
 
-async function fetchAsPngDataUri(url: string): Promise<string | null> {
+async function fetchAsPngDataUri(url: string, targetWidth: number, targetHeight: number): Promise<string | null> {
   try {
     // An unbounded fetch here is a real outage risk, not a theoretical one —
     // this function runs inside every stamp/points push (see google.ts), and
@@ -83,13 +83,25 @@ async function fetchAsPngDataUri(url: string): Promise<string | null> {
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const raw = Buffer.from(await res.arrayBuffer());
-    // Never trust the server's declared content-type — a file saved with a
-    // mismatched extension (e.g. WebP bytes served as "image/png") makes an
-    // SVG renderer silently fail to decode an <image> embed. Sharp sniffs
-    // the actual file signature and always re-encodes to real PNG bytes, so
-    // whatever we embed is guaranteed valid regardless of what was claimed.
-    const png = await sharp(raw).png().toBuffer();
-    return `data:image/png;base64,${png.toString("base64")}`;
+    // Merchants upload real phone-camera photos here (multiple MB, several
+    // thousand pixels wide) — embedding one as-is used to mean encoding the
+    // ENTIRE original resolution losslessly as PNG (a 3.4MB/2816x1536 JPEG
+    // becomes an ~11MB PNG) and inlining that as base64 directly in the SVG
+    // markup, sometimes 14+ million characters on one line. That's not just
+    // slow (the actual dominant cost behind intermittent Google Wallet push
+    // timeouts — confirmed by timing this step in isolation against a real
+    // merchant upload), it can outright exceed libxml's parser buffer limit
+    // and crash the whole render ("Buffer size limit exceeded"). Resizing to
+    // the actual displayed size first (cover-fit — this always ends up
+    // full-bleed behind other content) and encoding as JPEG (dramatically
+    // smaller than PNG for photographic content, and the difference is
+    // invisible under the dark overlay every caller draws on top of it
+    // anyway) cuts a typical upload from ~14MB of base64 to well under 200KB.
+    const resized = await sharp(raw)
+      .resize(Math.round(targetWidth), Math.round(targetHeight), { fit: "cover" })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+    return `data:image/jpeg;base64,${resized.toString("base64")}`;
   } catch {
     return null;
   }
@@ -117,9 +129,17 @@ export async function renderMerchantIconAndLogo(
     const res = await fetch(logoUrl, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const raw = Buffer.from(await res.arrayBuffer());
-    // Sniffs the real file signature and re-encodes to PNG regardless of
-    // what the source claimed — same reasoning as fetchAsPngDataUri above.
-    const master = await sharp(raw).png().toBuffer();
+    // Downscaled before the format conversion, not after — same reasoning
+    // as fetchAsPngDataUri's fix: a merchant's raw upload can be several
+    // thousand pixels wide, and every size derived from this master tops
+    // out at 320px, so decoding/re-encoding the full original resolution
+    // first is pure wasted work (and, for a large enough source, real
+    // latency) for no visual benefit. `fit: "inside"` only ever shrinks,
+    // never crops — logo below needs the master's real aspect ratio intact
+    // (it does its own "contain" fit into a wide rectangle); a `cover` crop
+    // to a square here would clip a wide/rectangular logo before that step
+    // ever saw it.
+    const master = await sharp(raw).resize(400, 400, { fit: "inside" }).png().toBuffer();
 
     const [icon1x, icon2x, icon3x] = await Promise.all([
       sharp(master).resize(29, 29, { fit: "cover" }).png().toBuffer(),
@@ -160,7 +180,7 @@ async function backgroundLayerSvg(
   height: number = CANVAS_HEIGHT
 ): Promise<string> {
   if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, width, height);
     if (dataUri) {
       return `
         <image href="${dataUri}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />
@@ -208,7 +228,7 @@ export async function renderStampCardHeroImage(params: {
 
   let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
   if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, CANVAS_WIDTH, coverHeight);
     if (dataUri) {
       coverLayer = `
         <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
@@ -296,7 +316,7 @@ export async function renderStepsCardHeroImage(params: {
 
   let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
   if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, CANVAS_WIDTH, coverHeight);
     if (dataUri) {
       coverLayer = `
         <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
@@ -355,7 +375,7 @@ export async function renderPointsCardHeroImage(params: {
 
   let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
   if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl);
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, CANVAS_WIDTH, coverHeight);
     if (dataUri) {
       coverLayer = `
         <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
