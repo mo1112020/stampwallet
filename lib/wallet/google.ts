@@ -444,6 +444,15 @@ export async function pushGooglePassUpdate(
                   header: notification.title,
                   body: notification.message,
                   id: `notif-${Date.now()}`,
+                  // Per the official Message reference (developers.google.com/
+                  // wallet/reference/rest/v1/Message): messageType defaults to
+                  // "TEXT" when omitted — renders on the card's details screen
+                  // only, no Android notification. This was the actual bug
+                  // behind "the notification shows inside the card but never
+                  // outside it": the message itself was correctly delivered,
+                  // it was just never told to also notify. TEXT_AND_NOTIFY is
+                  // the only value that also fires the lock-screen banner.
+                  messageType: "TEXT_AND_NOTIFY",
                 },
               ],
               // Per the walletobjects discovery doc's own field description:
@@ -453,7 +462,10 @@ export async function pushGooglePassUpdate(
               // in-app data — it never pushes a device notification. Value
               // confirmed against the live API — "NOTIFY" (seen in some doc
               // summaries) is rejected with 400 INVALID_ARGUMENT; the actual
-              // enum member is NOTIFY_ON_UPDATE.
+              // enum member is NOTIFY_ON_UPDATE. Kept alongside messageType
+              // above — they gate two different notification paths (a
+              // loyaltyPoints.balance change vs. a message), and this push
+              // always changes both.
               notifyPreference: "NOTIFY_ON_UPDATE",
             }
           : {}),
