@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -32,7 +33,9 @@ type HistoryEntry = {
   } | null;
 };
 
-type Stage = "scanning" | "loading" | "confirm" | "submitting" | "result" | "error";
+type Stage = "scanning" | "loading" | "confirm" | "submitting" | "result" | "error" | "sessionExpired" | "offline";
+
+const AUTO_RESUME_MS = 2500;
 
 /**
  * The scan/confirm/result/history flow shared by the dashboard's Scan page
@@ -43,25 +46,72 @@ type Stage = "scanning" | "loading" | "confirm" | "submitting" | "result" | "err
 export function ScanFlow({ dark = false }: { dark?: boolean }) {
   const t = useTranslations("scanner");
   const td = useTranslations("dashboard");
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) ?? "en";
+  // Dashboard's embedded Scan page and the standalone Scanner PWA sit under
+  // different auth gates (/login vs /scan-app/login) — `dark` already
+  // distinguishes the two contexts everywhere else in this component, so
+  // it doubles as the signal for where "log in again" should send you.
+  const loginPath = dark ? `/${locale}/scan-app/login` : `/${locale}/login`;
+
   const [stage, setStage] = useState<Stage>("scanning");
   const [lookup, setLookup] = useState<LookupResult | null>(null);
   const [amount, setAmount] = useState(1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const resumeTimerRef = useRef<number | null>(null);
+
+  // Shared by every request this component makes: a 401 mid-session means
+  // the merchant/staff session expired (or was revoked elsewhere) — that's
+  // a distinct, recoverable state from "this specific scan failed" and
+  // needs its own screen rather than surfacing as a generic error. A
+  // network failure (offline) is likewise distinct from a server-side
+  // rejection: retrying a scan without connectivity risks the request
+  // silently never reaching the rate limiter/unique-constraint checks that
+  // prevent double-awarding, so it gets its own clear "no connection" state
+  // instead of a queued/retried write (see public/sw.js's same reasoning).
+  const authedFetch = useCallback(
+    async (input: string, init?: RequestInit) => {
+      let res: Response;
+      try {
+        res = await fetch(input, init);
+      } catch {
+        setStage("offline");
+        return null;
+      }
+      if (res.status === 401) {
+        setStage("sessionExpired");
+        return null;
+      }
+      return res;
+    },
+    []
+  );
 
   const loadHistory = useCallback(async () => {
-    const res = await fetch("/api/scan/history?limit=10");
-    if (!res.ok) return;
+    const res = await authedFetch("/api/scan/history?limit=10");
+    if (!res || !res.ok) return;
     const json = await res.json();
     setHistory(json.data ?? []);
-  }, []);
+  }, [authedFetch]);
 
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
 
+  useEffect(() => {
+    return () => {
+      if (resumeTimerRef.current) window.clearTimeout(resumeTimerRef.current);
+    };
+  }, []);
+
   function reset() {
+    if (resumeTimerRef.current) {
+      window.clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
     setStage("scanning");
     setLookup(null);
     setOutcome(null);
@@ -69,9 +119,14 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
     setAmount(1);
   }
 
+  function goToLogin() {
+    router.push(loginPath);
+  }
+
   async function handleScan(passId: string) {
     setStage("loading");
-    const res = await fetch(`/api/scan/lookup?pass_id=${encodeURIComponent(passId)}`);
+    const res = await authedFetch(`/api/scan/lookup?pass_id=${encodeURIComponent(passId)}`);
+    if (!res) return;
     const json = await res.json();
     if (!res.ok) {
       setErrorMessage(json.error?.message ?? t("notFound"));
@@ -85,7 +140,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
   async function submit(action: "award" | "redeem") {
     if (!lookup) return;
     setStage("submitting");
-    const res = await fetch("/api/scan", {
+    const res = await authedFetch("/api/scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -94,6 +149,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
         amount: action === "award" ? amount : undefined,
       }),
     });
+    if (!res) return;
     const json = await res.json();
     if (!res.ok) {
       setErrorMessage(json.error?.message ?? "Scan failed");
@@ -106,6 +162,14 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
     });
     setStage("result");
     loadHistory();
+    // Standalone Scanner PWA only: a merchant scanning a line of customers
+    // shouldn't have to tap "Scan next" every time — auto-resume after a
+    // brief moment to read the result. The dashboard's embedded Scan page
+    // keeps manual control since it's used in a lower-volume, browse-around
+    // context alongside the rest of the dashboard.
+    if (dark) {
+      resumeTimerRef.current = window.setTimeout(reset, AUTO_RESUME_MS);
+    }
   }
 
   const fields =
@@ -140,6 +204,36 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
             }`}
           >
             <p className={`text-sm ${dark ? "text-red-300" : "text-[var(--danger)]"}`}>{errorMessage}</p>
+            <Button className="mt-4" onClick={reset}>
+              {t("scanAgain")}
+            </Button>
+          </div>
+        )}
+
+        {stage === "sessionExpired" && (
+          <div
+            className={`rounded-2xl border p-6 text-center ${
+              dark ? "border-white/10 bg-white/5" : "border-[var(--line)] bg-[var(--surface)]"
+            }`}
+          >
+            <p className="text-lg font-semibold">{t("sessionExpiredTitle")}</p>
+            <p className={`mt-1 text-sm ${mutedClass}`}>{t("sessionExpiredBody")}</p>
+            <Button className="mt-4" onClick={goToLogin}>
+              {t("logInAgain")}
+            </Button>
+          </div>
+        )}
+
+        {stage === "offline" && (
+          <div
+            className={`rounded-2xl border p-6 text-center ${
+              dark ? "border-amber-400/20 bg-amber-500/10" : "border-amber-300 bg-amber-50"
+            }`}
+          >
+            <p className={`text-lg font-semibold ${dark ? "text-amber-300" : "text-amber-700"}`}>
+              {t("offlineTitle")}
+            </p>
+            <p className={`mt-1 text-sm ${mutedClass}`}>{t("offlineBody")}</p>
             <Button className="mt-4" onClick={reset}>
               {t("scanAgain")}
             </Button>

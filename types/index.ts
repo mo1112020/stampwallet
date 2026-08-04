@@ -26,10 +26,13 @@ export type CardExpirationConfig = {
   days: number;
 };
 
-/** "code128" is a real linear-barcode format both Apple and Google Wallet
- * support natively; "qr" is the standard square QR code. See
- * lib/wallet/barcode.ts and components/dashboard/print/barcode-image.tsx. */
-export type BarcodeStyle = "qr" | "code128";
+/** "pdf417" is a stacked 2D barcode format both Apple and Google Wallet
+ * support natively (and the merchant scan-app's camera reader decodes, see
+ * components/scanner/camera-scanner.tsx); "qr" is the standard square QR
+ * code. See lib/wallet/barcode.ts and components/dashboard/print/barcode-image.tsx.
+ * Printed/marketing materials always use QR regardless of this setting —
+ * see components/dashboard/print/print-studio.tsx. */
+export type BarcodeStyle = "qr" | "pdf417";
 
 export type CardAppearance = {
   primary_color?: string;

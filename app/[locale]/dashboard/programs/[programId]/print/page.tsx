@@ -51,7 +51,6 @@ export default async function ProgramPrintPage({
           programId={program.id}
           primaryColor={config?.primary_color ?? merchant?.brand_color_primary ?? "#1f57e7"}
           secondaryColor={config?.secondary_color ?? merchant?.brand_color_secondary ?? "#faae62"}
-          barcodeStyle={config?.barcode_style}
         />
       </div>
     </div>

@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { printFont } from "@/lib/fonts/print";
 import { normalizeHex } from "@/lib/print/color";
 import { exportNodeAsPdf, exportNodeAsPng } from "@/lib/print/export";
-import type { BarcodeStyle } from "@/types";
 import { PRINT_COPY, type PrintLocale } from "./copy";
 import { PrintPreviewFrame, type PrintTemplateData } from "./primitives";
 import { PrintPreviewDialog } from "./preview-dialog";
@@ -166,7 +165,6 @@ export function PrintStudio({
   programId,
   primaryColor,
   secondaryColor,
-  barcodeStyle,
 }: {
   businessName: string;
   logoUrl?: string | null;
@@ -174,7 +172,6 @@ export function PrintStudio({
   programId: string;
   primaryColor: string;
   secondaryColor: string;
-  barcodeStyle?: BarcodeStyle;
 }) {
   const [assetLocale, setAssetLocale] = useState<PrintLocale>("en");
   const [exportingId, setExportingId] = useState<string | null>(null);
@@ -195,7 +192,9 @@ export function PrintStudio({
     primaryColor: normalizeHex(primaryColor),
     secondaryColor: normalizeHex(secondaryColor),
     locale: assetLocale,
-    barcodeStyle,
+    // Deliberately never set: print/marketing materials always use the
+    // standard QR code regardless of the program's wallet barcode style —
+    // BarcodeImage defaults to "qr" when style is undefined.
   };
 
   function registerNode(id: TemplateId, el: HTMLDivElement | null) {

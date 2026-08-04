@@ -45,7 +45,9 @@ export function ProgramCard({
       primaryColor,
       secondaryColor,
       locale: "en",
-      barcodeStyle: phoneMockupProps.barcodeStyle,
+      // Deliberately omitted: this quick A4 poster download always uses the
+      // standard QR code regardless of the program's wallet barcode style,
+      // same as the full print studio — BarcodeImage defaults to "qr".
     });
 
     await new Promise((resolve) => setTimeout(resolve, QR_RENDER_DELAY_MS));

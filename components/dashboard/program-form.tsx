@@ -109,7 +109,7 @@ const ICON_CATEGORIES = [
 
 const BARCODE_STYLE_OPTIONS: { value: BarcodeStyle; label: string; description: string }[] = [
   { value: "qr", label: "Standard QR", description: "Classic square QR code" },
-  { value: "code128", label: "Linear barcode", description: "Code 128 style" },
+  { value: "pdf417", label: "PDF417", description: "Stacked 2D barcode" },
 ];
 
 const defaultConfigs: Record<ProgramType, ProgramConfig> = {
@@ -210,10 +210,10 @@ export function ProgramForm({
   const enrollment = ((config as any).enrollment_page ?? {}) as EnrollmentPageConfig;
   const expiration = ((config as any).expiration ?? { enabled: false, days: 7 }) as CardExpirationConfig;
   // Coerces any unrecognized/legacy value (e.g. a still-open session that
-  // had the now-removed "qr_rounded" option selected before a save) to a
-  // valid style instead of carrying an invalid one forward into the next
-  // save, which the server schema would otherwise reject outright.
-  const barcodeStyle = ((config as any).barcode_style === "code128" ? "code128" : "qr") as BarcodeStyle;
+  // had the now-removed "code128"/"qr_rounded" options selected before a
+  // save) to a valid style instead of carrying an invalid one forward into
+  // the next save, which the server schema would otherwise reject outright.
+  const barcodeStyle = ((config as any).barcode_style === "pdf417" ? "pdf417" : "qr") as BarcodeStyle;
 
   function updateExpiration(next: Partial<CardExpirationConfig>) {
     if (!canUseCardExpiration) return;
@@ -535,7 +535,7 @@ export function ProgramForm({
           <div className="mt-6">
             <Label className="text-[var(--muted)]">Barcode Style</Label>
             <p className="mt-1 mb-4 text-sm text-[var(--muted)]">
-              Used for the scannable code on the wallet card, printed materials, and staff scanning — applies everywhere automatically.
+              Used for the scannable code on the wallet card and staff scanning. Printed materials and flyers always use a standard QR code regardless of this setting.
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {BARCODE_STYLE_OPTIONS.map((opt) => (

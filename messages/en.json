@@ -324,6 +324,29 @@
       "admin": "Admin",
       "manager": "Manager",
       "staff": "Staff"
+    },
+    "sessionExpiredTitle": "Session expired",
+    "sessionExpiredBody": "For your security, you've been signed out. Log in again to keep scanning.",
+    "logInAgain": "Log in again",
+    "offlineTitle": "No connection",
+    "offlineBody": "Scanning needs an internet connection so stamps and points are never lost or double-counted. Reconnect and try again.",
+    "flashOn": "Flash on",
+    "flashOff": "Flash off",
+    "install": {
+      "title": "Install the Scanner",
+      "body": "Add WalletOS Scanner to your home screen for a fast, full-screen scanning experience — no browser bar, opens straight to the camera.",
+      "install": "Install",
+      "maybeLater": "Maybe later",
+      "neverAskAgain": "Don't ask again",
+      "iosTitle": "Add to your Home Screen",
+      "iosStep1": "Tap the Share button",
+      "iosStep2": "Tap \"Add to Home Screen\"",
+      "iosStep3": "Tap \"Add\"",
+      "androidFallback": "Open your browser's menu and look for \"Install app\" or \"Add to Home screen.\"",
+      "wrongBrowserTitle": "Open in Safari to install",
+      "wrongBrowserBody": "On iPhone and iPad, apps can only be added to the Home Screen from Safari. Copy this link and open it in Safari to continue.",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied"
     }
   },
   "analytics": {

@@ -265,7 +265,7 @@ export function PhoneMockup({
                 <BarcodeImage
                   value="00000000-0000-0000-0000-000000000000"
                   style={barcodeStyle}
-                  size={barcodeStyle === "code128" ? 140 : 56}
+                  size={barcodeStyle === "pdf417" ? 140 : 56}
                   dark="#000000"
                 />
                 <p className="mt-0.5 text-[8px] text-gray-400">Tap ••• for details</p>

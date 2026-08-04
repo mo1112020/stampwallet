@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import JsBarcode from "jsbarcode";
 import type { BarcodeStyle } from "@/types";
 
 async function renderQrSvg(value: string, size: number, dark: string): Promise<string> {
@@ -14,50 +13,45 @@ async function renderQrSvg(value: string, size: number, dark: string): Promise<s
   });
 }
 
-function renderCode128Svg(value: string, size: number, dark: string): { svg: string; height: number } {
-  // JsBarcode draws into a real element rather than returning a string, so
-  // a detached <svg> is used purely as a render target and then serialized
-  // — this keeps the output as vector markup (see the comment below on why
-  // that matters for the print export pipeline), not a raster canvas/img.
-  const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  JsBarcode(svgEl, value, {
-    format: "CODE128",
-    lineColor: dark,
-    background: "transparent",
-    width: 2,
-    height: size * 0.4,
-    displayValue: false,
-    // A linear barcode still needs *some* quiet zone (blank space) on each
-    // side to scan reliably — margin: 0 (an earlier version of this) removed
-    // it entirely, which also visually looked like the bars were touching
-    // the edges with no breathing room. Kept tight rather than the 10px
-    // used before, which — combined with forcing an arbitrary fixed aspect
-    // ratio below — was the actual cause of the excess white space around
-    // the bars.
-    margin: 4,
+/** bwip-js is only ever needed for this one branch (print/branding/flyers
+ * always render QR — see print-studio.tsx and program-card.tsx, which never
+ * set barcodeStyle) — dynamically imported so its bundle (it links every
+ * symbology it supports) only ever loads for a merchant who actually
+ * previews a PDF417-configured card, the same lazy-load pattern
+ * components/scanner/camera-scanner.tsx already uses for @zxing. */
+async function renderPdf417Svg(value: string, size: number, dark: string): Promise<{ svg: string; height: number }> {
+  // The bare "bwip-js" specifier's package.json nests its export map under
+  // platform conditions (browser/electron/react-native/node) that TypeScript's
+  // "bundler" resolution doesn't match without extra tsconfig config — the
+  // explicit "/browser" subpath exports flat import/require/types entries
+  // that resolve correctly with no config changes needed.
+  const bwipjs = (await import("bwip-js/browser")).default;
+  const svg = bwipjs.toSVG({
+    bcid: "pdf417",
+    text: value,
+    scale: 3,
+    includetext: false,
+    barcolor: dark.replace("#", ""),
+    // No quiet-zone padding of our own here — bwip-js already reserves
+    // PDF417's required quiet zone inside the generated viewBox.
   });
-  // JsBarcode sizes the svg to its own natural aspect ratio — forcing an
-  // arbitrary fixed height (e.g. a flat size * 0.6 guess) here regardless of
-  // that ratio is what left large blank bands above/below the bars when the
-  // barcode's real proportions didn't match the guess. Scaling by the real
-  // natural width instead keeps the bars filling their box with no
-  // letterboxing.
-  const naturalWidth = parseFloat(svgEl.getAttribute("width") || String(size));
-  const naturalHeight = parseFloat(svgEl.getAttribute("height") || String(size * 0.5));
+  const match = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+  const naturalWidth = match ? parseFloat(match[1]) : size;
+  const naturalHeight = match ? parseFloat(match[2]) : size * 0.4;
   const displayHeight = (naturalHeight / naturalWidth) * size;
-  svgEl.setAttribute("width", String(size));
-  svgEl.setAttribute("height", String(displayHeight));
-  svgEl.setAttribute("preserveAspectRatio", "none");
-  return { svg: new XMLSerializer().serializeToString(svgEl), height: displayHeight };
+  return { svg, height: displayHeight };
 }
 
 /** Renders whichever barcode style the program is configured with (standard
- * QR or a linear Code128 barcode) as inline SVG — every caller (print
- * templates, dashboard mockup preview) shares this so a style change is
- * reflected everywhere at once instead of needing per-surface updates.
- * Google/Apple Wallet render their own barcode graphic from the
- * `type`/`format` field directly (lib/wallet/barcode.ts maps the same
- * BarcodeStyle to their enums). */
+ * QR or a stacked PDF417 barcode) as inline SVG — every caller shares this
+ * so a style change is reflected everywhere at once instead of needing
+ * per-surface updates. Print/branding/flyer callers (print-studio.tsx,
+ * program-card.tsx) never set `style`, so they always render QR regardless
+ * of the program's wallet barcode setting. Google/Apple Wallet render their
+ * own barcode graphic from the `type`/`format` field directly
+ * (lib/wallet/barcode.ts maps the same BarcodeStyle to their enums); the
+ * merchant scan-app's camera reader decodes both formats natively
+ * (components/scanner/camera-scanner.tsx). */
 export function BarcodeImage({
   value,
   style = "qr",
@@ -77,8 +71,8 @@ export function BarcodeImage({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (style === "code128") {
-        const result = renderCode128Svg(value, size, dark);
+      if (style === "pdf417") {
+        const result = await renderPdf417Svg(value, size, dark);
         if (!cancelled) {
           setSvg(result.svg);
           setHeight(result.height);

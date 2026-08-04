@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSessionOrNull } from "@/lib/api";
 import { ScanAppHeader } from "@/components/scanner/scan-app-header";
+import { InstallPrompt } from "@/components/scanner/install-prompt";
 
 export default async function ScanAppAuthedLayout({
   children,
@@ -24,6 +25,7 @@ export default async function ScanAppAuthedLayout({
         role={session.role}
       />
       <div className="mt-6 flex-1">{children}</div>
+      <InstallPrompt />
     </div>
   );
 }
