@@ -140,12 +140,18 @@ export const updateMerchantSettingsSchema = z.object({
     .optional(),
 });
 
-const segmentDefinitionSchema = z.object({
-  scope: z.enum(["all", "program", "inactive_days", "birthday_month", "progress_threshold"]),
-  program_id: z.string().uuid().optional(),
-  inactive_days: z.number().int().positive().optional(),
-  min_progress_percent: z.number().min(0).max(100).optional(),
-});
+const segmentDefinitionSchema = z
+  .object({
+    scope: z.enum(["all", "program", "inactive_days", "birthday_month", "progress_threshold", "customers"]),
+    program_id: z.string().uuid().optional(),
+    inactive_days: z.number().int().positive().optional(),
+    min_progress_percent: z.number().min(0).max(100).optional(),
+    customer_ids: z.array(z.string().uuid()).min(1).max(500).optional(),
+  })
+  .refine((data) => data.scope !== "customers" || (data.customer_ids?.length ?? 0) > 0, {
+    message: "Select at least one customer",
+    path: ["customer_ids"],
+  });
 
 export const createCampaignSchema = z
   .object({

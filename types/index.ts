@@ -171,13 +171,17 @@ export type NotificationCampaignType = "manual" | "scheduled" | "automated";
 export type NotificationTrigger = "reward_unlocked" | "birthday" | "expiring_reward" | "inactive_customer";
 export type NotificationCampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "canceled";
 
-export type SegmentScope = "all" | "program" | "inactive_days" | "birthday_month" | "progress_threshold";
+export type SegmentScope = "all" | "program" | "inactive_days" | "birthday_month" | "progress_threshold" | "customers";
 
 export type SegmentDefinition = {
   scope: SegmentScope;
   program_id?: string;
   inactive_days?: number;
   min_progress_percent?: number;
+  /** scope: "customers" — merchant hand-picked a specific set of customers
+   * (customers.id, not customer_progress.id) from the notifications
+   * dashboard rather than a rule-based segment. */
+  customer_ids?: string[];
 };
 
 export type NotificationCampaign = {

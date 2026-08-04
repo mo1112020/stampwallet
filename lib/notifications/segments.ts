@@ -68,10 +68,19 @@ export async function resolveSegmentTargets(
 
   const { data: progressRows } = await admin
     .from("customer_progress")
-    .select("id, pass_id, program_id, progress, google_object_id, updated_at, created_at, customers(birthday)")
+    .select("id, customer_id, pass_id, program_id, progress, google_object_id, updated_at, created_at, customers(birthday)")
     .in("program_id", programIds);
 
   let rows = progressRows ?? [];
+
+  if (segment.scope === "customers" && segment.customer_ids) {
+    // Merchant hand-picked specific customers from the notifications
+    // dashboard rather than a rule — notify every pass they hold (a
+    // customer enrolled in more than one of this merchant's programs gets
+    // all of their cards updated, not just one).
+    const wanted = new Set(segment.customer_ids);
+    rows = rows.filter((r) => wanted.has(r.customer_id as string));
+  }
 
   if (segment.scope === "inactive_days" && segment.inactive_days) {
     const cutoff = new Date();
