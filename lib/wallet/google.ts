@@ -322,10 +322,57 @@ export async function pushGooglePassUpdate(
       (program.config as CardAppearance).details
     );
 
-    await client.request({
-      url: `${WALLET_API}/loyaltyObject/${googleObjectId}`,
-      method: "PATCH",
-      data: {
+    // Fields that live on the loyaltyClass (shared by every customer on this
+    // program), not the per-customer loyaltyObject PATCHed below —
+    // programLogo, issuerName, and the website link were only ever written
+    // once, at first enrollment (generateGoogleWalletLink's class upsert).
+    // A merchant uploading/changing their logo, renaming the business, or
+    // editing the website after that first customer had already enrolled
+    // never reached any already-issued card: the notification icon and the
+    // in-card mark kept showing whatever was true (often nothing —
+    // WalletOS's own fallback icon) at enrollment time, forever. Re-sent
+    // here on every push, same as the object fields above. Deliberately
+    // excludes classHeroImageUrl — that needs an image render+upload
+    // (renderCoverHeroImage), which would double the already-heavy per-push
+    // cost (see the 45s timeout comment in lib/wallet/push.ts) for a field
+    // that only matters for points/steps programs' cover photo.
+    // Not awaited immediately — kicked off alongside the object PATCH below
+    // and awaited together (Promise.all further down) so both requests run
+    // concurrently, but this function still can't return (and risk a
+    // serverless freeze cutting it off mid-flight) until both have actually
+    // settled.
+    const classRefresh = client
+      .request({
+        url: `${WALLET_API}/loyaltyClass/${buildClassId(program.id)}`,
+        method: "PATCH",
+        data: {
+          issuerName: merchant.business_name || "WalletOS",
+          programName: program.name,
+          programLogo: { sourceUri: { uri: merchant.logo_url || `${appUrl()}/brand/icon-only.png` } },
+          ...(linksModuleData ? { linksModuleData } : {}),
+          // Required on every class write, not just the initial create in
+          // generateGoogleWalletLink — omitting it here is what a live test
+          // caught as a hard 400 ("Invalid review status 'APPROVED'. Use
+          // 'UNDER_REVIEW' instead.") against a class Google had already
+          // approved: Google won't accept a PATCH that leaves reviewStatus
+          // implicit once a class has moved past UNDER_REVIEW.
+          reviewStatus: "UNDER_REVIEW",
+        },
+      })
+      .catch((err) => {
+        // Non-fatal — the per-customer object PATCH below (progress, the
+        // notification banner itself) is what actually matters for this
+        // push; a stale class-level logo/name is a lesser miss, not worth
+        // failing the whole update over.
+        console.error("[wallet:google] class refresh failed", program.id, err);
+      });
+
+    await Promise.all([
+      classRefresh,
+      client.request({
+        url: `${WALLET_API}/loyaltyObject/${googleObjectId}`,
+        method: "PATCH",
+        data: {
         // Must match loyaltyObjectFields above (used at enrollment) — this
         // PATCH re-sends loyaltyPoints wholesale on every scan/notification
         // push, so using the old primaryLabel/primaryValue here silently
@@ -380,8 +427,9 @@ export async function pushGooglePassUpdate(
               notifyPreference: "NOTIFY_ON_UPDATE",
             }
           : {}),
-      },
-    });
+        },
+      }),
+    ]);
     return { ok: true, stub: false };
   } catch (err) {
     console.error("[wallet:google] push patch failed", passId, err);

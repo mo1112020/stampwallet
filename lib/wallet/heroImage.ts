@@ -57,6 +57,61 @@ async function fetchAsPngDataUri(url: string): Promise<string | null> {
   }
 }
 
+/** Apple's icon.png (shown in notifications and the Wallet pass list — @1x
+ * 29x29, @2x 58x58, @3x 87x87) and logo.png (top-left of the card itself,
+ * fixed ~50pt height — @1x, @2x only, no @3x) were hardcoded to WalletOS's
+ * own bundled artwork (lib/wallet/assets.ts) regardless of whether the
+ * merchant had uploaded their own logo, so every pass and every
+ * notification always showed the WalletOS mark instead of the merchant's
+ * brand. Fetches the merchant's logo once and derives every size from that
+ * one master — returns null (caller falls back to the bundled WalletOS
+ * assets) if there's no logo configured or fetching/decoding it fails, so a
+ * broken image URL degrades to the old default rather than failing pass
+ * generation. */
+export async function renderMerchantIconAndLogo(
+  logoUrl: string | null | undefined
+): Promise<{
+  icon: { "1x": Buffer; "2x": Buffer; "3x": Buffer };
+  logo: { "1x": Buffer; "2x": Buffer };
+} | null> {
+  if (!logoUrl) return null;
+  try {
+    const res = await fetch(logoUrl, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const raw = Buffer.from(await res.arrayBuffer());
+    // Sniffs the real file signature and re-encodes to PNG regardless of
+    // what the source claimed — same reasoning as fetchAsPngDataUri above.
+    const master = await sharp(raw).png().toBuffer();
+
+    const [icon1x, icon2x, icon3x] = await Promise.all([
+      sharp(master).resize(29, 29, { fit: "cover" }).png().toBuffer(),
+      sharp(master).resize(58, 58, { fit: "cover" }).png().toBuffer(),
+      sharp(master).resize(87, 87, { fit: "cover" }).png().toBuffer(),
+    ]);
+    // logo.png sits in a fixed-height, variable-width header slot — "contain"
+    // (not "cover") so an arbitrary-aspect-ratio merchant logo is never
+    // cropped, padded with transparency instead.
+    const [logo1x, logo2x] = await Promise.all([
+      sharp(master)
+        .resize(160, 50, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toBuffer(),
+      sharp(master)
+        .resize(320, 100, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toBuffer(),
+    ]);
+
+    return {
+      icon: { "1x": icon1x, "2x": icon2x, "3x": icon3x },
+      logo: { "1x": logo1x, "2x": logo2x },
+    };
+  } catch (err) {
+    console.error("[wallet:heroImage] merchant icon/logo render failed", logoUrl, err);
+    return null;
+  }
+}
+
 /** Cover-fit background layer shared by both the plain cover photo and the
  * stamp-progress composite — darkened the same way the WalletOS live
  * preview darkens it (rgba(0,0,0,0.28)), so brand colors/contrast match. */

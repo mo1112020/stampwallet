@@ -6,7 +6,7 @@ import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { resolveBrandColors } from "@/lib/wallet/colors";
 import { appleBarcodeFormat } from "@/lib/wallet/barcode";
-import { renderAppleStripImage, renderAppleStripCover } from "@/lib/wallet/heroImage";
+import { renderAppleStripImage, renderAppleStripCover, renderMerchantIconAndLogo } from "@/lib/wallet/heroImage";
 
 /** The strip is the only region of an Apple Wallet pass that can hold custom
  * graphics (see renderAppleStripImage) — without it, storeCard passes show
@@ -116,6 +116,7 @@ export async function generateApplePass(params: {
       : fields.secondaryValue;
     const { primaryColor, secondaryColor } = resolveBrandColors(params.program, params.merchant);
     const strip = await buildStripBuffers(params.program, params.progress, primaryColor, secondaryColor);
+    const brandIcon = await renderMerchantIconAndLogo(params.merchant.logo_url);
 
     const passJson = {
       formatVersion: 1,
@@ -207,11 +208,15 @@ export async function generateApplePass(params: {
     const pass = new PKPass(
       {
         "pass.json": Buffer.from(JSON.stringify(passJson)),
-        "icon.png": ICON_PNG,
-        "icon@2x.png": ICON_2X_PNG,
-        "icon@3x.png": ICON_3X_PNG,
-        "logo.png": LOGO_PNG,
-        "logo@2x.png": LOGO_2X_PNG,
+        // Merchant's own uploaded logo when they have one — the WalletOS
+        // bundled artwork (lib/wallet/assets.ts) is only ever the fallback
+        // now, not the default, for both the notification icon (icon.png)
+        // and the in-card mark (logo.png).
+        "icon.png": brandIcon?.icon["1x"] ?? ICON_PNG,
+        "icon@2x.png": brandIcon?.icon["2x"] ?? ICON_2X_PNG,
+        "icon@3x.png": brandIcon?.icon["3x"] ?? ICON_3X_PNG,
+        "logo.png": brandIcon?.logo["1x"] ?? LOGO_PNG,
+        "logo@2x.png": brandIcon?.logo["2x"] ?? LOGO_2X_PNG,
         ...(strip
           ? {
               "strip.png": strip["1x"],
