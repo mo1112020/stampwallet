@@ -1,4 +1,5 @@
 import type { SessionContext } from "@/lib/api";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type ProgressRow = {
   id: string;
@@ -78,11 +79,25 @@ export async function listAllCustomers(
   const passIds = rows.flatMap((r) => r.customer_progress.map((cp) => cp.pass_id));
   const registeredPassIds = new Set<string>();
   if (passIds.length > 0) {
-    const { data: registrations } = await session.supabase
-      .from("apple_device_registrations")
-      .select("serial_number")
-      .in("serial_number", passIds);
-    for (const row of registrations ?? []) registeredPassIds.add(row.serial_number as string);
+    // apple_device_registrations has RLS enabled with NO policies at all
+    // (see supabase/migrations/003_apple_wallet_devices.sql — it's meant to
+    // be reachable only by PassKit's own public web-service routes, which
+    // authenticate via the pass's authenticationToken, not a merchant
+    // session) — querying it with session.supabase (the authenticated-role
+    // client) silently returns zero rows every time, which made hasApple
+    // compute false for every customer regardless of real registration
+    // data. The admin/service-role client is required to read it here.
+    try {
+      const admin = createAdminClient();
+      const { data: registrations } = await admin
+        .from("apple_device_registrations")
+        .select("serial_number")
+        .in("serial_number", passIds);
+      for (const row of registrations ?? []) registeredPassIds.add(row.serial_number as string);
+    } catch {
+      // No service role configured in this environment — hasApple falls
+      // back to false for everyone rather than failing the customer list.
+    }
   }
 
   const customers = rows.map((r) => ({

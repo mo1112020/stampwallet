@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import type { JWT } from "google-auth-library";
-import type { BarcodeStyle, CardAppearance, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
+import type { BarcodeStyle, CardAppearance, CardDetails, LoyaltyProgram, Merchant, Progress, StampConfig, StampProgress } from "@/types";
 import { googleBarcodeType } from "@/lib/wallet/barcode";
 import { renderPassFields, type PassFields } from "@/lib/wallet/renderPassFields";
 import { getServiceAccount, getWalletClient } from "@/lib/wallet/googleAuth";
@@ -75,6 +75,26 @@ async function stampObjectHeroImage(
   }
 }
 
+/** Card appearance's "About"/"Terms" text and "Website" link were being
+ * collected in the dashboard form (CardDetails.description/terms/website)
+ * but only .description ever reached the pass, and only on Apple — Google
+ * never received any of the three. These render in the tap-through
+ * "Details" view (Google never promotes them to the front, matching where
+ * the dashboard's own "these appear under More details" copy says they
+ * should live), and are object-level (not class-level) so they refresh on
+ * every ordinary push in pushGooglePassUpdate below instead of only at
+ * first enrollment. */
+function detailModules(details: CardDetails | undefined) {
+  const textModulesData = [
+    ...(details?.description ? [{ id: "details", header: "About", body: details.description }] : []),
+    ...(details?.terms ? [{ id: "terms", header: "Terms & conditions", body: details.terms }] : []),
+  ];
+  const linksModuleData = details?.website
+    ? { uris: [{ uri: details.website, description: "Visit website", id: "website" }] }
+    : undefined;
+  return { textModulesData, linksModuleData };
+}
+
 async function loyaltyObjectFields(
   passId: string,
   classId: string,
@@ -82,12 +102,14 @@ async function loyaltyObjectFields(
   merchantId: string,
   programId: string,
   heroImageUrl: string | undefined,
-  barcodeStyle: BarcodeStyle | undefined
+  barcodeStyle: BarcodeStyle | undefined,
+  details: CardDetails | undefined
 ) {
   const secondaryValue = fields.rewardAvailable
     ? `🎁 ${fields.secondaryValue} — Ready to redeem!`
     : fields.secondaryValue;
   const locations = await getActiveStoreLocations(merchantId, programId);
+  const { textModulesData: detailTextModules, linksModuleData } = detailModules(details);
 
   return {
     classId,
@@ -111,7 +133,9 @@ async function loyaltyObjectFields(
       // module behind "tap for details".
       { id: "reward", header: fields.secondaryLabel, body: secondaryValue },
       ...(fields.expiry ? [{ id: "expiry", header: fields.expiry.label, body: fields.expiry.value }] : []),
+      ...detailTextModules,
     ],
+    ...(linksModuleData ? { linksModuleData } : {}),
     barcode: { type: googleBarcodeType(barcodeStyle), value: passId, alternateText: passId },
     // Object-level heroImage overrides the class-level one — this is how a
     // per-customer stamp-progress image can be shown while every other
@@ -220,7 +244,16 @@ export async function generateGoogleWalletLink(params: {
       objectId,
       {
         id: objectId,
-        ...(await loyaltyObjectFields(params.passId, classId, fields, params.merchant.id, params.program.id, objectHeroImageUrl, barcodeStyle)),
+        ...(await loyaltyObjectFields(
+          params.passId,
+          classId,
+          fields,
+          params.merchant.id,
+          params.program.id,
+          objectHeroImageUrl,
+          barcodeStyle,
+          (params.program.config as CardAppearance).details
+        )),
       }
     );
 
@@ -285,6 +318,9 @@ export async function pushGooglePassUpdate(
     // an empty heroImage) leaves the previous image in place if this fails,
     // instead of blanking out a working banner over a decorative miss.
     const heroImageUrl = await stampObjectHeroImage(passId, program, progress, primaryColor, secondaryColor);
+    const { textModulesData: detailTextModules, linksModuleData } = detailModules(
+      (program.config as CardAppearance).details
+    );
 
     await client.request({
       url: `${WALLET_API}/loyaltyObject/${googleObjectId}`,
@@ -304,11 +340,16 @@ export async function pushGooglePassUpdate(
         // cardTemplateOverride references "reward" by fieldPath, and PATCH
         // replaces this array wholesale, so dropping the id here would
         // silently break the front-of-card row on the very next stamp/point
-        // update after pass creation.
+        // update after pass creation. detailTextModules ("details"/"terms")
+        // must be re-sent here too for the same reason — otherwise editing
+        // the welcome message/terms after a customer's first push would
+        // never reach their already-installed card.
         textModulesData: [
           { id: "reward", header: fields.secondaryLabel, body: secondaryValue },
           ...(fields.expiry ? [{ id: "expiry", header: fields.expiry.label, body: fields.expiry.value }] : []),
+          ...detailTextModules,
         ],
+        ...(linksModuleData ? { linksModuleData } : {}),
         // Cache-busted URL (see uploadHeroImage) — Google Wallet and any
         // client-side image cache always fetch the new bytes instead of a
         // stale copy at the same path.

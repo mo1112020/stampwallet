@@ -168,6 +168,24 @@ export async function generateApplePass(params: {
           ...(params.program.config.details?.description
             ? [{ key: "details", label: "About", value: params.program.config.details.description }]
             : []),
+          // Terms and website were being collected in the dashboard's Card
+          // appearance form (CardDetails.terms/website) but never actually
+          // reached the pass — only .description made it into backFields.
+          ...(params.program.config.details?.terms
+            ? [{ key: "terms", label: "Terms & conditions", value: params.program.config.details.terms }]
+            : []),
+          ...(params.program.config.details?.website
+            ? [
+                {
+                  key: "website",
+                  label: "Website",
+                  value: params.program.config.details.website,
+                  // PassKit backFields support this small HTML-anchor subset
+                  // to render an actually-tappable link instead of plain text.
+                  attributedValue: `<a href="${params.program.config.details.website}">${params.program.config.details.website}</a>`,
+                },
+              ]
+            : []),
           // Apple's device-side notification check "compares the latest
           // version of the pass against the version it had before" for this
           // field's value — always including the field (even with an empty
