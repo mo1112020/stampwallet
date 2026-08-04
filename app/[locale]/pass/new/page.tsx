@@ -102,7 +102,13 @@ function EnrollForm() {
     const response = await fetch("/api/customers/enroll", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ program_id: programId, name: name.trim(), phone: phone.trim(), email: email.trim() }),
+      body: JSON.stringify({
+        program_id: programId,
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        platform: isIOS ? "apple" : "google",
+      }),
     });
     const json = await response.json();
     setLoading(false);

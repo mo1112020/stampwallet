@@ -290,7 +290,12 @@ export async function pushGooglePassUpdate(
       url: `${WALLET_API}/loyaltyObject/${googleObjectId}`,
       method: "PATCH",
       data: {
-        loyaltyPoints: { label: fields.primaryLabel, balance: { string: fields.primaryValue } },
+        // Must match loyaltyObjectFields above (used at enrollment) — this
+        // PATCH re-sends loyaltyPoints wholesale on every scan/notification
+        // push, so using the old primaryLabel/primaryValue here silently
+        // reverted the card back to the raw "X / Y" counter on the very
+        // first push after enrollment.
+        loyaltyPoints: { label: fields.remainingLabel, balance: { string: fields.remainingValue } },
         // Re-sent on every push (not just at enrollment) so a merchant
         // changing their barcode style later is reflected on passes
         // already saved to a customer's device, not just new enrollments.

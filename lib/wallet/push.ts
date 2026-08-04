@@ -4,6 +4,15 @@ import { pushGooglePassUpdate } from "@/lib/wallet/google";
 import { resolveSegmentTargets } from "@/lib/notifications/segments";
 import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
+export type WalletPushResult = {
+  /** true only when this platform had a real installed pass to push to
+   * (an Apple push token or a Google object id) — a customer who only has
+   * the other wallet installed isn't a failure for this platform, they're
+   * simply not applicable. */
+  applicable: boolean;
+  ok: boolean;
+};
+
 export async function pushWalletUpdate(params: {
   passId: string;
   googleObjectId: string | null;
@@ -15,7 +24,7 @@ export async function pushWalletUpdate(params: {
   notification?: { title: string; message: string } | null;
   /** customer_progress.created_at — powers the card-expiration premium feature. */
   enrolledAt?: string;
-}) {
+}): Promise<{ apple: WalletPushResult; google: WalletPushResult }> {
   let pushTokens: string[] = [];
   try {
     const admin = createAdminClient();
@@ -28,7 +37,7 @@ export async function pushWalletUpdate(params: {
     // No service role configured in this environment — Apple push is a no-op.
   }
 
-  await Promise.all([
+  const [appleResult, googleResult] = await Promise.all([
     pushApplePassUpdate(params.passId, pushTokens),
     pushGooglePassUpdate(
       params.passId,
@@ -40,6 +49,17 @@ export async function pushWalletUpdate(params: {
       params.enrolledAt
     ),
   ]);
+
+  // `stub: true` from either push function covers two very different cases
+  // that callers need to tell apart: "not configured at all" (nothing to
+  // report as failed) and "this customer has no pass on this platform"
+  // (also nothing to report as failed) — both already collapse to the same
+  // stub flag inside apple.ts/google.ts, so applicability here is re-derived
+  // from what we actually know: a real push token, or a real object id.
+  return {
+    apple: { applicable: pushTokens.length > 0, ok: appleResult.ok },
+    google: { applicable: Boolean(params.googleObjectId), ok: googleResult.ok },
+  };
 }
 
 /** Bounds one target's push so a single hung wallet-platform request can't
@@ -85,7 +105,13 @@ export async function pushProgramUpdateToAllCustomers(merchantId: string, progra
           progress: target.progress,
           enrolledAt: target.enrolledAt,
         }),
-        25000,
+        // Google's side of this push is much heavier than Apple's (fetch
+        // background image, render + upload a fresh hero image, then the
+        // Google API call) — 25s was tight enough that it read as "Android
+        // always fails" when in fact it was routinely timing out, not
+        // erroring. Apple's push (a couple of APNs calls) finishes in a
+        // fraction of this regardless.
+        45000,
         `program update push to ${target.customerProgressId}`
       );
     } catch (err) {

@@ -240,15 +240,24 @@ export async function pushApplePassUpdate(passId: string, pushTokens: string[]) 
     return { ok: true, stub: true };
   }
 
-  const { sendApplePush } = await import("@/lib/wallet/apn");
-  const topic = process.env.APPLE_PASS_TYPE_IDENTIFIER!;
-  const results = await Promise.all(pushTokens.map((token) => sendApplePush(token, topic)));
+  try {
+    const { sendApplePush } = await import("@/lib/wallet/apn");
+    const topic = process.env.APPLE_PASS_TYPE_IDENTIFIER!;
+    const results = await Promise.all(pushTokens.map((token) => sendApplePush(token, topic)));
 
-  results.forEach((result, i) => {
-    if (!result.ok) {
-      console.error("[wallet:apple] push failed for token", pushTokens[i], result.error);
-    }
-  });
+    results.forEach((result, i) => {
+      if (!result.ok) {
+        console.error("[wallet:apple] push failed for token", pushTokens[i], result.error);
+      }
+    });
 
-  return { ok: results.every((r) => r.ok), stub: false };
+    return { ok: results.every((r) => r.ok), stub: false };
+  } catch (err) {
+    // Same defensive shape as google.ts's pushGooglePassUpdate — an
+    // unexpected APNs/network error here must not reject the Promise.all in
+    // pushWalletUpdate and take down the other platform's push (or the whole
+    // notification-campaign delivery) with it.
+    console.error("[wallet:apple] push update failed", passId, err);
+    return { ok: false, stub: false };
+  }
 }

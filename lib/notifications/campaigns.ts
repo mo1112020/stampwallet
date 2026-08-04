@@ -1,7 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pushWalletUpdate } from "@/lib/wallet/push";
-import { isAppleWalletConfigured } from "@/lib/wallet/apple";
-import { isGoogleWalletConfigured } from "@/lib/wallet/google";
 import { resolveSegmentTargets, type NotificationTarget } from "@/lib/notifications/segments";
 import type { NotificationTrigger } from "@/types";
 
@@ -25,7 +23,7 @@ async function deliverToTarget(
     .update({ latest_notification_message: message })
     .eq("id", target.customerProgressId);
 
-  await pushWalletUpdate({
+  const result = await pushWalletUpdate({
     passId: target.passId,
     googleObjectId: target.googleObjectId,
     program: target.program,
@@ -35,14 +33,33 @@ async function deliverToTarget(
     enrolledAt: target.enrolledAt,
   });
 
-  const configured = isAppleWalletConfigured() || isGoogleWalletConfigured();
+  // Report against reality instead of "is Wallet configured at all" — that
+  // used to mark every send "sent" even when the platform the customer
+  // actually has installed genuinely failed to update, and could never
+  // surface a real per-customer failure to the merchant.
+  const applicablePlatforms = [
+    result.apple.applicable ? "apple" : null,
+    result.google.applicable ? "google" : null,
+  ].filter((p): p is "apple" | "google" => p !== null);
+  const platform = applicablePlatforms.length === 2 ? "both" : applicablePlatforms[0] ?? "both";
+  const failed =
+    (result.apple.applicable && !result.apple.ok) || (result.google.applicable && !result.google.ok);
+  const status = applicablePlatforms.length === 0 ? "stubbed" : failed ? "failed" : "sent";
 
   await admin.from("notification_sends").insert({
     campaign_id: campaignId,
     customer_progress_id: target.customerProgressId,
-    platform: "both",
-    status: configured ? "sent" : "stubbed",
+    platform,
+    status,
     message,
+    error: failed
+      ? [
+          result.apple.applicable && !result.apple.ok ? "Apple Wallet push failed" : null,
+          result.google.applicable && !result.google.ok ? "Google Wallet push failed" : null,
+        ]
+          .filter(Boolean)
+          .join("; ")
+      : null,
     sent_at: new Date().toISOString(),
   });
 }
@@ -159,7 +176,11 @@ export async function sendCampaignNow(campaignId: string) {
     try {
       await withTimeout(
         deliverToTarget(campaignId, campaign.title, campaign.message, target),
-        25000,
+        // See lib/wallet/push.ts's pushProgramUpdateToAllCustomers for why
+        // this is 45s and not 25s — Google's push does real image work
+        // Apple's doesn't, and 25s was tight enough to read as "Android
+        // notifications always fail" when it was actually timing out.
+        45000,
         `delivery to ${target.customerProgressId}`
       );
     } catch (err) {

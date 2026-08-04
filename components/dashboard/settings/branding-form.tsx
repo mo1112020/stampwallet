@@ -41,20 +41,29 @@ export function BrandingForm({ merchant }: { merchant: Merchant }) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch("/api/settings/merchant", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        logo_url: logoUrl,
-        brand_color_primary: primary,
-        brand_color_secondary: secondary,
-      }),
-    });
-    setSaving(false);
-    if (res.ok) {
-      toast.success(t("saved"));
-    } else {
+    // A dropped/failed request (far more likely on a mobile connection than
+    // on desktop wifi) used to throw out of this function before
+    // setSaving(false) ran, leaving the button stuck disabled with no
+    // feedback at all — looked exactly like a broken Save button on a phone.
+    try {
+      const res = await fetch("/api/settings/merchant", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          logo_url: logoUrl,
+          brand_color_primary: primary,
+          brand_color_secondary: secondary,
+        }),
+      });
+      if (res.ok) {
+        toast.success(t("saved"));
+      } else {
+        toast.error(t("saveFailed"));
+      }
+    } catch {
       toast.error(t("saveFailed"));
+    } finally {
+      setSaving(false);
     }
   }
 

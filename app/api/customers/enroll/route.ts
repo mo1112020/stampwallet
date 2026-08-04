@@ -86,21 +86,45 @@ export async function POST(request: Request) {
   // that's their real stamp/point balance, not a reset-to-zero card.
   const currentProgress = (cp.progress ?? progress) as typeof progress;
 
-  const apple = await generateApplePass({
-    passId: cp.pass_id,
-    program: loyaltyProgram,
-    merchant,
-    progress: currentProgress,
-    authenticationToken: cp.apple_auth_token,
-    enrolledAt: cp.enrolled_at,
-  });
-  const google = await generateGoogleWalletLink({
-    passId: cp.pass_id,
-    program: loyaltyProgram,
-    merchant,
-    progress: currentProgress,
-    enrolledAt: cp.enrolled_at,
-  });
+  // The join page only ever shows the visitor one button (Apple on iOS,
+  // Google elsewhere), so only generate the wallet they can actually use.
+  // Generating both unconditionally used to create a real Google Wallet
+  // object (and persist customer_progress.google_object_id) for every
+  // enrollment, including iOS visitors who never saw a Google button — that
+  // made the dashboard's "installed wallet" icon show Google Wallet for
+  // customers who only ever added the card to Apple Wallet.
+  const wantsApple = parsed.data.platform !== "google";
+  const wantsGoogle = parsed.data.platform !== "apple";
+
+  const apple = wantsApple
+    ? await generateApplePass({
+        passId: cp.pass_id,
+        program: loyaltyProgram,
+        merchant,
+        progress: currentProgress,
+        authenticationToken: cp.apple_auth_token,
+        enrolledAt: cp.enrolled_at,
+      })
+    : { stub: true as const };
+  const google = wantsGoogle
+    ? await generateGoogleWalletLink({
+        passId: cp.pass_id,
+        program: loyaltyProgram,
+        merchant,
+        progress: currentProgress,
+        enrolledAt: cp.enrolled_at,
+      })
+    : { saveUrl: "", stub: true as const };
+
+  // A returning customer may have a stale google_object_id from before this
+  // fix (or from a previous visit on the other platform) — clear it when
+  // this visit is explicitly Apple-only so the dashboard icon reflects the
+  // wallet they're actually using now. enroll_customer's return row has no
+  // `id`/`google_object_id` columns (see supabase/migrations/014_customer_dedup.sql),
+  // so key off pass_id, which is unique per customer_progress row.
+  if (!wantsGoogle) {
+    await admin.from("customer_progress").update({ google_object_id: null }).eq("pass_id", cp.pass_id);
+  }
 
   const requestUrl = new URL(request.url);
   const host = request.headers.get("x-forwarded-host") ?? requestUrl.host;

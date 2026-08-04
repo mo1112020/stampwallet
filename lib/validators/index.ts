@@ -87,6 +87,14 @@ export const enrollSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   phone: z.string().min(3).max(30).optional(),
   email: z.string().email().optional(),
+  // Which wallet button the join page actually showed the visitor (it only
+  // ever shows one, based on client-side iOS detection) — lets the server
+  // skip creating a live Google Wallet object for someone who only ever saw
+  // the "Add to Apple Wallet" button, and vice versa. See lib/customers/queries.ts'
+  // hasGoogle: previously every enrollment created a Google object
+  // regardless of platform, so every customer showed the Google Wallet icon
+  // in the dashboard even if they only ever installed the Apple pass.
+  platform: z.enum(["apple", "google"]).optional(),
 });
 
 export const scanSchema = z.object({

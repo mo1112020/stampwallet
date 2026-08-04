@@ -339,26 +339,37 @@ export function ProgramForm({
         ? { name, type, config: sanitizedConfig }
         : { name, config: sanitizedConfig, is_active: isActive };
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const json = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(json.error?.message ?? "Failed");
-      return;
-    }
+    // A dropped/failed request (much more common on mobile networks than on a
+    // desktop's wired/wifi connection during testing) used to throw out of this
+    // function before setLoading(false) ran, leaving the button permanently
+    // stuck disabled/"Saving…" with no error shown — indistinguishable from a
+    // broken button on a phone, while a desktop session simply never hit a
+    // dropped request often enough to notice.
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error?.message ?? "Failed");
+        return;
+      }
 
-    // A freshly created program has nothing to manage yet — the print studio (posters,
-    // stickers, social assets) is the natural next stop. Editing returns to the program.
-    router.push(
-      mode === "create"
-        ? `/${locale}/dashboard/programs/${json.data.id}/print`
-        : `/${locale}/dashboard/programs/${json.data.id}`
-    );
-    router.refresh();
+      // A freshly created program has nothing to manage yet — the print studio (posters,
+      // stickers, social assets) is the natural next stop. Editing returns to the program.
+      router.push(
+        mode === "create"
+          ? `/${locale}/dashboard/programs/${json.data.id}/print`
+          : `/${locale}/dashboard/programs/${json.data.id}`
+      );
+      router.refresh();
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function deleteProgram() {

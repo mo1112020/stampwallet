@@ -6,6 +6,21 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { printFont } from "@/lib/fonts/print";
 import type { TemplateDimension } from "./dimensions";
 
+/** Synchronous best-guess scale for a template inside this dialog's content
+ * slot, computed from the viewport rather than a measured DOM box — safe to
+ * call during render (SSR-safe: falls back to a fixed guess when there's no
+ * `window` yet) and always returns a positive, finite number. */
+function estimateScale(dim: TemplateDimension): number {
+  if (typeof window === "undefined") return 0.3;
+  // Matches the dialog's own content-slot padding/limits: max-w-2xl (672px)
+  // container with p-4/p-6 and a h-[min(90vh,760px)] frame split between
+  // header, content, and the download buttons row.
+  const availableWidth = Math.min(window.innerWidth, 672) - 64;
+  const availableHeight = Math.min(window.innerHeight * 0.9, 760) - 160;
+  const guess = Math.min(availableWidth / dim.widthPx, availableHeight / dim.heightPx);
+  return guess > 0 && Number.isFinite(guess) ? guess : 0.3;
+}
+
 export function PrintPreviewDialog({
   label,
   dim,
@@ -26,20 +41,20 @@ export function PrintPreviewDialog({
   children: React.ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // Deliberately no fallback guess here (e.g. a fixed 0.25) — if the very
-  // first measurement raced the dialog's own layout and undershot, nothing
-  // afterward would ever correct it (a ResizeObserver only reports actual
-  // size *changes*, and this container's box doesn't change again once the
-  // dialog has finished laying out). Rendering nothing until the first real
-  // measurement lands is safer than risking a permanently-wrong-but-valid
-  // scale.
-  const [scale, setScale] = useState<number | null>(null);
+  // Same "always render a reasonable guess immediately, refine once the real
+  // box is measured" approach as TemplateCard's grid thumbnails (which never
+  // go blank) — this dialog used to gate its entire content on a measured
+  // scale with *no* initial guess at all: if that first getBoundingClientRect()
+  // ever landed at 0 (dialog layout/animation still settling, or a mobile
+  // browser's vh still resolving against a viewport that hasn't finished
+  // settling), nothing ever rendered, with no way to recover short of
+  // closing and reopening. A synchronous guess up front removes that failure
+  // mode entirely instead of racing to patch it after the fact.
+  const [scale, setScale] = useState<number>(() => estimateScale(dim));
 
   useEffect(() => {
-    if (!open) {
-      setScale(null);
-      return;
-    }
+    if (!open) return;
+    setScale(estimateScale(dim));
     const el = containerRef.current;
     if (!el) return;
     const compute = () => {
@@ -56,9 +71,12 @@ export function PrintPreviewDialog({
     const raf = requestAnimationFrame(compute);
     const observer = new ResizeObserver(compute);
     observer.observe(el);
+    const resize = () => compute();
+    window.addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(raf);
       observer.disconnect();
+      window.removeEventListener("resize", resize);
     };
   }, [open, dim.widthPx, dim.heightPx]);
 
@@ -95,26 +113,24 @@ export function PrintPreviewDialog({
           ref={containerRef}
           className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-[var(--surface-2)] p-3"
         >
-          {scale !== null && (
+          <div
+            // dir="ltr": see PrintPreviewFrame in primitives.tsx — same
+            // scaled-viewport-under-RTL-ancestor clipping issue.
+            dir="ltr"
+            className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-md"
+            style={{ width: dim.widthPx * scale, height: dim.heightPx * scale }}
+          >
             <div
-              // dir="ltr": see PrintPreviewFrame in primitives.tsx — same
-              // scaled-viewport-under-RTL-ancestor clipping issue.
-              dir="ltr"
-              className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-md"
-              style={{ width: dim.widthPx * scale, height: dim.heightPx * scale }}
+              style={{
+                width: dim.widthPx,
+                height: dim.heightPx,
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+              }}
             >
-              <div
-                style={{
-                  width: dim.widthPx,
-                  height: dim.heightPx,
-                  transform: `scale(${scale})`,
-                  transformOrigin: "top left",
-                }}
-              >
-                {children}
-              </div>
+              {children}
             </div>
-          )}
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-2">
