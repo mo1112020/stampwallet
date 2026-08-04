@@ -110,6 +110,11 @@ export async function POST(request: Request) {
         progress: nextProgress,
         enrolledAt: row.created_at,
       },
+      // Unlike every other automated trigger, this one fires right off a
+      // scan that just changed stamps_collected/points — the hero image
+      // genuinely needs to reflect that, so this is the one place that
+      // overrides triggerAutomatedNotification's skip-by-default.
+      skipHeroImageRefresh: false,
     });
   } else {
     await pushWalletUpdate({

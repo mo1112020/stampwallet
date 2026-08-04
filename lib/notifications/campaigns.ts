@@ -14,7 +14,12 @@ async function deliverToTarget(
   campaignId: string,
   title: string,
   message: string,
-  target: NotificationTarget
+  target: NotificationTarget,
+  /** True for every caller except a reward_unlocked trigger fired right off
+   * a scan (the one case where `target.progress` is genuinely fresh, not
+   * just re-read from the DB) — see pushWalletUpdate's skipHeroImageRefresh
+   * for what this actually skips and why. */
+  skipHeroImageRefresh: boolean
 ) {
   const admin = createAdminClient();
 
@@ -31,6 +36,7 @@ async function deliverToTarget(
     progress: target.progress,
     notification: { title, message },
     enrolledAt: target.enrolledAt,
+    skipHeroImageRefresh,
   });
 
   // Report against reality instead of "is Wallet configured at all" — that
@@ -77,6 +83,13 @@ export async function triggerAutomatedNotification(params: {
   title: string;
   message: string;
   target: NotificationTarget;
+  /** Defaults to true (skip the hero-image regen) — right for every
+   * cron-driven trigger (birthday/expiring_reward/inactive_customer:
+   * lib/notifications/triggers.ts, always stale-progress). The one
+   * exception is reward_unlocked, fired directly from app/api/scan/route.ts
+   * with progress that just genuinely changed — that call site passes
+   * `false` explicitly. */
+  skipHeroImageRefresh?: boolean;
 }) {
   const admin = createAdminClient();
 
@@ -99,7 +112,7 @@ export async function triggerAutomatedNotification(params: {
     return;
   }
 
-  await deliverToTarget(campaign.id, params.title, params.message, params.target);
+  await deliverToTarget(campaign.id, params.title, params.message, params.target, params.skipHeroImageRefresh ?? true);
 }
 
 /** Was this specific pass already notified for this trigger within the
@@ -175,7 +188,9 @@ export async function sendCampaignNow(campaignId: string) {
   for (const target of targets) {
     try {
       await withTimeout(
-        deliverToTarget(campaignId, campaign.title, campaign.message, target),
+        // A manual/scheduled campaign never carries fresh progress — always
+        // skip the hero-image regen.
+        deliverToTarget(campaignId, campaign.title, campaign.message, target, true),
         // See lib/wallet/push.ts's pushProgramUpdateToAllCustomers for why
         // this is 45s and not 25s — Google's push does real image work
         // Apple's doesn't, and 25s was tight enough to read as "Android

@@ -324,7 +324,12 @@ export async function pushGooglePassUpdate(
    * shown in-app) rather than just refreshing the points/progress fields. */
   notification?: { title: string; message: string } | null,
   /** customer_progress.created_at — powers the card-expiration premium feature. */
-  enrolledAt?: string
+  enrolledAt?: string,
+  /** See lib/wallet/push.ts's pushWalletUpdate — true when `progress` is
+   * definitely unchanged from what's already on the card (a notification
+   * with no accompanying scan). Skips the image render+upload below
+   * entirely rather than regenerating an identical image. */
+  skipHeroImageRefresh?: boolean
 ) {
   if (!isGoogleWalletConfigured()) {
     console.info("[wallet:google] stub patch", passId, googleObjectId);
@@ -347,7 +352,16 @@ export async function pushGooglePassUpdate(
     // image so the pass reflects current progress — undefined (rather than
     // an empty heroImage) leaves the previous image in place if this fails,
     // instead of blanking out a working banner over a decorative miss.
-    const heroImageUrl = await objectHeroImage(passId, program, progress, primaryColor, secondaryColor);
+    // skipHeroImageRefresh (set for pure notification sends — a campaign or
+    // cron trigger never carries changed progress) skips this the same way:
+    // omitting `heroImage` from the PATCH body below leaves whatever image
+    // is already on the object untouched, and this was by a wide margin the
+    // single most expensive step in the whole push (fetch + render + a
+    // second network round trip to upload it) for output that would have
+    // been byte-identical to what's already there.
+    const heroImageUrl = skipHeroImageRefresh
+      ? undefined
+      : await objectHeroImage(passId, program, progress, primaryColor, secondaryColor);
     const { textModulesData: detailTextModules, linksModuleData } = detailModules(
       (program.config as CardAppearance).details
     );

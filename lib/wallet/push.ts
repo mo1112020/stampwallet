@@ -24,6 +24,17 @@ export async function pushWalletUpdate(params: {
   notification?: { title: string; message: string } | null;
   /** customer_progress.created_at — powers the card-expiration premium feature. */
   enrolledAt?: string;
+  /** True when `progress` here is definitely unchanged from what's already
+   * on the card (a marketing campaign, a cron-driven automated trigger, an
+   * expiration-countdown refresh) — skips Google's hero-image
+   * render+upload, the single heaviest step in this push, for a case where
+   * its output would be byte-identical to what's already there anyway.
+   * Left false/unset (safe default: always regenerate) for anything that
+   * might actually be showing new progress, e.g. the push right after a
+   * scan. Apple has no equivalent knob: its strip image is rebuilt fresh
+   * whenever the device fetches the pass regardless, not as part of this
+   * call. */
+  skipHeroImageRefresh?: boolean;
 }): Promise<{ apple: WalletPushResult; google: WalletPushResult }> {
   let pushTokens: string[] = [];
   try {
@@ -46,7 +57,8 @@ export async function pushWalletUpdate(params: {
       params.merchant,
       params.progress,
       params.notification,
-      params.enrolledAt
+      params.enrolledAt,
+      params.skipHeroImageRefresh
     ),
   ]);
 

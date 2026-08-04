@@ -47,6 +47,9 @@ export async function refreshExpiringPasses() {
           merchant,
           progress: row.progress as Progress,
           enrolledAt: row.created_at,
+          // Only the expiration countdown text changes here — progress
+          // (and therefore the hero image) is untouched.
+          skipHeroImageRefresh: true,
         });
         refreshed++;
       } catch (err) {
