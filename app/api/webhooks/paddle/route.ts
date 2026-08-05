@@ -11,6 +11,7 @@ import {
   type SubscriptionTrialingEvent,
   type SubscriptionUpdatedEvent,
 } from "@paddle/paddle-node-sdk";
+import { hasActiveAccess } from "@/lib/billing/access";
 import { disableCardExpirationForMerchant } from "@/lib/billing/enforcement";
 import { planForPaddlePriceId } from "@/lib/billing/plans";
 import { createPaddleClient } from "@/lib/paddle";
@@ -99,10 +100,9 @@ async function syncSubscription(admin: ReturnType<typeof createAdminClient>, sub
   const merchantId = extractMerchantId(sub.customData);
   const priceId = sub.items[0]?.price?.id;
   const planInfo = planForPaddlePriceId(priceId);
-  // paused/canceled both mean no paid service — see the sync skill's status
-  // table. past_due keeps the paid plan (Paddle is retrying the charge;
-  // revoking access mid-dunning would be unnecessarily harsh).
-  const isEnded = sub.status === "canceled" || sub.status === "paused";
+  // Downgrade exactly when access.ts says access is gone — keeps this
+  // handler and the UI's access checks from silently drifting apart.
+  const isEnded = !hasActiveAccess(sub.status);
 
   const update: Record<string, unknown> = {
     paddle_customer_id: sub.customerId,

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
+import { hasActiveAccess } from "@/lib/billing/access";
 import { PLAN_LIMITS, PLAN_PRICES_USD_CENTS, type PaidPlan, type PlanInterval } from "@/lib/billing/plans";
 import type { BillingInvoice, BillingUsage } from "@/lib/billing/data";
 import { cn } from "@/lib/utils";
@@ -123,10 +124,7 @@ export function BillingContent({
     initializePaddle({ token, environment: env as "sandbox" | "production" }).then((p) => p && setPaddle(p));
   }, []);
 
-  const hasActiveSubscription =
-    merchant.subscription_status === "active" ||
-    merchant.subscription_status === "trialing" ||
-    merchant.subscription_status === "past_due";
+  const hasActiveSubscription = hasActiveAccess(merchant.subscription_status);
 
   // Refresh server-fetched props shortly after an action — the Paddle
   // webhook (source of truth for merchants.plan/subscription_status) lands
@@ -210,6 +208,21 @@ export function BillingContent({
     }
   }
 
+  async function openPortal() {
+    setPendingAction("portal");
+    try {
+      const res = await fetch("/api/billing/portal", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.data?.url) {
+        toast.error(json.error?.message ?? t("notConfigured"));
+        return;
+      }
+      window.location.href = json.data.url;
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   const openInvoice = invoices.find((inv) => inv.status === "open");
   const plan = merchant.plan;
 
@@ -241,6 +254,11 @@ export function BillingContent({
                 <Button variant="outline" onClick={updatePaymentMethod} disabled={pendingAction !== null || !paddle}>
                   <CreditCard className="mr-2 h-4 w-4" />
                   {pendingAction === "payment-method" ? t("processing") : "Payment method"}
+                </Button>
+              )}
+              {merchant.paddle_customer_id && (
+                <Button variant="outline" onClick={openPortal} disabled={pendingAction !== null}>
+                  {pendingAction === "portal" ? t("processing") : "Full billing portal"}
                 </Button>
               )}
               <a
