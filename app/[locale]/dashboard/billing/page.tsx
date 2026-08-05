@@ -3,7 +3,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSessionOrNull } from "@/lib/api";
 import { roleHasCapability } from "@/lib/auth/permissions";
 import { getBillingUsage, getBillingInvoices, type BillingUsage } from "@/lib/billing/data";
+import { PADDLE_PRICE_ENV, paddlePriceId, type PaidPlan, type PlanInterval } from "@/lib/billing/plans";
+import { getAuthUser } from "@/lib/supabase/server";
 import { BillingContent } from "@/components/dashboard/billing-content";
+
+const PAID_PLANS = Object.keys(PADDLE_PRICE_ENV) as PaidPlan[];
+const INTERVALS = Object.keys(PADDLE_PRICE_ENV.starter) as PlanInterval[];
 
 export default async function BillingPage({
   params,
@@ -38,5 +43,20 @@ export default async function BillingPage({
 
   const invoices = await getBillingInvoices(session).catch(() => []);
 
-  return <BillingContent plan={session.merchant.plan} usage={usage} usageFailed={usageFailed} invoices={invoices} />;
+  const priceIds = Object.fromEntries(
+    PAID_PLANS.map((plan) => [plan, Object.fromEntries(INTERVALS.map((interval) => [interval, paddlePriceId(plan, interval) ?? null]))])
+  ) as Record<PaidPlan, Record<PlanInterval, string | null>>;
+
+  const user = await getAuthUser();
+
+  return (
+    <BillingContent
+      merchant={session.merchant}
+      usage={usage}
+      usageFailed={usageFailed}
+      invoices={invoices}
+      priceIds={priceIds}
+      customerEmail={user?.email ?? null}
+    />
+  );
 }

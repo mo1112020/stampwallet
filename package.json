@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@paddle/paddle-js": "^1.6.4",
+    "@paddle/paddle-node-sdk": "^3.8.0",
     "@radix-ui/react-dialog": "^1.1.21",
     "@radix-ui/react-dropdown-menu": "^2.1.22",
     "@radix-ui/react-popover": "^1.1.21",

@@ -175,14 +175,14 @@
       "freeDesc": "1 active program, up to 100 customers",
       "freeCta": "Start free",
       "starterName": "Starter",
-      "starterPrice": "Custom",
+      "starterPrice": "$29/mo",
       "starterDesc": "More programs, higher customer caps, custom branding",
-      "starterCta": "Upgrade",
+      "starterCta": "Get started",
       "proName": "Pro",
-      "proPrice": "Custom",
+      "proPrice": "$79/mo",
       "proDesc": "Higher limits for growing multi-program businesses",
-      "proCta": "Talk to us",
-      "note": "Stripe billing unlocks when your keys are configured. Until then, Free plan works for development."
+      "proCta": "Get started",
+      "note": "Prices shown in USD. Quarterly and yearly billing save you money — pick a cycle above. Sign up free, upgrade anytime from your dashboard."
     },
     "faqPage": {
       "eyebrow": "FAQ",

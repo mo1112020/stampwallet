@@ -1,5 +1,4 @@
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
-import { syncSeatQuantity } from "@/lib/stripe/seats";
 import { updateStaffSchema } from "@/lib/validators";
 
 type Ctx = { params: Promise<{ staffId: string }> };
@@ -38,10 +37,6 @@ export async function PATCH(request: Request, { params }: Ctx) {
 
   if (error || !data) return jsonError(error?.message ?? "Update failed", "update_failed", 500);
 
-  if (parsed.data.status) {
-    await syncSeatQuantity(auth.merchant);
-  }
-
   return jsonOk(data);
 }
 
@@ -66,8 +61,6 @@ export async function DELETE(_request: Request, { params }: Ctx) {
     .eq("id", staffId);
 
   if (error) return jsonError(error.message, "revoke_failed", 500);
-
-  await syncSeatQuantity(auth.merchant);
 
   return jsonOk({ revoked: true });
 }

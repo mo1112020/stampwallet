@@ -82,6 +82,9 @@ export type StepsProgress = {
 };
 export type Progress = StampProgress | PointsProgress | StepsProgress;
 
+export type PlanInterval = "monthly" | "quarterly" | "yearly";
+export type SubscriptionStatus = "active" | "trialing" | "past_due" | "paused" | "canceled";
+
 export type Merchant = {
   id: string;
   business_name: string;
@@ -90,8 +93,19 @@ export type Merchant = {
   brand_color_primary: string;
   brand_color_secondary: string;
   plan: Plan;
-  stripe_customer_id: string | null;
-  stripe_subscription_item_id: string | null;
+  paddle_customer_id: string | null;
+  paddle_subscription_id: string | null;
+  paddle_price_id: string | null;
+  plan_interval: PlanInterval | null;
+  subscription_status: SubscriptionStatus | null;
+  /** Renewal date if subscription_status is "active"/"trialing"/"past_due",
+   * or the date paid access actually stops if a cancellation is scheduled
+   * (see scheduled_cancel_at) or already took effect. Null for merchants
+   * who've never subscribed. */
+  current_period_ends_at: string | null;
+  /** Set only between "merchant clicked cancel" and the cancellation
+   * actually taking effect — null the rest of the time. */
+  scheduled_cancel_at: string | null;
   locale_default: Locale;
   onboarding_completed: boolean;
   currency: string | null;

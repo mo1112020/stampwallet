@@ -1,7 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 import { Check, CreditCard, FileText, Minus, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,20 +11,34 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
-import { PLAN_LIMITS } from "@/lib/billing/plans";
+import { PLAN_LIMITS, PLAN_PRICES_USD_CENTS, type PaidPlan, type PlanInterval } from "@/lib/billing/plans";
 import type { BillingInvoice, BillingUsage } from "@/lib/billing/data";
 import { cn } from "@/lib/utils";
-import type { Plan } from "@/types";
+import type { Merchant, Plan } from "@/types";
 
-const UPGRADE_PLANS: { plan: "starter" | "pro"; blurb: string }[] = [
+const UPGRADE_PLANS: { plan: PaidPlan; blurb: string }[] = [
   { plan: "starter", blurb: "For growing businesses ready to customize their brand." },
   { plan: "pro", blurb: "For established loyalty programs across multiple locations." },
+];
+
+const INTERVALS: { value: PlanInterval; label: string; months: number }[] = [
+  { value: "monthly", label: "Monthly", months: 1 },
+  { value: "quarterly", label: "Quarterly", months: 3 },
+  { value: "yearly", label: "Yearly", months: 12 },
 ];
 
 const COMPARE_PLANS: Plan[] = ["free", "starter", "pro", "enterprise"];
 
 function limitLabel(value: number | null) {
   return value === null ? "Unlimited" : value.toLocaleString();
+}
+
+function formatUsd(cents: number) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(cents / 100);
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 }
 
 const COMPARE_ROWS: { label: string; sub?: string; render: (plan: Plan) => React.ReactNode }[] = [
@@ -74,59 +90,128 @@ function UsageBar({ used, limit }: { used: number; limit: number | null }) {
 }
 
 /**
- * All the interactive bits (checkout/portal redirects) for the billing
- * page, seeded with data the server already fetched — no client-side
- * fetch-on-mount, so there's no loading flash on navigation.
+ * All the interactive bits (Paddle checkout, plan switching, cancellation)
+ * for the billing page, seeded with data the server already fetched — no
+ * client-side fetch-on-mount, so there's no loading flash on navigation.
  */
 export function BillingContent({
-  plan,
+  merchant,
   usage,
   usageFailed,
   invoices,
+  priceIds,
+  customerEmail,
 }: {
-  plan: Plan;
+  merchant: Merchant;
   usage: BillingUsage | null;
   usageFailed: boolean;
   invoices: BillingInvoice[];
+  priceIds: Record<PaidPlan, Record<PlanInterval, string | null>>;
+  customerEmail: string | null;
 }) {
   const t = useTranslations("billing");
-  const [pendingPlan, setPendingPlan] = useState<"starter" | "pro" | "portal" | null>(null);
+  const router = useRouter();
+  const [paddle, setPaddle] = useState<Paddle | null>(null);
+  const [interval, setInterval] = useState<PlanInterval>(merchant.plan_interval ?? "monthly");
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
-  async function checkout(plan: "starter" | "pro") {
-    setPendingPlan(plan);
+  useEffect(() => {
+    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+    const env = process.env.NEXT_PUBLIC_PADDLE_ENV;
+    if (!token || !env) return;
+    initializePaddle({ token, environment: env as "sandbox" | "production" }).then((p) => p && setPaddle(p));
+  }, []);
+
+  const hasActiveSubscription =
+    merchant.subscription_status === "active" ||
+    merchant.subscription_status === "trialing" ||
+    merchant.subscription_status === "past_due";
+
+  // Refresh server-fetched props shortly after an action — the Paddle
+  // webhook (source of truth for merchants.plan/subscription_status) lands
+  // asynchronously, typically sub-second, but not synchronously with this
+  // response.
+  function refreshSoon() {
+    setTimeout(() => router.refresh(), 1500);
+  }
+
+  async function subscribe(plan: PaidPlan) {
+    const priceId = priceIds[plan][interval];
+    if (!priceId || !paddle) {
+      toast.error(t("notConfigured"));
+      return;
+    }
+    paddle.Checkout.open({
+      items: [{ priceId, quantity: 1 }],
+      ...(customerEmail && { customer: { email: customerEmail } }),
+      customData: { merchant_id: merchant.id },
+      settings: { successUrl: window.location.href },
+    });
+  }
+
+  async function switchPlan(plan: PaidPlan) {
+    setPendingAction(plan);
     try {
-      const res = await fetch("/api/billing/checkout", {
-        method: "POST",
+      const res = await fetch("/api/billing/subscription", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, interval }),
       });
       const json = await res.json();
       if (!res.ok) {
         toast.error(json.error?.message ?? t("notConfigured"));
         return;
       }
-      if (json.data?.url) window.location.href = json.data.url;
+      toast.success("Plan updated");
+      refreshSoon();
     } finally {
-      setPendingPlan(null);
+      setPendingAction(null);
     }
   }
 
-  async function portal() {
-    setPendingPlan("portal");
+  async function selectPlan(plan: PaidPlan) {
+    if (hasActiveSubscription) {
+      await switchPlan(plan);
+    } else {
+      await subscribe(plan);
+    }
+  }
+
+  async function cancelSubscription() {
+    setPendingAction("cancel");
     try {
-      const res = await fetch("/api/billing/portal", { method: "POST" });
+      const res = await fetch("/api/billing/subscription", { method: "DELETE" });
       const json = await res.json();
       if (!res.ok) {
         toast.error(json.error?.message ?? t("notConfigured"));
         return;
       }
-      if (json.data?.url) window.location.href = json.data.url;
+      toast.success("Your subscription will end at the close of the current billing period.");
+      setConfirmingCancel(false);
+      refreshSoon();
     } finally {
-      setPendingPlan(null);
+      setPendingAction(null);
+    }
+  }
+
+  async function updatePaymentMethod() {
+    setPendingAction("payment-method");
+    try {
+      const res = await fetch("/api/billing/payment-method", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.data?.transactionId) {
+        toast.error(json.error?.message ?? t("notConfigured"));
+        return;
+      }
+      paddle?.Checkout.open({ transactionId: json.data.transactionId });
+    } finally {
+      setPendingAction(null);
     }
   }
 
   const openInvoice = invoices.find((inv) => inv.status === "open");
+  const plan = merchant.plan;
 
   return (
     <div className="max-w-5xl">
@@ -143,12 +228,21 @@ export function BillingContent({
                 <h2 className="text-2xl font-bold capitalize text-[var(--ink)]">{plan}</h2>
                 {PLAN_LIMITS[plan].customBranding && <Badge variant="primary">Custom branding</Badge>}
               </div>
+              {merchant.scheduled_cancel_at ? (
+                <p className="mt-1.5 text-sm text-[var(--danger)]">
+                  Cancels on {formatDate(merchant.scheduled_cancel_at)} — you keep access until then.
+                </p>
+              ) : merchant.current_period_ends_at && hasActiveSubscription ? (
+                <p className="mt-1.5 text-sm text-[var(--muted)]">Renews {formatDate(merchant.current_period_ends_at)}</p>
+              ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={portal} disabled={pendingPlan !== null}>
-                <CreditCard className="mr-2 h-4 w-4" />
-                {pendingPlan === "portal" ? t("processing") : t("manage")}
-              </Button>
+              {hasActiveSubscription && (
+                <Button variant="outline" onClick={updatePaymentMethod} disabled={pendingAction !== null || !paddle}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  {pendingAction === "payment-method" ? t("processing") : "Payment method"}
+                </Button>
+              )}
               <a
                 href="mailto:sales@stampwallet.app?subject=Enterprise%20plan"
                 className="inline-flex h-11 items-center justify-center rounded-full border border-[var(--line)] px-5 text-sm font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)]"
@@ -162,11 +256,30 @@ export function BillingContent({
 
       {/* Upgrade options */}
       <section className="mt-8">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">Plans</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">Plans</h3>
+          <div className="inline-flex rounded-full border border-[var(--line)] p-1">
+            {INTERVALS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setInterval(value)}
+                className={cn(
+                  "rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                  interval === value ? "bg-[var(--primary)] text-[var(--primary-fg)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <StaggerGroup className="mt-3 grid gap-4 sm:grid-cols-2">
           {UPGRADE_PLANS.map(({ plan: upgradePlan, blurb }) => {
             const limits = PLAN_LIMITS[upgradePlan];
-            const isCurrent = plan === upgradePlan;
+            const isCurrent = plan === upgradePlan && merchant.plan_interval === interval && hasActiveSubscription;
+            const cents = PLAN_PRICES_USD_CENTS[upgradePlan][interval];
+            const monthlyEquivalent = cents / INTERVALS.find((i) => i.value === interval)!.months;
             return (
               <Card key={upgradePlan} className={cn("flex flex-col p-6", isCurrent && "ring-2 ring-[var(--primary)]")}>
                 <div className="flex items-center justify-between">
@@ -174,6 +287,13 @@ export function BillingContent({
                   {isCurrent && <Badge variant="primary">Current</Badge>}
                 </div>
                 <p className="mt-1 text-sm text-[var(--muted)]">{blurb}</p>
+                <p className="mt-3 text-2xl font-bold text-[var(--ink)]">
+                  {formatUsd(monthlyEquivalent)}
+                  <span className="text-sm font-normal text-[var(--muted)]">/mo</span>
+                </p>
+                {interval !== "monthly" && (
+                  <p className="text-xs text-[var(--muted)]">{formatUsd(cents)} billed {interval}</p>
+                )}
                 <ul className="mt-4 space-y-1.5 text-sm text-[var(--muted)]">
                   <li>{limits.maxActivePrograms ?? "Unlimited"} active programs</li>
                   <li>{limits.maxActiveCustomers?.toLocaleString() ?? "Unlimited"} customers</li>
@@ -183,10 +303,16 @@ export function BillingContent({
                 <Button
                   className="mt-5 w-full"
                   variant={isCurrent ? "outline" : "default"}
-                  disabled={isCurrent || pendingPlan !== null}
-                  onClick={() => checkout(upgradePlan)}
+                  disabled={isCurrent || pendingAction !== null || (!hasActiveSubscription && !paddle)}
+                  onClick={() => selectPlan(upgradePlan)}
                 >
-                  {isCurrent ? "Current plan" : pendingPlan === upgradePlan ? t("processing") : `${t("upgrade")} ${upgradePlan}`}
+                  {isCurrent
+                    ? "Current plan"
+                    : pendingAction === upgradePlan
+                      ? t("processing")
+                      : hasActiveSubscription
+                        ? `Switch to ${upgradePlan}`
+                        : `${t("upgrade")} ${upgradePlan}`}
                 </Button>
               </Card>
             );
@@ -343,21 +469,8 @@ export function BillingContent({
                 <p className="mt-1 text-xs text-[var(--muted)]">Due {new Date(openInvoice.created * 1000).toLocaleDateString()}</p>
               </>
             ) : (
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Generated automatically when your billing period renews. View full details in the billing portal.
-              </p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Generated automatically when your billing period renews.</p>
             )}
-          </Card>
-
-          <Card className="p-5">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-[var(--muted)]" />
-              <p className="text-sm font-semibold text-[var(--ink)]">Payment methods</p>
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">Cards on file are managed securely through Stripe.</p>
-            <Button variant="outline" size="sm" className="mt-3 w-full" onClick={portal} disabled={pendingPlan !== null}>
-              Manage payment methods
-            </Button>
           </Card>
 
           <Card className="p-5">
@@ -365,12 +478,51 @@ export function BillingContent({
               <ShieldCheck className="h-4 w-4 text-[var(--muted)]" />
               <p className="text-sm font-semibold text-[var(--ink)]">Subscription details</p>
             </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Plan, seats, and renewal date are managed in the billing portal — cancel or change your plan any time.
-            </p>
-            <Button variant="outline" size="sm" className="mt-3 w-full" onClick={portal} disabled={pendingPlan !== null}>
-              Open billing portal
-            </Button>
+            {hasActiveSubscription ? (
+              <>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Billed {merchant.plan_interval ?? "monthly"}
+                  {merchant.current_period_ends_at && !merchant.scheduled_cancel_at && (
+                    <> — renews {formatDate(merchant.current_period_ends_at)}</>
+                  )}
+                  {merchant.scheduled_cancel_at && <> — cancels {formatDate(merchant.scheduled_cancel_at)}</>}
+                </p>
+                {!merchant.scheduled_cancel_at &&
+                  (confirmingCancel ? (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs text-[var(--muted)]">
+                        You&apos;ll keep access until the end of this billing period. Cancel for real?
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          className="flex-1"
+                          onClick={cancelSubscription}
+                          disabled={pendingAction !== null}
+                        >
+                          {pendingAction === "cancel" ? t("processing") : "Yes, cancel"}
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => setConfirmingCancel(false)}>
+                          Never mind
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3 w-full"
+                      onClick={() => setConfirmingCancel(true)}
+                      disabled={pendingAction !== null}
+                    >
+                      Cancel subscription
+                    </Button>
+                  ))}
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-[var(--muted)]">You&apos;re not on a paid plan yet — subscribe above to unlock upgrades.</p>
+            )}
           </Card>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import type { SessionContext } from "@/lib/api";
-import { PLAN_LIMITS, isStripeConfigured } from "@/lib/billing/plans";
-import { countSeats } from "@/lib/stripe/seats";
-import { createStripeClient } from "@/lib/stripe";
+import { PLAN_LIMITS, isPaddleConfigured } from "@/lib/billing/plans";
+import { countSeats } from "@/lib/billing/seats";
+import { createPaddleClient } from "@/lib/paddle";
 import type { Plan } from "@/types";
 
 export type BillingUsage = {
@@ -40,30 +40,55 @@ export async function getBillingUsage(session: SessionContext): Promise<BillingU
 
 export type BillingInvoice = {
   id: string;
+  /** Smallest currency unit (cents for USD), matching Stripe's
+   * amount_paid convention this type originally modeled — components
+   * dividing by 100 to display don't need to change. */
   amount_paid: number;
   currency: string;
   status: string | null;
+  /** Unix seconds, matching Stripe's `created` convention this type
+   * originally modeled. */
   created: number;
   hosted_invoice_url: string | null;
 };
 
 export async function getBillingInvoices(session: SessionContext): Promise<BillingInvoice[]> {
-  if (!isStripeConfigured() || !session.merchant.stripe_customer_id) {
+  if (!isPaddleConfigured() || !session.merchant.paddle_customer_id) {
     return [];
   }
 
-  const stripe = createStripeClient();
-  const invoices = await stripe.invoices.list({
-    customer: session.merchant.stripe_customer_id,
-    limit: 12,
+  const paddle = createPaddleClient();
+  const transactions = paddle.transactions.list({
+    customerId: [session.merchant.paddle_customer_id],
+    perPage: 12,
+    status: ["billed", "paid", "completed", "past_due"],
   });
 
-  return invoices.data.map((inv) => ({
-    id: inv.id,
-    amount_paid: inv.amount_paid,
-    currency: inv.currency,
-    status: inv.status,
-    created: inv.created,
-    hosted_invoice_url: inv.hosted_invoice_url ?? null,
-  }));
+  const invoices: BillingInvoice[] = [];
+  for await (const tx of transactions) {
+    // Only transactions that actually reached billing have an invoice PDF —
+    // a transaction can exist in other states (e.g. draft) with nothing to
+    // fetch yet. Per-transaction try/catch so one missing PDF doesn't blank
+    // out the whole list.
+    let hostedInvoiceUrl: string | null = null;
+    try {
+      const pdf = await paddle.transactions.getInvoicePDF(tx.id);
+      hostedInvoiceUrl = pdf.url;
+    } catch {
+      // No PDF available yet for this transaction — not an error state.
+    }
+
+    invoices.push({
+      id: tx.id,
+      amount_paid: Number(tx.details?.totals?.grandTotal ?? "0"),
+      currency: tx.currencyCode,
+      status: tx.status,
+      created: Math.floor(new Date(tx.billedAt ?? tx.createdAt).getTime() / 1000),
+      hosted_invoice_url: hostedInvoiceUrl,
+    });
+
+    if (invoices.length >= 12) break;
+  }
+
+  return invoices;
 }
