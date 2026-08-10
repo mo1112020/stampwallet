@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { BarChart3, Bell, Smartphone, Layers } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { IconCard } from "@/components/marketing/icon-card";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export default async function FeaturesPage({
@@ -15,10 +16,10 @@ export default async function FeaturesPage({
   const common = await getTranslations("site.common");
 
   const cards = [
-    { href: `/${locale}/features/wallet`, title: t("walletTitle"), body: t("walletBody") },
-    { href: `/${locale}/features/programs`, title: t("programsTitle"), body: t("programsBody") },
-    { href: `/${locale}/features/updates`, title: t("updatesTitle"), body: t("updatesBody") },
-    { href: `/${locale}/features/analytics`, title: t("analyticsTitle"), body: t("analyticsBody") },
+    { icon: Smartphone, href: `/${locale}/features/wallet`, title: t("walletTitle"), body: t("walletBody") },
+    { icon: Layers, href: `/${locale}/features/programs`, title: t("programsTitle"), body: t("programsBody") },
+    { icon: Bell, href: `/${locale}/features/updates`, title: t("updatesTitle"), body: t("updatesBody") },
+    { icon: BarChart3, href: `/${locale}/features/analytics`, title: t("analyticsTitle"), body: t("analyticsBody") },
   ];
 
   return (
@@ -33,17 +34,7 @@ export default async function FeaturesPage({
       <section className="px-6 py-20">
         <StaggerGroup className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
           {cards.map((card) => (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-8 transition hover:border-[var(--line-strong)]"
-            >
-              <h2 className="text-2xl font-semibold text-[var(--ink)]">{card.title}</h2>
-              <p className="mt-3 text-[var(--muted)]">{card.body}</p>
-              <p className="mt-6 text-sm font-semibold text-[var(--primary)]">
-                {common("learnMore")} <span className="inline-block rtl:-scale-x-100">→</span>
-              </p>
-            </Link>
+            <IconCard key={card.href} icon={card.icon} href={card.href} title={card.title} body={card.body} cta={common("learnMore")} />
           ))}
         </StaggerGroup>
       </section>

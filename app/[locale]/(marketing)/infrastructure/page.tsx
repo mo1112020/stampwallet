@@ -1,6 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { CreditCard, ScanLine, ShieldCheck } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { IconCard } from "@/components/marketing/icon-card";
+import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export default async function InfrastructurePage({
   params,
@@ -13,9 +16,9 @@ export default async function InfrastructurePage({
   const common = await getTranslations("site.common");
 
   const blocks = [
-    { title: t("b1Title"), body: t("b1Body") },
-    { title: t("b2Title"), body: t("b2Body") },
-    { title: t("b3Title"), body: t("b3Body") },
+    { icon: ShieldCheck, title: t("b1Title"), body: t("b1Body") },
+    { icon: CreditCard, title: t("b2Title"), body: t("b2Body") },
+    { icon: ScanLine, title: t("b3Title"), body: t("b3Body") },
   ];
 
   return (
@@ -28,14 +31,11 @@ export default async function InfrastructurePage({
         ctaLabel={common("getStarted")}
       />
       <section className="px-6 py-20">
-        <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
+        <StaggerGroup className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
           {blocks.map((b) => (
-            <div key={b.title} className="bg-[var(--surface-2)] p-7">
-              <h2 className="text-xl font-semibold">{b.title}</h2>
-              <p className="mt-3 text-[var(--muted)]">{b.body}</p>
-            </div>
+            <IconCard key={b.title} icon={b.icon} title={b.title} body={b.body} />
           ))}
-        </div>
+        </StaggerGroup>
       </section>
       <CtaBand
         title={t("title")}

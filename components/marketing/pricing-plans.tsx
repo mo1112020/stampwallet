@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { StaggerGroup } from "@/components/motion/stagger-group";
-import { buttonVariants } from "@/components/ui/button";
+import { Pencil, Sparkles, Star } from "lucide-react";
+import { CreativePricing, type PricingTier } from "@/components/ui/creative-pricing";
 import { cn } from "@/lib/utils";
 import { PLAN_PRICES_USD_CENTS, type PaidPlan, type PlanInterval } from "@/lib/billing/plans";
 
@@ -37,41 +36,39 @@ export function PricingPlans({
     return formatUsd(PLAN_PRICES_USD_CENTS[plan][interval]);
   }
 
-  const plans: {
-    key: "free" | PaidPlan;
-    name: string;
-    price: string | undefined;
-    period: string;
-    desc: string;
-    cta: string;
-    featured: boolean;
-  }[] = [
+  const periodLabel = `/${interval === "monthly" ? "mo" : interval === "quarterly" ? "qtr" : "yr"}`;
+  const signupHref = `/${locale}/signup`;
+
+  const tiers: PricingTier[] = [
     {
-      key: "free",
       name: t("freeName"),
+      icon: <Sparkles className="w-6 h-6" />,
       price: t("freePrice"),
-      period: "",
-      desc: t("freeDesc"),
+      description: t("freeDesc"),
       cta: t("freeCta"),
-      featured: true,
+      href: signupHref,
+      features: ["1 active program", "Up to 100 customers", "Apple & Google Wallet passes"],
     },
     {
-      key: "starter",
       name: t("starterName"),
-      price: priceFor("starter"),
-      period: `/${interval === "monthly" ? "mo" : interval === "quarterly" ? "qtr" : "yr"}`,
-      desc: t("starterDesc"),
+      icon: <Pencil className="w-6 h-6" />,
+      price: priceFor("starter") ?? "…",
+      period: priceIds.starter[interval] ? periodLabel : undefined,
+      description: t("starterDesc"),
       cta: t("starterCta"),
-      featured: false,
+      href: signupHref,
+      features: ["3 active programs", "1,000 customers", "Custom branding", "Card expiration"],
     },
     {
-      key: "pro",
       name: t("proName"),
-      price: priceFor("pro"),
-      period: `/${interval === "monthly" ? "mo" : interval === "quarterly" ? "qtr" : "yr"}`,
-      desc: t("proDesc"),
+      icon: <Star className="w-6 h-6" />,
+      price: priceFor("pro") ?? "…",
+      period: priceIds.pro[interval] ? periodLabel : undefined,
+      description: t("proDesc"),
       cta: t("proCta"),
-      featured: false,
+      href: signupHref,
+      popular: true,
+      features: ["20 active programs", "10,000 customers", "Custom branding", "Card expiration"],
     },
   ];
 
@@ -95,28 +92,9 @@ export function PricingPlans({
         </div>
       </div>
 
-      <StaggerGroup className="mx-auto mt-8 grid max-w-6xl gap-6 md:grid-cols-3">
-        {plans.map((plan) => (
-          <article
-            key={plan.key}
-            className={
-              plan.featured
-                ? "rounded-[24px] border-2 border-[var(--primary)] bg-[var(--surface)] p-8"
-                : "rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-8"
-            }
-          >
-            <h2 className="text-xl font-semibold">{plan.name}</h2>
-            <p className="mt-4 text-4xl font-bold tracking-tight text-[var(--ink)]">
-              {plan.price ?? "…"}
-              {plan.price && plan.period && <span className="text-base font-medium text-[var(--muted)]">{plan.period}</span>}
-            </p>
-            <p className="mt-3 text-[var(--muted)]">{plan.desc}</p>
-            <Link href={`/${locale}/signup`} className={buttonVariants({ className: "mt-8" })}>
-              {plan.cta}
-            </Link>
-          </article>
-        ))}
-      </StaggerGroup>
+      <div className="mt-8">
+        <CreativePricing tag={t("eyebrow")} title={t("title")} description={t("description")} tiers={tiers} />
+      </div>
     </>
   );
 }

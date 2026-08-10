@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Bell, Layers, QrCode, ScanLine, Smartphone, Store, Tag, UserPlus, Wallet } from "lucide-react";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { HowItWorks } from "@/components/marketing/how-it-works";
+import { IconCard } from "@/components/marketing/icon-card";
+import { TrustBadges } from "@/components/marketing/trust-badges";
+import { WalletPreviewCard } from "@/components/marketing/wallet-preview-card";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { buttonVariants } from "@/components/ui/button";
@@ -15,6 +20,14 @@ export default async function HomePage({
   setRequestLocale(locale);
   const t = await getTranslations("site.home");
   const common = await getTranslations("site.common");
+
+  const howSteps = [
+    { icon: QrCode, title: t("howStep1Title"), description: t("howStep1Body") },
+    { icon: UserPlus, title: t("howStep2Title"), description: t("howStep2Body") },
+    { icon: Wallet, title: t("howStep3Title"), description: t("howStep3Body") },
+    { icon: ScanLine, title: t("howStep4Title"), description: t("howStep4Body") },
+    { icon: Bell, title: t("howStep5Title"), description: t("howStep5Body") },
+  ];
 
   return (
     <main>
@@ -59,23 +72,39 @@ export default async function HomePage({
                 {t("heroSecondary")}
               </Link>
             </div>
+            <TrustBadges
+              className="mt-10"
+              appleLabel={t("trustApple")}
+              googleLabel={t("trustGoogle")}
+              capabilities={[
+                { icon: Smartphone, label: t("trustNoApp") },
+                { icon: Bell, label: t("trustUpdates") },
+              ]}
+            />
           </Reveal>
         </div>
       </section>
 
       <section className="px-6 py-24 md:py-32">
-        <Reveal as="div" className="mx-auto max-w-3xl">
-          <h2 className="text-4xl font-bold tracking-tight text-[var(--ink)] md:text-5xl">{t("pocketTitle")}</h2>
-          <p className="mt-5 max-w-xl text-[var(--muted)] text-pretty">{t("pocketSub")}</p>
-          <Link
-            href={`/${locale}/features/wallet`}
-            className="mt-6 inline-flex text-sm font-semibold text-[var(--primary)] hover:underline"
-            aria-label={`${common("learnMore")} — ${t("pocketTitle")}`}
-          >
-            {common("learnMore")}
-          </Link>
-        </Reveal>
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-12 lg:flex-row lg:gap-16">
+          <Reveal as="div" className="flex-1">
+            <h2 className="text-4xl font-bold tracking-tight text-[var(--ink)] md:text-5xl">{t("pocketTitle")}</h2>
+            <p className="mt-5 max-w-xl text-[var(--muted)] text-pretty">{t("pocketSub")}</p>
+            <Link
+              href={`/${locale}/features/wallet`}
+              className="mt-6 inline-flex text-sm font-semibold text-[var(--primary)] hover:underline"
+              aria-label={`${common("learnMore")} — ${t("pocketTitle")}`}
+            >
+              {common("learnMore")}
+            </Link>
+          </Reveal>
+          <Reveal as="div" delay={0.1} className="shrink-0">
+            <WalletPreviewCard platform="apple" />
+          </Reveal>
+        </div>
       </section>
+
+      <HowItWorks title={t("howTitle")} description={t("howSubtitle")} steps={howSteps} stepLabel={t("howStepLabel")} />
 
       <section className="border-y border-[var(--line)] bg-[var(--surface-2)] px-6 py-24">
         <div className="mx-auto max-w-6xl">
@@ -83,27 +112,24 @@ export default async function HomePage({
             {t("exploreTitle")}
           </Reveal>
           <StaggerGroup className="mt-10 grid gap-4 md:grid-cols-3">
-            <Link
+            <IconCard
+              icon={Layers}
               href={`/${locale}/features`}
-              className="rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-7 transition-colors hover:border-[var(--line-strong)]"
-            >
-              <h3 className="text-xl font-semibold text-[var(--ink)]">{t("exploreFeatures")}</h3>
-              <p className="mt-3 text-sm text-[var(--muted)]">{t("exploreFeaturesBody")}</p>
-            </Link>
-            <Link
+              title={t("exploreFeatures")}
+              body={t("exploreFeaturesBody")}
+            />
+            <IconCard
+              icon={Store}
               href={`/${locale}/industries`}
-              className="rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-7 transition-colors hover:border-[var(--line-strong)]"
-            >
-              <h3 className="text-xl font-semibold text-[var(--ink)]">{t("exploreIndustries")}</h3>
-              <p className="mt-3 text-sm text-[var(--muted)]">{t("exploreIndustriesBody")}</p>
-            </Link>
-            <Link
+              title={t("exploreIndustries")}
+              body={t("exploreIndustriesBody")}
+            />
+            <IconCard
+              icon={Tag}
               href={`/${locale}/pricing`}
-              className="rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-7 transition-colors hover:border-[var(--line-strong)]"
-            >
-              <h3 className="text-xl font-semibold text-[var(--ink)]">{t("explorePricing")}</h3>
-              <p className="mt-3 text-sm text-[var(--muted)]">{t("explorePricingBody")}</p>
-            </Link>
+              title={t("explorePricing")}
+              body={t("explorePricingBody")}
+            />
           </StaggerGroup>
         </div>
       </section>

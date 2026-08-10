@@ -1,34 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
-function localeHref(pathname: string, nextLocale: string) {
-  const segments = pathname.split("/");
-  if (segments[1] === "en" || segments[1] === "ar") {
-    segments[1] = nextLocale;
-    return segments.join("/") || `/${nextLocale}`;
-  }
-  return `/${nextLocale}`;
-}
-
+/** Same dropdown used everywhere else in the app (mobile nav, dashboard
+ * topbar) — was previously a plain Link that swapped locale on click with
+ * no open/close affordance at all, despite showing a chevron that implied
+ * one. */
 export function AuthLocaleSelect({ locale }: { locale: string }) {
-  const pathname = usePathname();
-  const other = locale === "ar" ? "en" : "ar";
-  const label = locale === "ar" ? "العربية" : "English";
-
   return (
-    <Link
-      href={localeHref(pathname, other)}
-      hrefLang={other}
-      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3.5 py-1.5 text-[13px] text-[var(--ink)] hover:border-[var(--ink)]/20"
-    >
-      {label}
-      <ChevronDown size={14} className="opacity-50" />
-    </Link>
+    <LanguageSwitcher
+      locale={locale}
+      className="w-auto"
+      triggerClassName="w-auto rounded-full border border-[var(--line)] bg-[var(--surface)] px-3.5 py-1.5 text-[13px] hover:border-[var(--ink)]/20 hover:bg-[var(--surface)]"
+    />
   );
 }
 

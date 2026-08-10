@@ -144,47 +144,56 @@ export function MarketingHeader({ locale }: { locale: string }) {
             open ? "mt-3 grid-rows-[1fr]" : "mt-0 grid-rows-[0fr]"
           )}
         >
-          <div className="overflow-hidden rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-sm">
-            <nav className="flex flex-col gap-0.5">
-              <Link
-                href={`/${locale}`}
-                onClick={() => setOpen(false)}
-                className="rounded-xl px-4 py-3 text-sm text-[var(--ink)]"
-              >
-                {t("home")}
-              </Link>
-              {links.map((item) => (
+          {/* A grid item's border+padding can never shrink below their own
+              sum, no matter what min-height says — so the visual chrome
+              (border/padding/rounding) lives on a CHILD of the grid item
+              instead of the item itself. When the row track collapses to
+              0fr, this outer item has no box-model floor of its own left to
+              show, and its bordered/padded child just gets clipped away by
+              overflow-hidden — a real 0px, not a persistent border sliver. */}
+          <div className="overflow-hidden">
+            <div className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-sm">
+              <nav className="flex flex-col gap-0.5">
                 <Link
-                  key={item.key}
-                  href={hrefFor(item.path)}
+                  href={`/${locale}`}
                   onClick={() => setOpen(false)}
-                  className={cn(
-                    "rounded-xl px-4 py-3 text-sm",
-                    isActive(item.path) ? "bg-[var(--surface-3)] font-medium" : "text-[var(--muted)]"
-                  )}
+                  className="rounded-xl px-4 py-3 text-sm text-[var(--ink)]"
                 >
-                  {t(item.key)}
+                  {t("home")}
                 </Link>
-              ))}
-            </nav>
-            <div className="mt-2 border-t border-[var(--line)] pt-2">
-              <LanguageSwitcher locale={locale} onNavigate={() => setOpen(false)} />
-            </div>
-            <div className="mt-1 flex items-center gap-2 border-t border-[var(--line)] pt-3">
-              <Link
-                href={`/${locale}/login`}
-                onClick={() => setOpen(false)}
-                className="rounded-full px-3 py-2 text-sm text-[var(--muted)]"
-              >
-                {nav("login")}
-              </Link>
-              <Link
-                href={`/${locale}/signup`}
-                onClick={() => setOpen(false)}
-                className={cn(buttonVariants({ size: "sm" }), "ms-auto")}
-              >
-                {nav("signup")}
-              </Link>
+                {links.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={hrefFor(item.path)}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "rounded-xl px-4 py-3 text-sm",
+                      isActive(item.path) ? "bg-[var(--surface-3)] font-medium" : "text-[var(--muted)]"
+                    )}
+                  >
+                    {t(item.key)}
+                  </Link>
+                ))}
+              </nav>
+              <div className="mt-2 border-t border-[var(--line)] pt-2">
+                <LanguageSwitcher locale={locale} onNavigate={() => setOpen(false)} />
+              </div>
+              <div className="mt-1 flex items-center gap-2 border-t border-[var(--line)] pt-3">
+                <Link
+                  href={`/${locale}/login`}
+                  onClick={() => setOpen(false)}
+                  className="rounded-full px-3 py-2 text-sm text-[var(--muted)]"
+                >
+                  {nav("login")}
+                </Link>
+                <Link
+                  href={`/${locale}/signup`}
+                  onClick={() => setOpen(false)}
+                  className={cn(buttonVariants({ size: "sm" }), "ms-auto")}
+                >
+                  {nav("signup")}
+                </Link>
+              </div>
             </div>
           </div>
         </div>

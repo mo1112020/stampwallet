@@ -1,5 +1,4 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { PageHero } from "@/components/marketing/page-hero";
 import { PricingPlans } from "@/components/marketing/pricing-plans";
 import { STRIPE_PRICE_ENV, stripePriceId, type PaidPlan, type PlanInterval } from "@/lib/billing/plans";
 
@@ -21,8 +20,7 @@ export default async function PricingPage({
 
   return (
     <main>
-      <PageHero eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
-      <section className="px-6 py-20">
+      <section className="px-6 pb-16 pt-32 md:pb-24 md:pt-36">
         <PricingPlans locale={locale} priceIds={priceIds} />
         <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--muted)]">{t("note")}</p>
       </section>

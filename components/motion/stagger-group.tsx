@@ -35,11 +35,23 @@ export function StaggerGroup({
   // Sets the pre-reveal hidden state synchronously, before the browser's
   // first paint — a plain useEffect here would let children flash fully
   // visible for a frame before snapping hidden, since it runs after paint.
+  // `reduced` starts false (useReducedMotion's own detection is itself
+  // effect-based) and can flip true on a later render — without the else
+  // branch, items hidden by that first false-render pass would stay
+  // opacity:0 forever once `reduced` becomes true, since nothing else ever
+  // clears an inline style an effect didn't just set.
   useLayoutEffect(() => {
-    if (reduced) return;
     const el = ref.current;
     if (!el) return;
     const items = el.querySelectorAll<HTMLElement>(itemSelector);
+    if (reduced) {
+      items.forEach((item) => {
+        item.style.transition = "";
+        item.style.opacity = "";
+        item.style.transform = "";
+      });
+      return;
+    }
     items.forEach((item, index) => {
       item.style.transition = `opacity 0.55s ${EASE} ${index * stagger}s, transform 0.55s ${EASE} ${index * stagger}s`;
       item.style.opacity = "0";

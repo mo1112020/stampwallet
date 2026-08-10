@@ -1,6 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Coffee, Dumbbell, Scissors, Store, UtensilsCrossed } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { IconCard } from "@/components/marketing/icon-card";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 
 export default async function IndustriesPage({
@@ -14,11 +16,11 @@ export default async function IndustriesPage({
   const common = await getTranslations("site.common");
 
   const items = [
-    { title: t("cafes"), body: t("cafesBody") },
-    { title: t("salons"), body: t("salonsBody") },
-    { title: t("gyms"), body: t("gymsBody") },
-    { title: t("restaurants"), body: t("restaurantsBody") },
-    { title: t("retail"), body: t("retailBody") },
+    { icon: Coffee, title: t("cafes"), body: t("cafesBody") },
+    { icon: Scissors, title: t("salons"), body: t("salonsBody") },
+    { icon: Dumbbell, title: t("gyms"), body: t("gymsBody") },
+    { icon: UtensilsCrossed, title: t("restaurants"), body: t("restaurantsBody") },
+    { icon: Store, title: t("retail"), body: t("retailBody") },
   ];
 
   return (
@@ -33,10 +35,7 @@ export default async function IndustriesPage({
       <section className="px-6 py-20">
         <StaggerGroup className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <article key={item.title} className="border border-[var(--line)] p-7">
-              <h2 className="text-xl font-semibold text-[var(--ink)]">{item.title}</h2>
-              <p className="mt-3 text-[var(--muted)]">{item.body}</p>
-            </article>
+            <IconCard key={item.title} icon={item.icon} title={item.title} body={item.body} />
           ))}
         </StaggerGroup>
       </section>

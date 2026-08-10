@@ -1,6 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { CheckCircle2, Smartphone, Zap } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { IconCard } from "@/components/marketing/icon-card";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 
@@ -15,9 +17,9 @@ export default async function AboutPage({
   const common = await getTranslations("site.common");
 
   const values = [
-    { title: t("v1Title"), body: t("v1Body") },
-    { title: t("v2Title"), body: t("v2Body") },
-    { title: t("v3Title"), body: t("v3Body") },
+    { icon: Smartphone, title: t("v1Title"), body: t("v1Body") },
+    { icon: Zap, title: t("v2Title"), body: t("v2Body") },
+    { icon: CheckCircle2, title: t("v3Title"), body: t("v3Body") },
   ];
 
   return (
@@ -40,10 +42,7 @@ export default async function AboutPage({
           <h2 className="text-3xl font-semibold text-[var(--ink)]">{t("valuesTitle")}</h2>
           <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
             {values.map((v) => (
-              <div key={v.title} className="rounded-[24px] bg-[var(--surface)] p-7">
-                <h3 className="text-xl font-semibold text-[var(--ink)]">{v.title}</h3>
-                <p className="mt-3 text-[var(--muted)]">{v.body}</p>
-              </div>
+              <IconCard key={v.title} icon={v.icon} title={v.title} body={v.body} />
             ))}
           </StaggerGroup>
         </div>

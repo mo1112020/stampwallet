@@ -5,7 +5,20 @@ import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const FAQ_KEYS = ["app", "paper", "cost", "pos", "industries", "launch"] as const;
+const FAQ_KEYS = [
+  "app",
+  "iphone",
+  "android",
+  "walletApp",
+  "scanning",
+  "customize",
+  "reward",
+  "paper",
+  "cost",
+  "pos",
+  "industries",
+  "launch",
+] as const;
 
 export function FaqSection() {
   const t = useTranslations("landing.faq");

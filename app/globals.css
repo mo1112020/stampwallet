@@ -157,6 +157,23 @@ button {
   }
 }
 
+/* Marketing wallet-card mockups (components/marketing/wallet-preview-card.tsx) —
+   the "latest" stamp pops in to read as freshly earned, not just static art. */
+@keyframes stampPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Dashboard route change — app/[locale]/dashboard/template.tsx remounts this on every navigation. */
 .dashboard-page-enter {
   animation: dashboardPageEnter 160ms var(--ease-out) both;

@@ -19,6 +19,7 @@ const config: Config = {
         brand: ["Barnule", "Flexing", "Georgia", "serif"],
         display: ["Flexing", "Barnule", "system-ui", "sans-serif"],
         body: ["Avona", "Georgia", "serif"],
+        handwritten: ["var(--font-handwritten)", "cursive"],
       },
     },
   },

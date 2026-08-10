@@ -57,28 +57,47 @@
     },
     "home": {
       "heroTitle": "Turn casual guests into regulars",
-      "heroSub": "Boost visit frequency with a wallet-native loyalty engine. No app download — just Apple Wallet and Google Wallet.",
+      "heroSub": "Boost visit frequency with a wallet-native loyalty engine. No app download, just Apple Wallet and Google Wallet.",
       "heroCta": "Get started",
       "heroSecondary": "See features",
       "pocketTitle": "Your brand, in their pocket.",
-      "pocketSub": "No app needed — a simple, powerful loyalty card for Apple and Google Wallet.",
+      "pocketSub": "No app needed. A simple, powerful loyalty card for Apple and Google Wallet.",
       "exploreTitle": "Explore WalletOS",
       "exploreFeatures": "Features",
       "exploreFeaturesBody": "Wallet passes, stamp and points programs, live updates, and analytics.",
       "exploreIndustries": "Industries",
       "exploreIndustriesBody": "Built for cafés, salons, gyms, restaurants, and more.",
       "explorePricing": "Pricing",
-      "explorePricingBody": "Start free. Upgrade when your loyalty program grows."
+      "explorePricingBody": "Start free. Upgrade when your loyalty program grows.",
+      "trustApple": "Works with Apple Wallet",
+      "trustGoogle": "Works with Google Wallet",
+      "trustNoApp": "No app required",
+      "trustUpdates": "Instant wallet updates",
+      "trustScan": "QR & barcode scanning",
+      "trustSecure": "Secure cloud platform",
+      "howTitle": "From signup to reward",
+      "howSubtitle": "One flow, no app for the customer to install and nothing new for staff to learn.",
+      "howStepLabel": "Step",
+      "howStep1Title": "Customer scans a QR",
+      "howStep1Body": "At the counter or on a flyer, no app and no typing in details.",
+      "howStep2Title": "They join in seconds",
+      "howStep2Body": "Name and phone number. That's the whole enrollment form.",
+      "howStep3Title": "Card lands in their wallet",
+      "howStep3Body": "One tap adds it to Apple Wallet or Google Wallet. Nothing to install.",
+      "howStep4Title": "Staff scan to award",
+      "howStep4Body": "Any phone with a camera works, no new hardware at the register.",
+      "howStep5Title": "The pass updates itself",
+      "howStep5Body": "Stamps, points, and rewards push straight to the lock screen."
     },
     "about": {
       "eyebrow": "About",
       "title": "We sell customer retention, not wallet technology.",
-      "description": "WalletOS helps small and medium businesses launch digital loyalty in minutes — bilingual Arabic and English, MENA/GCC first.",
+      "description": "WalletOS helps small and medium businesses launch digital loyalty in minutes. Bilingual Arabic and English, MENA/GCC first.",
       "missionTitle": "Our mission",
       "missionBody": "Make loyalty as simple as a paper stamp card, with the reach of Apple Wallet and Google Wallet. Merchants get a dashboard. Customers never download an app.",
       "valuesTitle": "What we believe",
       "v1Title": "Frictionless for customers",
-      "v1Body": "No accounts, no apps — just a pass in the wallet they already use.",
+      "v1Body": "No accounts, no apps. Just a pass in the wallet they already use.",
       "v2Title": "Fast for merchants",
       "v2Body": "Signup to a live enrollment QR in under two minutes.",
       "v3Title": "Honest progress",
@@ -87,7 +106,7 @@
     "features": {
       "eyebrow": "Features",
       "title": "Everything you need for wallet loyalty",
-      "description": "Programs, enrollment, scanning, live pass updates, and analytics — in one platform.",
+      "description": "Programs, enrollment, scanning, live pass updates, and analytics, all in one platform.",
       "walletTitle": "Mobile wallet",
       "walletBody": "Apple Wallet and Google Wallet passes branded to your business.",
       "programsTitle": "Loyalty programs",
@@ -111,18 +130,18 @@
     "featuresPrograms": {
       "eyebrow": "Programs",
       "title": "Three program types, one dashboard",
-      "description": "Pick the loyalty style that fits your business — all included in WalletOS.",
+      "description": "Pick the loyalty style that fits your business, all included in WalletOS.",
       "stampTitle": "Stamp cards",
       "stampBody": "Buy 10, get 1 free style grids. Visual and familiar.",
       "pointsTitle": "Point cards",
       "pointsBody": "Accumulate points toward a reward threshold.",
       "stepsTitle": "Reward journey",
-      "stepsBody": "Unlock stages in sequence — Welcome to VIP."
+      "stepsBody": "Unlock stages in sequence, from Welcome to VIP."
     },
     "featuresUpdates": {
       "eyebrow": "Live updates",
       "title": "The right update at the right time",
-      "description": "When staff scan a pass, progress updates and the wallet pass refreshes — often with a lock-screen nudge.",
+      "description": "When staff scan a pass, progress updates and the wallet pass refreshes, often with a lock-screen nudge.",
       "b1Title": "Instant after scan",
       "b1Body": "Award stamps or points and push the new pass state immediately.",
       "b2Title": "Reward unlocked",
@@ -143,7 +162,7 @@
     "industries": {
       "eyebrow": "Industries",
       "title": "Built for how you actually operate",
-      "description": "From cafés to clinics — wallet loyalty that fits the counter, not a complex CRM.",
+      "description": "From cafés to clinics, wallet loyalty that fits the counter, not a complex CRM.",
       "cafes": "Cafés & bakeries",
       "cafesBody": "Classic stamp cards customers finish in a few visits.",
       "salons": "Salons & barbers",
@@ -158,7 +177,7 @@
     "infrastructure": {
       "eyebrow": "Infrastructure",
       "title": "Built for wallet passes that update live",
-      "description": "Issuing, storing progress, and pushing Apple and Google updates — without enterprise complexity.",
+      "description": "Issuing, storing progress, and pushing Apple and Google updates, without enterprise complexity.",
       "b1Title": "Secure multi-tenant data",
       "b1Body": "Every merchant only sees their own programs and customers.",
       "b2Title": "Pass generation",
@@ -182,7 +201,7 @@
       "proPrice": "$79/mo",
       "proDesc": "Higher limits for growing multi-program businesses",
       "proCta": "Get started",
-      "note": "Prices shown in USD. Quarterly and yearly billing save you money — pick a cycle above. Sign up free, upgrade anytime from your dashboard."
+      "note": "Prices shown in USD. Quarterly and yearly billing save you money, pick a cycle above. Sign up free, upgrade anytime from your dashboard."
     },
     "faqPage": {
       "eyebrow": "FAQ",
@@ -192,9 +211,9 @@
     "support": {
       "eyebrow": "Support",
       "title": "We're here to help.",
-      "description": "Questions about setting up your loyalty program, wallet passes, or billing — reach us directly or browse the answers merchants ask most.",
+      "description": "Questions about setting up your loyalty program, wallet passes, or billing. Reach us directly or browse the answers merchants ask most.",
       "emailTitle": "Email us",
-      "emailBody": "For account, billing, or technical issues — we typically reply within one business day.",
+      "emailBody": "For account, billing, or technical issues. We typically reply within one business day.",
       "email": "support@walletos.online",
       "faqTitle": "Read the FAQ",
       "faqBody": "Common questions about enrollment, Apple/Google Wallet, and how billing works.",
@@ -210,7 +229,31 @@
       "items": {
         "app": {
           "q": "Do my customers need to download an app?",
-          "a": "No. Passes live in Apple Wallet and Google Wallet. Customers add their card in seconds — nothing to download, no account to create."
+          "a": "No. Passes live in Apple Wallet and Google Wallet. Customers add their card in seconds. Nothing to download, no account to create."
+        },
+        "iphone": {
+          "q": "Does it work on iPhone?",
+          "a": "Yes. The card adds straight to Apple Wallet on any iPhone. No separate app, no App Store visit."
+        },
+        "android": {
+          "q": "Does it work on Android?",
+          "a": "Yes. The card adds to Google Wallet on any Android phone with the Google Wallet app, which comes preinstalled on most devices."
+        },
+        "walletApp": {
+          "q": "Does the customer need to already have Apple Wallet or Google Wallet?",
+          "a": "Apple Wallet is built into every iPhone. Google Wallet comes preinstalled on most Android phones, or is a free one-time download from the Play Store. Neither is something we ask a customer to set up."
+        },
+        "scanning": {
+          "q": "How does a merchant scan a customer's card?",
+          "a": "Staff open the scanner from the WalletOS dashboard on any phone's camera, no separate hardware needed. It reads the pass's QR or barcode and updates it instantly."
+        },
+        "customize": {
+          "q": "Can I customize the card with my own logo and colors?",
+          "a": "Yes. Upload your logo, set your brand colors, pick a cover image and stamp icon. Every customer's wallet card reflects your branding, not ours."
+        },
+        "reward": {
+          "q": "What happens when a customer reaches their reward?",
+          "a": "Their pass shows the reward is ready to redeem. Staff confirm it at the next visit, and the card resets for the next loyalty cycle."
         },
         "paper": {
           "q": "How does WalletOS replace a paper stamp card?",
@@ -222,11 +265,11 @@
         },
         "pos": {
           "q": "Does it work with my POS?",
-          "a": "WalletOS runs independently of your POS — no till changes required. Staff scan from any phone on the dashboard."
+          "a": "WalletOS runs independently of your POS. No till changes required. Staff scan from any phone on the dashboard."
         },
         "industries": {
           "q": "Which businesses is it for?",
-          "a": "Cafés, bakeries, barbers, salons, gyms, restaurants, car washes, clinics, and more — bilingual Arabic and English for MENA/GCC first."
+          "a": "Cafés, bakeries, barbers, salons, gyms, restaurants, car washes, clinics, and more. Bilingual Arabic and English for MENA/GCC first."
         },
         "launch": {
           "q": "How long does it take to launch?",
@@ -262,7 +305,7 @@
     "termsAndPrivacy": "Terms of Service and Privacy Policy",
     "authError": "Authentication failed. Please try again.",
     "invalidCredentials": "That email or password isn't right.",
-    "emailNotConfirmed": "Confirm your email before signing in — check your inbox.",
+    "emailNotConfirmed": "Confirm your email before signing in. Check your inbox.",
     "userExists": "An account with that email already exists.",
     "rateLimited": "Too many attempts. Wait a moment and try again.",
     "confirmPassword": "Confirm password",
