@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 import { Check, CreditCard, FileText, Minus, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,9 +90,12 @@ function UsageBar({ used, limit }: { used: number; limit: number | null }) {
 }
 
 /**
- * All the interactive bits (Paddle checkout, plan switching, cancellation)
+ * All the interactive bits (Stripe checkout, plan switching, cancellation)
  * for the billing page, seeded with data the server already fetched — no
  * client-side fetch-on-mount, so there's no loading flash on navigation.
+ * Checkout itself is a plain redirect to a Stripe-hosted page (the session
+ * URL comes from POST /api/billing/checkout) — no client-side Stripe SDK
+ * is loaded, and the secret key never leaves the server.
  */
 export function BillingContent({
   merchant,
@@ -101,32 +103,22 @@ export function BillingContent({
   usageFailed,
   invoices,
   priceIds,
-  customerEmail,
 }: {
   merchant: Merchant;
   usage: BillingUsage | null;
   usageFailed: boolean;
   invoices: BillingInvoice[];
   priceIds: Record<PaidPlan, Record<PlanInterval, string | null>>;
-  customerEmail: string | null;
 }) {
   const t = useTranslations("billing");
   const router = useRouter();
-  const [paddle, setPaddle] = useState<Paddle | null>(null);
   const [interval, setInterval] = useState<PlanInterval>(merchant.plan_interval ?? "monthly");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 
-  useEffect(() => {
-    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-    const env = process.env.NEXT_PUBLIC_PADDLE_ENV;
-    if (!token || !env) return;
-    initializePaddle({ token, environment: env as "sandbox" | "production" }).then((p) => p && setPaddle(p));
-  }, []);
-
   const hasActiveSubscription = hasActiveAccess(merchant.subscription_status);
 
-  // Refresh server-fetched props shortly after an action — the Paddle
+  // Refresh server-fetched props shortly after an action — the Stripe
   // webhook (source of truth for merchants.plan/subscription_status) lands
   // asynchronously, typically sub-second, but not synchronously with this
   // response.
@@ -135,17 +127,26 @@ export function BillingContent({
   }
 
   async function subscribe(plan: PaidPlan) {
-    const priceId = priceIds[plan][interval];
-    if (!priceId || !paddle) {
+    if (!priceIds[plan][interval]) {
       toast.error(t("notConfigured"));
       return;
     }
-    paddle.Checkout.open({
-      items: [{ priceId, quantity: 1 }],
-      ...(customerEmail && { customer: { email: customerEmail } }),
-      customData: { merchant_id: merchant.id },
-      settings: { successUrl: window.location.href },
-    });
+    setPendingAction(plan);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, interval }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.data?.url) {
+        toast.error(json.error?.message ?? t("notConfigured"));
+        return;
+      }
+      window.location.href = json.data.url;
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   async function switchPlan(plan: PaidPlan) {
@@ -193,21 +194,6 @@ export function BillingContent({
     }
   }
 
-  async function updatePaymentMethod() {
-    setPendingAction("payment-method");
-    try {
-      const res = await fetch("/api/billing/payment-method", { method: "POST" });
-      const json = await res.json();
-      if (!res.ok || !json.data?.transactionId) {
-        toast.error(json.error?.message ?? t("notConfigured"));
-        return;
-      }
-      paddle?.Checkout.open({ transactionId: json.data.transactionId });
-    } finally {
-      setPendingAction(null);
-    }
-  }
-
   async function openPortal() {
     setPendingAction("portal");
     try {
@@ -250,15 +236,10 @@ export function BillingContent({
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
-              {hasActiveSubscription && (
-                <Button variant="outline" onClick={updatePaymentMethod} disabled={pendingAction !== null || !paddle}>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  {pendingAction === "payment-method" ? t("processing") : "Payment method"}
-                </Button>
-              )}
-              {merchant.paddle_customer_id && (
+              {merchant.stripe_customer_id && (
                 <Button variant="outline" onClick={openPortal} disabled={pendingAction !== null}>
-                  {pendingAction === "portal" ? t("processing") : "Full billing portal"}
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  {pendingAction === "portal" ? t("processing") : "Manage billing"}
                 </Button>
               )}
               <a
@@ -321,7 +302,7 @@ export function BillingContent({
                 <Button
                   className="mt-5 w-full"
                   variant={isCurrent ? "outline" : "default"}
-                  disabled={isCurrent || pendingAction !== null || (!hasActiveSubscription && !paddle)}
+                  disabled={isCurrent || pendingAction !== null}
                   onClick={() => selectPlan(upgradePlan)}
                 >
                   {isCurrent

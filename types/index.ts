@@ -93,9 +93,9 @@ export type Merchant = {
   brand_color_primary: string;
   brand_color_secondary: string;
   plan: Plan;
-  paddle_customer_id: string | null;
-  paddle_subscription_id: string | null;
-  paddle_price_id: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_price_id: string | null;
   plan_interval: PlanInterval | null;
   subscription_status: SubscriptionStatus | null;
   /** Renewal date if subscription_status is "active"/"trialing"/"past_due",
