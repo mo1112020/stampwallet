@@ -58,6 +58,12 @@ export default function SignupPage() {
     }
     if (data.user) {
       await supabase.from("merchants").upsert({ id: data.user.id, business_name: businessName });
+      // Best-effort — a failed welcome email must never block signup itself.
+      fetch("/api/auth/post-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: data.user.id }),
+      }).catch(() => {});
     }
     setLoading(false);
     router.push(`/${locale}/dashboard/onboarding`);

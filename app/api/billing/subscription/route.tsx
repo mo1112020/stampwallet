@@ -1,6 +1,13 @@
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { PLAN_PRICES_USD_CENTS, STRIPE_PRICE_ENV, stripePriceId, type PaidPlan, type PlanInterval } from "@/lib/billing/plans";
 import { createStripeClient } from "@/lib/stripe";
+import { sendTransactionalEmail } from "@/lib/email/send";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { PlanChangedEmail } from "@/components/emails/plan-changed";
+
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
 
 /**
  * Switches an EXISTING Stripe subscription to a different plan/interval.
@@ -49,10 +56,45 @@ export async function PATCH(request: Request) {
       return jsonError("Could not locate your subscription item", "stripe_error", 502);
     }
 
+    const previousPlan = merchant.plan;
     const subscription = await stripe.subscriptions.update(merchant.stripe_subscription_id, {
       items: [{ id: itemId, price: newPriceId }],
       proration_behavior: isUpgrade ? "create_prorations" : "none",
     });
+
+    if (previousPlan !== plan) {
+      const { data: userData } = await createAdminClient().auth.admin.getUserById(merchant.id);
+      const recipientEmail = userData?.user?.email;
+      if (recipientEmail) {
+        // Keyed on (subscription, new price) rather than a timestamp: a
+        // double-submit of the exact same change (double-click, retry) must
+        // not send two emails. The tradeoff is a genuine switch away and
+        // immediately back to a plan already seen on this subscription won't
+        // re-notify — accepted deliberately, since under-notifying a rare
+        // toggle-back beats ever duplicate-notifying a double-click.
+        // Awaited (not fire-and-forget) — a serverless function can freeze
+        // before an un-awaited promise finishes once the response is sent.
+        // sendTransactionalEmail never throws on a Resend failure, so this
+        // can't turn an already-successful plan change into an error.
+        await sendTransactionalEmail({
+          idempotencyKey: `plan_changed:${merchant.stripe_subscription_id}:${newPriceId}`,
+          emailType: "plan_changed",
+          to: recipientEmail,
+          subject: `Your WalletOS plan is now ${plan}`,
+          react: (
+            <PlanChangedEmail
+              businessName={merchant.business_name}
+              fromPlan={previousPlan}
+              toPlan={plan}
+              isUpgrade={isUpgrade}
+              dashboardUrl={`${appUrl()}/${merchant.locale_default}/dashboard/billing`}
+            />
+          ),
+          userId: merchant.id,
+          merchantId: merchant.id,
+        });
+      }
+    }
 
     // The webhook (source of truth) syncs merchants.plan/plan_interval
     // asynchronously — this response just confirms Stripe accepted the

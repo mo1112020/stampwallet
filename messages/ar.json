@@ -310,7 +310,21 @@
     "rateLimited": "محاولات كثيرة جداً. انتظر لحظة وحاول مرة أخرى.",
     "confirmPassword": "تأكيد كلمة المرور",
     "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
-    "passwordMismatch": "كلمتا المرور غير متطابقتين."
+    "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "forgotPasswordTitle": "إعادة تعيين كلمة المرور",
+    "forgotPasswordBody": "أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "resetLinkSentTitle": "تحقق من بريدك الإلكتروني",
+    "resetLinkSentBody": "إذا كان هناك حساب مرتبط بهذا البريد، أرسلنا رابطاً لإعادة تعيين كلمة المرور.",
+    "backToLogin": "العودة لتسجيل الدخول",
+    "resetPasswordTitle": "اختر كلمة مرور جديدة",
+    "newPassword": "كلمة المرور الجديدة",
+    "newPasswordPlaceholder": "كلمة مرورك الجديدة",
+    "updatePassword": "تحديث كلمة المرور",
+    "passwordUpdatedTitle": "تم تحديث كلمة المرور",
+    "passwordUpdatedBody": "تم تحديث كلمة مرورك. يمكنك الآن تسجيل الدخول.",
+    "invalidResetLink": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطاً جديداً."
   },
   "breadcrumbs": {
     "dashboard": "لوحة التحكم",
@@ -555,6 +569,20 @@
         "inactive_customer": {
           "label": "تذكير العملاء غير النشطين",
           "description": "تنبيه العملاء الذين لم يزوروا منذ فترة"
+        }
+      }
+    },
+    "emailPrefs": {
+      "title": "تفضيلات البريد الإلكتروني",
+      "intro": "رسائل الحساب والفوترة والأمان تُرسل دائماً — هذه الخيارات تتحكم فقط بالرسائل الاختيارية.",
+      "toggles": {
+        "marketing": {
+          "label": "نصائح المنتج واقتراحات الترقية",
+          "description": "رسائل بين الحين والآخر حول تحقيق أقصى استفادة من WalletOS"
+        },
+        "product_updates": {
+          "label": "تحديثات المنتج",
+          "description": "الميزات والتحسينات الجديدة"
         }
       }
     },

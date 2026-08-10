@@ -4,9 +4,18 @@ import { disableCardExpirationForMerchant } from "@/lib/billing/enforcement";
 import { planForStripePriceId } from "@/lib/billing/plans";
 import { createStripeClient } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTransactionalEmail } from "@/lib/email/send";
+import { SubscriptionActivatedEmail } from "@/components/emails/subscription-activated";
+import { SubscriptionRenewedEmail } from "@/components/emails/subscription-renewed";
+import { PaymentFailedEmail } from "@/components/emails/payment-failed";
+import { SubscriptionCanceledEmail } from "@/components/emails/subscription-canceled";
 import type { SubscriptionStatus } from "@/types";
 
 const SUBSCRIPTION_EVENTS = new Set(["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"]);
+
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature") ?? "";
@@ -76,12 +85,23 @@ async function processEvent(event: Stripe.Event) {
   }
 
   if (SUBSCRIPTION_EVENTS.has(event.type)) {
-    await syncSubscription(admin, event.data.object as Stripe.Subscription);
+    const sub = event.data.object as Stripe.Subscription;
+    const merchantId = await syncSubscription(admin, sub);
+    if (event.type === "customer.subscription.deleted" && merchantId) {
+      await sendSubscriptionCanceledEmail(admin, merchantId, sub.id);
+    }
     return;
   }
 
   if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
-    await syncFromInvoice(admin, event.data.object as Stripe.Invoice);
+    const invoice = event.data.object as Stripe.Invoice;
+    const merchantId = await syncFromInvoice(admin, invoice);
+    if (merchantId && event.type === "invoice.paid" && invoice.billing_reason === "subscription_cycle") {
+      await sendSubscriptionRenewedEmail(admin, merchantId, invoice);
+    }
+    if (merchantId && event.type === "invoice.payment_failed") {
+      await sendPaymentFailedEmail(admin, merchantId, invoice.id ?? event.id);
+    }
     return;
   }
 
@@ -92,13 +112,20 @@ async function processEvent(event: Stripe.Event) {
 /** The only event where a brand-new subscription's id first becomes known
  * to us — session.subscription is a bare id, not the full object, so we
  * re-fetch it and run it through the same sync path as every other
- * subscription event rather than duplicating the sync logic here. */
+ * subscription event rather than duplicating the sync logic here. This is
+ * also the one unambiguous "a merchant just successfully subscribed"
+ * signal — checkout.session.completed fires exactly once per checkout,
+ * never on renewal — so the activation email lives here, not in the
+ * shared syncSubscription(). */
 async function handleCheckoutCompleted(admin: ReturnType<typeof createAdminClient>, session: Stripe.Checkout.Session) {
   if (session.mode !== "subscription" || !session.subscription) return;
   const stripe = createStripeClient();
   const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  await syncSubscription(admin, subscription, extractMerchantId(session));
+  const merchantId = await syncSubscription(admin, subscription, extractMerchantId(session));
+  if (merchantId) {
+    await sendSubscriptionActivatedEmail(admin, merchantId, subscriptionId);
+  }
 }
 
 /** invoice.paid / invoice.payment_failed don't carry a full subscription
@@ -106,7 +133,7 @@ async function handleCheckoutCompleted(admin: ReturnType<typeof createAdminClien
  * same sync path guarantees merchants.subscription_status always reflects
  * Stripe's canonical current state rather than a hand-rolled partial
  * update derived from the invoice alone. */
-async function syncFromInvoice(admin: ReturnType<typeof createAdminClient>, invoice: Stripe.Invoice) {
+async function syncFromInvoice(admin: ReturnType<typeof createAdminClient>, invoice: Stripe.Invoice): Promise<string | null> {
   // invoice.parent.subscription_details.subscription is the current
   // ("flexible billing") shape. A webhook endpoint pinned to an older API
   // version delivers the pre-2025 shape instead, where the same id sits at
@@ -114,11 +141,11 @@ async function syncFromInvoice(admin: ReturnType<typeof createAdminClient>, invo
   // correct regardless of which API version the endpoint is pinned to.
   const legacyInvoice = invoice as unknown as { subscription?: string | Stripe.Subscription | null };
   const subscriptionRef = invoice.parent?.subscription_details?.subscription ?? legacyInvoice.subscription;
-  if (!subscriptionRef) return;
+  if (!subscriptionRef) return null;
   const subscriptionId = typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef.id;
   const stripe = createStripeClient();
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  await syncSubscription(admin, subscription);
+  return syncSubscription(admin, subscription);
 }
 
 function mapStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
@@ -143,7 +170,16 @@ function mapStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
   }
 }
 
-async function syncSubscription(admin: ReturnType<typeof createAdminClient>, sub: Stripe.Subscription, merchantIdHint?: string | null) {
+/** Returns the resolved merchant id (or null if no merchant matched) so
+ * callers that need to react to a specific event type (checkout completed,
+ * subscription deleted, ...) can send exactly one email at the right call
+ * site instead of this shared sync function guessing intent from a
+ * before/after diff. */
+async function syncSubscription(
+  admin: ReturnType<typeof createAdminClient>,
+  sub: Stripe.Subscription,
+  merchantIdHint?: string | null
+): Promise<string | null> {
   const merchantId = merchantIdHint ?? extractMerchantId(sub);
   const item = sub.items.data[0];
   const priceId = item?.price?.id;
@@ -203,10 +239,101 @@ async function syncSubscription(admin: ReturnType<typeof createAdminClient>, sub
 
   if (!resolvedMerchantId) {
     console.error(`Stripe webhook: no merchant matched subscription ${sub.id} (customer ${customerId})`);
-    return;
+    return null;
   }
 
   if (isEnded) {
     await disableCardExpirationForMerchant(admin, resolvedMerchantId);
   }
+
+  return resolvedMerchantId;
+}
+
+/** Shared context every subscription-lifecycle email needs — business name
+ * for the greeting, the owner's email as recipient (merchants.id ===
+ * auth.users.id in this schema), and locale for the dashboard link.
+ * Returns null if the merchant/user can't be resolved rather than
+ * throwing — a missing email context must never fail the webhook. */
+async function getMerchantEmailContext(admin: ReturnType<typeof createAdminClient>, merchantId: string) {
+  const { data: merchant } = await admin
+    .from("merchants")
+    .select("business_name, plan, locale_default")
+    .eq("id", merchantId)
+    .maybeSingle();
+  if (!merchant) return null;
+
+  const { data: userData } = await admin.auth.admin.getUserById(merchantId);
+  if (!userData?.user?.email) return null;
+
+  return {
+    email: userData.user.email,
+    businessName: merchant.business_name as string | null,
+    plan: merchant.plan as string,
+    locale: (merchant.locale_default as string | null) ?? "en",
+  };
+}
+
+async function sendSubscriptionActivatedEmail(admin: ReturnType<typeof createAdminClient>, merchantId: string, subscriptionId: string) {
+  const ctx = await getMerchantEmailContext(admin, merchantId);
+  if (!ctx) return;
+  await sendTransactionalEmail({
+    idempotencyKey: `subscription_activated:${subscriptionId}`,
+    emailType: "subscription_activated",
+    to: ctx.email,
+    subject: `You're on the ${ctx.plan} plan`,
+    react: <SubscriptionActivatedEmail businessName={ctx.businessName} plan={ctx.plan} dashboardUrl={`${appUrl()}/${ctx.locale}/dashboard/billing`} />,
+    userId: merchantId,
+    merchantId,
+  });
+}
+
+async function sendSubscriptionCanceledEmail(admin: ReturnType<typeof createAdminClient>, merchantId: string, subscriptionId: string) {
+  const ctx = await getMerchantEmailContext(admin, merchantId);
+  if (!ctx) return;
+  await sendTransactionalEmail({
+    idempotencyKey: `subscription_canceled:${subscriptionId}`,
+    emailType: "subscription_canceled",
+    to: ctx.email,
+    subject: "Your WalletOS subscription has ended",
+    react: <SubscriptionCanceledEmail businessName={ctx.businessName} pricingUrl={`${appUrl()}/${ctx.locale}/pricing`} />,
+    userId: merchantId,
+    merchantId,
+  });
+}
+
+async function sendSubscriptionRenewedEmail(admin: ReturnType<typeof createAdminClient>, merchantId: string, invoice: Stripe.Invoice) {
+  const ctx = await getMerchantEmailContext(admin, merchantId);
+  if (!ctx || !invoice.id) return;
+  await sendTransactionalEmail({
+    idempotencyKey: `subscription_renewed:${invoice.id}`,
+    emailType: "subscription_renewed",
+    to: ctx.email,
+    subject: "Your WalletOS subscription renewed",
+    react: (
+      <SubscriptionRenewedEmail
+        businessName={ctx.businessName}
+        plan={ctx.plan}
+        amount={invoice.amount_paid}
+        currency={invoice.currency}
+        invoiceUrl={invoice.hosted_invoice_url}
+        dashboardUrl={`${appUrl()}/${ctx.locale}/dashboard/billing`}
+      />
+    ),
+    userId: merchantId,
+    merchantId,
+  });
+}
+
+async function sendPaymentFailedEmail(admin: ReturnType<typeof createAdminClient>, merchantId: string, invoiceId: string) {
+  const ctx = await getMerchantEmailContext(admin, merchantId);
+  if (!ctx) return;
+  await sendTransactionalEmail({
+    idempotencyKey: `payment_failed:${invoiceId}`,
+    emailType: "payment_failed",
+    to: ctx.email,
+    subject: "We couldn't process your WalletOS payment",
+    react: <PaymentFailedEmail businessName={ctx.businessName} portalUrl={`${appUrl()}/${ctx.locale}/dashboard/billing`} />,
+    userId: merchantId,
+    merchantId,
+  });
 }

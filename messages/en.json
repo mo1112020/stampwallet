@@ -310,7 +310,21 @@
     "rateLimited": "Too many attempts. Wait a moment and try again.",
     "confirmPassword": "Confirm password",
     "confirmPasswordPlaceholder": "Re-enter your password",
-    "passwordMismatch": "Passwords don't match."
+    "passwordMismatch": "Passwords don't match.",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordBody": "Enter your email and we'll send you a link to reset your password.",
+    "sendResetLink": "Send reset link",
+    "resetLinkSentTitle": "Check your email",
+    "resetLinkSentBody": "If an account exists for that email, we've sent a link to reset your password.",
+    "backToLogin": "Back to sign in",
+    "resetPasswordTitle": "Choose a new password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Your new password",
+    "updatePassword": "Update password",
+    "passwordUpdatedTitle": "Password updated",
+    "passwordUpdatedBody": "Your password has been updated. You can now sign in.",
+    "invalidResetLink": "This reset link is invalid or has expired. Request a new one."
   },
   "breadcrumbs": {
     "dashboard": "Dashboard",
@@ -555,6 +569,20 @@
         "inactive_customer": {
           "label": "Inactive customer reminders",
           "description": "Nudge customers who haven't visited in a while"
+        }
+      }
+    },
+    "emailPrefs": {
+      "title": "Email preferences",
+      "intro": "Account, billing, and security emails are always sent — these only control optional email.",
+      "toggles": {
+        "marketing": {
+          "label": "Product tips & upgrade suggestions",
+          "description": "Occasional emails about getting more from WalletOS"
+        },
+        "product_updates": {
+          "label": "Product updates",
+          "description": "New features and improvements"
         }
       }
     },

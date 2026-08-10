@@ -55,9 +55,19 @@ export async function POST(request: Request) {
   // is_staff_invite tells handle_new_user() (migration 001/007) to skip
   // auto-creating a merchants "owner" row for this identity — this person
   // is staff of auth.merchantId, not an owner of their own account.
+  // inviter_business_name/staff_role ride along as user_metadata purely so
+  // the Supabase "Send Email" hook (app/api/auth/email-hook) can render a
+  // branded invite email without a separate DB lookup — Supabase forwards
+  // this metadata straight through to the hook payload.
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     parsed.data.email,
-    { data: { is_staff_invite: true } }
+    {
+      data: {
+        is_staff_invite: true,
+        inviter_business_name: auth.merchant.business_name,
+        staff_role: parsed.data.role,
+      },
+    }
   );
 
   if (inviteError || !invited?.user) {

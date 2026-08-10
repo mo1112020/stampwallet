@@ -138,6 +138,12 @@ export const updateMerchantSettingsSchema = z.object({
       inactive_customer: z.boolean().optional(),
     })
     .optional(),
+  email_prefs: z
+    .object({
+      marketing: z.boolean().optional(),
+      product_updates: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 const segmentDefinitionSchema = z

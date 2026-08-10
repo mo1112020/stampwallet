@@ -112,7 +112,7 @@ export function BillingContent({
 }) {
   const t = useTranslations("billing");
   const router = useRouter();
-  const [interval, setInterval] = useState<PlanInterval>(merchant.plan_interval ?? "monthly");
+  const [interval, setInterval] = useState<PlanInterval>(merchant.plan_interval ?? "quarterly");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 

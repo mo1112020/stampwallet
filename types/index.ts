@@ -112,6 +112,10 @@ export type Merchant = {
   average_order_value: number | null;
   timezone: string;
   notification_prefs: NotificationPrefs;
+  /** Email channel preferences — distinct from notification_prefs, which is
+   * wallet-push (Apple/Google pass update) preferences only. Transactional
+   * email (verification, invites, billing) is never gated by this. */
+  email_prefs: EmailPrefs;
   created_at: string;
   updated_at: string;
 };
@@ -122,6 +126,11 @@ export type NotificationPrefs = {
   birthday?: boolean;
   expiring_reward?: boolean;
   inactive_customer?: boolean;
+};
+
+export type EmailPrefs = {
+  marketing?: boolean;
+  product_updates?: boolean;
 };
 
 export type LoyaltyProgram = {
@@ -241,6 +250,23 @@ export type NotificationSend = {
   message: string;
   error: string | null;
   sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EmailEventStatus = "queued" | "sent" | "failed";
+
+export type EmailEvent = {
+  id: string;
+  user_id: string | null;
+  merchant_id: string | null;
+  email_type: string;
+  recipient_email: string;
+  idempotency_key: string;
+  status: EmailEventStatus;
+  provider_message_id: string | null;
+  error: string | null;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };

@@ -25,7 +25,7 @@ export function PricingPlans({
   priceIds: Record<PaidPlan, Record<PlanInterval, string | null>>;
 }) {
   const t = useTranslations("site.pricing");
-  const [interval, setInterval] = useState<PlanInterval>("monthly");
+  const [interval, setInterval] = useState<PlanInterval>("quarterly");
 
   // Base USD list price — the same figure Stripe Checkout charges (see
   // lib/billing/plans.ts). Actual tax/currency at checkout is computed by
