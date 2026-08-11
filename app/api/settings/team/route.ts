@@ -3,6 +3,10 @@ import { PLAN_LIMITS, isWithinLimit } from "@/lib/billing/plans";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { inviteStaffSchema } from "@/lib/validators";
 
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
+
 export async function GET() {
   const auth = await requireCapability("manage_staff");
   if ("error" in auth) return auth.error;
@@ -59,6 +63,11 @@ export async function POST(request: Request) {
   // the Supabase "Send Email" hook (app/api/auth/email-hook) can render a
   // branded invite email without a separate DB lookup — Supabase forwards
   // this metadata straight through to the hook payload.
+  // Without an explicit redirectTo, Supabase falls back to the project's
+  // Site URL after verifying the invite token — bypassing /auth/callback
+  // entirely, so no session ever gets established and the link just lands
+  // on the marketing landing page with nothing having happened.
+  const locale = auth.merchant.locale_default || "en";
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     parsed.data.email,
     {
@@ -67,6 +76,7 @@ export async function POST(request: Request) {
         inviter_business_name: auth.merchant.business_name,
         staff_role: parsed.data.role,
       },
+      redirectTo: `${appUrl()}/auth/callback?next=/${locale}/reset-password`,
     }
   );
 
