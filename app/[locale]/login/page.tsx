@@ -30,15 +30,15 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(
     searchParams.get("error") ? t("authError") : null
   );
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"email" | "google" | "apple" | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setLoading("email");
     setError(null);
     const supabase = createClient();
     const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    setLoading(null);
     if (err) {
       const key = mapAuthErrorKey(err.message);
       setError(key ? t(key) : err.message);
@@ -49,7 +49,7 @@ function LoginContent() {
   }
 
   async function oauth(provider: "google" | "apple") {
-    setLoading(true);
+    setLoading(provider);
     setError(null);
     const supabase = createClient();
     const { error: err } = await supabase.auth.signInWithOAuth({
@@ -59,7 +59,7 @@ function LoginContent() {
       },
     });
     if (err) {
-      setLoading(false);
+      setLoading(null);
       const key = mapAuthErrorKey(err.message);
       setError(key ? t(key) : err.message);
     }
@@ -143,10 +143,10 @@ function LoginContent() {
           {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading !== null}
             className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading === "email" && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("continueEmail")}
           </button>
         </form>
@@ -156,7 +156,8 @@ function LoginContent() {
         </div>
 
         <AuthSocialButtons
-          loading={loading}
+          disabled={loading !== null}
+          loadingProvider={loading === "google" || loading === "apple" ? loading : null}
           onGoogle={() => oauth("google")}
           onApple={() => oauth("apple")}
         />

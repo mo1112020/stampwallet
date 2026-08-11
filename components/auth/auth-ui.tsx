@@ -51,33 +51,39 @@ export function AuthOrDivider() {
 export function AuthSocialButtons({
   onGoogle,
   onApple,
-  loading,
+  disabled,
+  loadingProvider,
 }: {
   onGoogle: () => void;
   onApple: () => void;
-  loading?: boolean;
+  /** Disables both buttons while any auth action (including the email
+   * form) is in flight, to prevent a second submission racing the first. */
+  disabled?: boolean;
+  /** Which button shows its own spinner — distinct from `disabled` so
+   * clicking Google doesn't also spin the untouched Apple button. */
+  loadingProvider?: "google" | "apple" | null;
 }) {
   const t = useTranslations("auth");
   return (
     <div className="space-y-3">
       <button
         type="button"
-        disabled={loading}
+        disabled={disabled}
         onClick={onGoogle}
         className={cn(
           "flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
         )}
       >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+        {loadingProvider === "google" ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
         {t("continueGoogle")}
       </button>
       <button
         type="button"
-        disabled={loading}
+        disabled={disabled}
         onClick={onApple}
         className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
       >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <AppleIcon />}
+        {loadingProvider === "apple" ? <Loader2 className="h-4 w-4 animate-spin" /> : <AppleIcon />}
         {t("continueApple")}
       </button>
     </div>

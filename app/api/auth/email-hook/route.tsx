@@ -19,22 +19,23 @@ type HookPayload = {
   };
 };
 
-function supabaseUrl() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!url) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not configured");
-  return url;
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
-/** Reconstructs the exact link Supabase's own default email would have
- * used — this is the REAL verification/recovery/invite URL, built from the
- * token Supabase generated, not anything this app invents. Hitting it
- * verifies the token server-side (Supabase's own /auth/v1/verify) and
- * redirects to redirect_to on success. */
+/** Points at our own app/auth/confirm route (verifyOtp) rather than
+ * Supabase's hosted /auth/v1/verify — that server-side endpoint redirects
+ * back to us via a PKCE `code`, which only exchanges successfully on the
+ * same browser that initiated the request. Recovery/invite links are
+ * routinely opened on a different device (email app on a phone) than
+ * where they were requested, so verifyOtp's direct token check is used
+ * instead — no code_verifier cookie required. The token itself is still
+ * entirely Supabase's; this only changes which server validates it. */
 function buildActionUrl(tokenHash: string, actionType: string, redirectTo: string) {
-  const url = new URL(`${supabaseUrl()}/auth/v1/verify`);
-  url.searchParams.set("token", tokenHash);
+  const url = new URL(`${appUrl()}/auth/confirm`);
+  url.searchParams.set("token_hash", tokenHash);
   url.searchParams.set("type", actionType);
-  url.searchParams.set("redirect_to", redirectTo);
+  url.searchParams.set("next", redirectTo);
   return url.toString();
 }
 

@@ -25,7 +25,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"email" | "google" | "apple" | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +36,7 @@ export default function SignupPage() {
       return;
     }
 
-    setLoading(true);
+    setLoading("email");
     const businessName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const supabase = createClient();
     const { data, error: err } = await supabase.auth.signUp({
@@ -48,10 +48,11 @@ export default function SignupPage() {
           first_name: firstName,
           last_name: lastName,
         },
+        emailRedirectTo: `${window.location.origin}/${locale}/dashboard/onboarding`,
       },
     });
     if (err) {
-      setLoading(false);
+      setLoading(null);
       const key = mapAuthErrorKey(err.message);
       setError(key ? t(key) : err.message);
       return;
@@ -65,13 +66,13 @@ export default function SignupPage() {
         body: JSON.stringify({ userId: data.user.id }),
       }).catch(() => {});
     }
-    setLoading(false);
+    setLoading(null);
     router.push(`/${locale}/dashboard/onboarding`);
     router.refresh();
   }
 
   async function oauth(provider: "google" | "apple") {
-    setLoading(true);
+    setLoading(provider);
     setError(null);
     const supabase = createClient();
     const { error: err } = await supabase.auth.signInWithOAuth({
@@ -81,7 +82,7 @@ export default function SignupPage() {
       },
     });
     if (err) {
-      setLoading(false);
+      setLoading(null);
       const key = mapAuthErrorKey(err.message);
       setError(key ? t(key) : err.message);
     }
@@ -168,10 +169,10 @@ export default function SignupPage() {
           {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading !== null}
             className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading === "email" && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("continue")}
           </button>
         </form>
@@ -181,7 +182,8 @@ export default function SignupPage() {
         </div>
 
         <AuthSocialButtons
-          loading={loading}
+          disabled={loading !== null}
+          loadingProvider={loading === "google" || loading === "apple" ? loading : null}
           onGoogle={() => oauth("google")}
           onApple={() => oauth("apple")}
         />

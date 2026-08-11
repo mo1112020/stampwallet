@@ -12,11 +12,11 @@ const intlMiddleware = createMiddleware({
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // /api and the Supabase OAuth callback are plain route handlers with no
+  // /api and the Supabase auth routes are plain route handlers with no
   // locale segment — the intl middleware below defaults to localePrefix:
   // "always" and would otherwise redirect them to e.g. /en/auth/callback,
   // which doesn't exist and 404s before the code exchange ever runs.
-  if (pathname.startsWith("/api") || pathname.startsWith("/auth/callback")) {
+  if (pathname.startsWith("/api") || pathname.startsWith("/auth/callback") || pathname.startsWith("/auth/confirm")) {
     return NextResponse.next();
   }
 

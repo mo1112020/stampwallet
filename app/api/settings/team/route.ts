@@ -64,9 +64,10 @@ export async function POST(request: Request) {
   // branded invite email without a separate DB lookup — Supabase forwards
   // this metadata straight through to the hook payload.
   // Without an explicit redirectTo, Supabase falls back to the project's
-  // Site URL after verifying the invite token — bypassing /auth/callback
-  // entirely, so no session ever gets established and the link just lands
-  // on the marketing landing page with nothing having happened.
+  // Site URL, and the token_hash forwarded to our email hook carries no
+  // destination — becomes the `next` param on app/auth/confirm, which
+  // verifyOtp uses to land the now-signed-in staff member on the
+  // set-password page instead of the marketing homepage.
   const locale = auth.merchant.locale_default || "en";
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     parsed.data.email,
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
         inviter_business_name: auth.merchant.business_name,
         staff_role: parsed.data.role,
       },
-      redirectTo: `${appUrl()}/auth/callback?next=/${locale}/reset-password`,
+      redirectTo: `${appUrl()}/${locale}/reset-password`,
     }
   );
 

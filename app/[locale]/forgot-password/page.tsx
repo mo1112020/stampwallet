@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     // is identical whether or not the email exists, so this can't be used
     // to enumerate registered accounts.
     await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/reset-password`,
+      redirectTo: `${window.location.origin}/${locale}/reset-password`,
     });
     setLoading(false);
     setSent(true);
