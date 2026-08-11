@@ -14,17 +14,30 @@ import { NextResponse } from "next/server";
  * email on a phone. verifyOtp validates the token itself, so it works
  * from any device.
  */
+/** `next` arrives as a full absolute URL (forgot-password/page.tsx and the
+ * team invite route both build redirectTo as `${origin}/${locale}/...`),
+ * not a bare path — resolve it against `base` and keep only same-origin
+ * path+search, rather than blindly prefixing it onto our own origin. */
+function resolveNext(next: string, base: string): string {
+  try {
+    const url = new URL(next, base);
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return "/en/dashboard";
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/en/dashboard";
+  const next = resolveNext(searchParams.get("next") ?? "/en/dashboard", origin);
 
   if (tokenHash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      return NextResponse.redirect(`${origin}${next.startsWith("/") ? next : `/${next}`}`);
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
