@@ -21,6 +21,12 @@ function ResetPasswordContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  // "staff"-role accounts only have the scan capability in /dashboard (see
+  // lib/auth/permissions.ts) — they belong in the scan-app PWA instead,
+  // which is also where the "install to your phone" prompt lives. Defaults
+  // to the dashboard (the previous, and still correct-for-most-users,
+  // behavior) if the role lookup fails for any reason.
+  const [destination, setDestination] = useState<string>(`/${locale}/dashboard`);
 
   useEffect(() => {
     // /auth/callback already exchanged the recovery code for a session by
@@ -49,6 +55,15 @@ function ResetPasswordContent() {
       return;
     }
     setDone(true);
+    try {
+      const res = await fetch("/api/auth/session-role");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data?.role === "staff") setDestination(`/${locale}/scan-app`);
+      }
+    } catch {
+      // Falls back to the /dashboard default already set on `destination`.
+    }
   }
 
   return (
@@ -121,7 +136,7 @@ function ResetPasswordContent() {
             <p className="text-sm text-[var(--muted)]">{t("passwordUpdatedBody")}</p>
             <button
               type="button"
-              onClick={() => router.push(`/${locale}/dashboard`)}
+              onClick={() => router.push(destination)}
               className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95"
             >
               {t("signIn")}
