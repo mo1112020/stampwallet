@@ -38,6 +38,15 @@ export type PhoneMockupProps = {
   textColor?: string;
   iconName?: string;
   backgroundImage?: string;
+  /** Merchant name/logo shown in the card's own header bar — distinct from
+   * `name` (the program name, shown below the card), matching how the real
+   * Apple/Google Wallet card header always shows the *merchant's* name and
+   * logo (see logoText/organizationName in lib/wallet/apple.ts), not the
+   * program name. Previously this header didn't exist in the preview at
+   * all, so the real card's most prominent visual element had nothing to
+   * compare against. */
+  businessName?: string;
+  logoUrl?: string | null;
   stampsRequired?: number;
   stampsCollected?: number;
   actionHref?: string;
@@ -67,6 +76,8 @@ export function PhoneMockup({
   textColor = "text-white",
   iconName = "Star",
   backgroundImage,
+  businessName,
+  logoUrl,
   stampsRequired = 10,
   stampsCollected = 0,
   actionHref,
@@ -141,16 +152,37 @@ export function PhoneMockup({
               )}
               style={{ backgroundColor: primaryColor }}
             >
+              {/* Header bar — logo pinned far left, business name pinned far
+                  right, matching the merchant's name/logo Apple/Google
+                  actually render at the top of the real card (logoText +
+                  logo.png in lib/wallet/apple.ts). */}
+              <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoUrl} alt="" className="h-7 w-7 shrink-0 rounded-md object-cover" />
+                ) : (
+                  <div
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
+                    style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                )}
+                <p className="truncate text-sm font-bold">{businessName || name || "Business"}</p>
+              </div>
+
               {/* Top image area — no text drawn on it, matching the real
                   generated wallet-card image exactly (Apple's strip.png /
                   Google's heroImage never bake in the program name; that's
-                  shown by the platform's own native chrome instead). For
-                  stamp programs the grid is overlaid directly on the photo
-                  here too, same as lib/wallet/heroImage.ts's composite —
-                  the card only has one image slot, not a separate section
-                  for the grid, so the preview needs the taller area to fit
-                  it legibly. */}
-              <div className={cn("relative w-full overflow-hidden", programType === "stamp" ? "h-[168px]" : "h-[100px]")}>
+                  shown by the platform's own native chrome instead). Every
+                  program type's progress is overlaid directly on the photo
+                  here, same as lib/wallet/heroImage.ts's composite for all
+                  three types (stamp grid, points number+bar, steps
+                  milestones) — the card only has one image slot, not a
+                  separate section underneath, so a below-photo block (the
+                  previous points/steps layout) never matched what actually
+                  ships to Apple/Google Wallet. */}
+              <div className="relative h-[168px] w-full overflow-hidden">
                 {backgroundImage ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -203,32 +235,31 @@ export function PhoneMockup({
                     </div>
                   );
                 })()}
-              </div>
 
-              {/* Reward progress (points/steps only — stamp progress is now
-                  drawn into the image above, matching the real card) */}
-              <div className="px-3 pt-2">
+                {/* Big balance + progress bar overlaid on the photo — matches
+                    renderApplePointsStrip/renderPointsCardHeroImage exactly
+                    (white text, thin bar), not the old white-box+dots design
+                    that never appeared on a real card. */}
                 {programType === "points" && (
-                  <div className="overflow-hidden rounded-lg bg-white/90 py-2.5 text-[#1f57e7]">
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl font-medium leading-none">{demoPoints}</span>
-                      <span className="text-xs font-semibold">{pointsConfig?.points_label ?? "pt"}</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-white">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold leading-none">{demoPoints}</span>
+                      <span className="text-xs font-semibold opacity-90">{pointsConfig?.points_label ?? "pts"} of {pointsTarget}</span>
                     </div>
-                    <div className="mt-2.5 flex items-center justify-center gap-1.5">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <span key={index} className="h-2 w-2 rounded-full" style={{ backgroundColor: index < Math.ceil(pointsPercent / 20) ? "#1f57e7" : "#d1d5db" }} />
-                      ))}
+                    <div className="h-1.5 w-full max-w-[160px] overflow-hidden rounded-full bg-white/25">
+                      <div className="h-full rounded-full" style={{ width: `${pointsPercent}%`, backgroundColor: secondaryColor }} />
                     </div>
-                    <div className="mx-3 mt-2 h-px bg-gray-200" />
                   </div>
                 )}
+
+                {/* Milestone list overlaid on the photo — matches
+                    renderAppleStepsStrip/renderStepsCardHeroImage's layout,
+                    not a separate section below a short strip. */}
                 {programType === "steps" && (
-                  <div className="space-y-1.5 py-1">
+                  <div className="absolute inset-0 flex flex-col justify-center gap-1.5 px-4 text-white">
                     {stages.slice(0, 4).map((stage, index) => (
                       <div key={stage.key} className="flex items-center gap-2 text-[9px]">
-                        <span className="flex h-3 w-3 items-center justify-center rounded-full border" style={{ borderColor: secondaryColor, backgroundColor: index === 0 ? secondaryColor : "transparent" }}>
-                          {index === 0 && <span className="h-1 w-1 rounded-full bg-white" />}
-                        </span>
+                        <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full border" style={{ borderColor: secondaryColor, backgroundColor: index === 0 ? secondaryColor : "transparent" }} />
                         <span className={index === 0 ? "font-semibold" : "opacity-65"}>{stage.label}</span>
                         <span className="ml-auto opacity-60">{stage.threshold}</span>
                       </div>

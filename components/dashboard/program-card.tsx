@@ -64,6 +64,8 @@ export function ProgramCard({
         {...phoneMockupProps}
         primaryColor={primaryColor}
         secondaryColor={secondaryColor}
+        businessName={businessName}
+        logoUrl={logoUrl}
         secondaryAction={{ icon: Download, label: "Download A4 poster", onClick: downloadPoster, loading: downloading }}
       />
       {posterData && (

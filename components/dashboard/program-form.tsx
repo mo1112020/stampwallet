@@ -1124,6 +1124,8 @@ export function ProgramForm({
                 content: (
                   <PhoneMockup
                     name={name || businessName}
+                    businessName={businessName}
+                    logoUrl={businessLogo}
                     primaryColor={primaryColor}
                     secondaryColor={secondaryColor}
                     iconName={selectedIcon}
