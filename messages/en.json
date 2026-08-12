@@ -519,6 +519,8 @@
       "inviting": "Inviting…",
       "invite": "Invite",
       "inviteFailed": "Could not send that invite.",
+      "invited": "Invite sent.",
+      "inviteEmailFailed": "Added to your team, but the invite email failed to send. Try revoking and re-inviting them.",
       "actionFailed": "That didn't go through. Try again.",
       "membersTitle": "Team members",
       "loading": "Loading…",

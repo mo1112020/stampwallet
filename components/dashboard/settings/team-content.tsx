@@ -33,6 +33,15 @@ export function TeamContent({ staff }: { staff: StaffAccount[] }) {
       setError(json.error?.message ?? t("inviteFailed"));
       return;
     }
+    // email_sent is only present on a brand-new invite (not a reactivation,
+    // which returns the plain staff row) — surfacing this is the whole
+    // point of tracking it: a failed send used to be completely silent,
+    // which is exactly what looked like "they never received anything."
+    if (json.data?.email_sent === false) {
+      toast.error(t("inviteEmailFailed"));
+    } else {
+      toast.success(t("invited"));
+    }
     setEmail("");
     router.refresh();
   }
