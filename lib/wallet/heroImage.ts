@@ -146,18 +146,20 @@ export async function renderMerchantIconAndLogo(
       sharp(master).resize(58, 58, { fit: "cover" }).png().toBuffer(),
       sharp(master).resize(87, 87, { fit: "cover" }).png().toBuffer(),
     ]);
-    // logo.png sits in a fixed-height, variable-width header slot — "contain"
-    // (not "cover") so an arbitrary-aspect-ratio merchant logo is never
-    // cropped, padded with transparency instead.
+    // logo.png sits in a fixed-height, variable-width header slot — resizing
+    // to a fixed 160x50/320x100 *box* with fit:"contain" doesn't give a
+    // variable-width image at all, it pads a square/portrait master with
+    // transparency on both sides to fill that box. Apple still places the
+    // resulting file flush at the card's true left edge, but the visible
+    // logo pixels then sit centered *within* that padding — reading as
+    // "pushed right" on the actual card even though nothing is
+    // mispositioned, there's just dead transparent space in front of it.
+    // Constraining only the height (no target width) lets sharp keep the
+    // master's real aspect ratio with zero padding, so the file's own
+    // bounds match the visible artwork exactly.
     const [logo1x, logo2x] = await Promise.all([
-      sharp(master)
-        .resize(160, 50, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-        .png()
-        .toBuffer(),
-      sharp(master)
-        .resize(320, 100, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-        .png()
-        .toBuffer(),
+      sharp(master).resize({ height: 50 }).png().toBuffer(),
+      sharp(master).resize({ height: 100 }).png().toBuffer(),
     ]);
 
     return {
@@ -588,15 +590,18 @@ export async function renderApplePointsStrip(params: {
   const percent = current / target;
 
   const barWidth = width - 64;
-  const barHeight = 10;
+  const barHeight = 14;
   const barX = 32;
-  const barY = height - 28;
-  const numberY = height * 0.42;
+  const barY = height - 38;
+  const numberY = height * 0.52;
 
+  // Matches the dashboard preview's proportions (a bold, dominant number) —
+  // the original 52/18 sizing left most of the strip's vertical space empty
+  // and read as noticeably smaller than the preview promised.
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
     ${bg}
-    <text x="${width / 2}" y="${numberY}" font-family="${FONT_FAMILY}" font-size="52" font-weight="700" fill="#ffffff" text-anchor="middle">${current}</text>
-    <text x="${width / 2}" y="${numberY + 26}" font-family="${FONT_FAMILY}" font-size="18" fill="#ffffff" opacity="0.8" text-anchor="middle">${escapeXml(config.points_label)} of ${target}</text>
+    <text x="${width / 2}" y="${numberY}" font-family="${FONT_FAMILY}" font-size="108" font-weight="700" fill="#ffffff" text-anchor="middle">${current}</text>
+    <text x="${width / 2}" y="${numberY + 34}" font-family="${FONT_FAMILY}" font-size="24" fill="#ffffff" opacity="0.85" text-anchor="middle">${escapeXml(config.points_label)} of ${target}</text>
     <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="#ffffff" opacity="0.22" />
     <rect x="${barX}" y="${barY}" width="${Math.max(barHeight, barWidth * percent)}" height="${barHeight}" rx="${barHeight / 2}" fill="${secondaryColor}" />
   </svg>`;

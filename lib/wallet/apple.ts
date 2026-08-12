@@ -151,7 +151,13 @@ export async function generateApplePass(params: {
       serialNumber: params.passId,
       organizationName: params.merchant.business_name || "WalletOS",
       description: `${params.program.name} — ${params.merchant.business_name}`,
-      logoText: params.merchant.business_name,
+      // logoText intentionally omitted: Apple renders it immediately to the
+      // right of logo.png, which pulled the business name toward the left
+      // side of the header next to the logo. Putting the name in
+      // headerFields instead (below) — Apple always renders that at the
+      // header's top-right corner — gives the logo-left/name-right split
+      // the dashboard preview shows, which pass.json has no direct
+      // "alignment" property for otherwise.
       webServiceURL: `${appUrl()}/api/wallet/apple`,
       authenticationToken: params.authenticationToken ?? params.passId,
       backgroundColor: hexToRgb(primaryColor, "rgb(62, 8, 86)"),
@@ -173,7 +179,9 @@ export async function generateApplePass(params: {
       // field below.
       ...(fields.expiry ? { expirationDate: fields.expiry.expiresAt.toISOString() } : {}),
       storeCard: {
-        headerFields: [],
+        headerFields: [
+          { key: "business", label: "", value: params.merchant.business_name || "" },
+        ],
         // No primaryFields: Apple renders storeCard's primary field text
         // overlaid directly on top of the strip image, which collided with
         // the stamp grid now drawn into that same image (see strip image
