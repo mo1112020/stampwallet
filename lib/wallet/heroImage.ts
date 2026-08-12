@@ -548,6 +548,7 @@ export async function renderAppleStepsStrip(params: {
     return `
       <g opacity="${opacity}">
         <circle cx="${padding + circleR}" cy="${y}" r="${circleR}" fill="${circleFill}" stroke="${secondaryColor}" stroke-width="2" />
+        ${done ? `<path d="M ${padding + circleR - circleR * 0.5} ${y} l ${circleR * 0.3} ${circleR * 0.35} l ${circleR * 0.55} -${circleR * 0.6}" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />` : ""}
         <text x="${padding + circleR * 2 + 16}" y="${y + 9}" font-family="${FONT_FAMILY}" font-size="${current ? 26 : 22}" font-weight="${current ? 700 : 400}" fill="#ffffff">${escapeXml(stage.label)}</text>
         <text x="${width - padding}" y="${y + 8}" font-family="${FONT_FAMILY}" font-size="20" fill="#ffffff" opacity="0.8" text-anchor="end">${stage.threshold}</text>
       </g>

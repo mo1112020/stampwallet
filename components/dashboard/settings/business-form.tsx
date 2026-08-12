@@ -18,19 +18,24 @@ export function BusinessForm({ merchant }: { merchant: Merchant }) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch("/api/settings/merchant", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        currency: currency || null,
-        average_order_value: aov ? Number(aov) : null,
-      }),
-    });
-    setSaving(false);
-    if (res.ok) {
-      toast.success(t("saved"));
-    } else {
+    try {
+      const res = await fetch("/api/settings/merchant", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currency: currency || null,
+          average_order_value: aov ? Number(aov) : null,
+        }),
+      });
+      if (res.ok) {
+        toast.success(t("saved"));
+      } else {
+        toast.error(t("saveFailed"));
+      }
+    } catch {
       toast.error(t("saveFailed"));
+    } finally {
+      setSaving(false);
     }
   }
 

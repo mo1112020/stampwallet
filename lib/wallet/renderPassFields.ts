@@ -118,12 +118,19 @@ export function renderPassFields(
   return {
     primaryLabel: "Stage",
     primaryValue: current?.label ?? "Complete",
-    secondaryLabel: "Progress",
-    secondaryValue: String(p.current_value),
+    // The reward tier itself (e.g. "Free Drink"), matching how stamp/points
+    // show the reward description here — a bare current_value ("21") used to
+    // render on the pass with no unit, which read as a meaningless number.
+    secondaryLabel: "Reward",
+    secondaryValue: current?.label ?? "Complete",
     auxiliaryLabel: "Business",
     auxiliaryValue: businessName,
-    remainingLabel: "Next stage",
-    remainingValue: rewardAvailable ? "Ready!" : (nextStage?.label ?? "Complete"),
+    // Always names the actual next milestone rather than overloading this
+    // field with "Ready!" — that status now lives only in the 🎁 prefix
+    // apple.ts/google.ts add to secondaryValue, so the two fields stop
+    // repeating the same "ready" information in conflicting words.
+    remainingLabel: "Next milestone",
+    remainingValue: nextStage?.label ?? "Complete",
     rewardAvailable,
     expiry,
   };

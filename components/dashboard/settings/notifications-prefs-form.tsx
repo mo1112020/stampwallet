@@ -18,15 +18,25 @@ export function NotificationsPrefsForm({ initialPrefs }: { initialPrefs: Notific
   const [saving, setSaving] = useState(false);
 
   async function save(next: NotificationPrefs) {
+    const previous = prefs;
     setPrefs(next);
     setSaving(true);
-    const res = await fetch("/api/settings/merchant", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notification_prefs: next }),
-    });
-    setSaving(false);
-    if (!res.ok) toast.error(t("saveFailed"));
+    try {
+      const res = await fetch("/api/settings/merchant", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notification_prefs: next }),
+      });
+      if (!res.ok) {
+        setPrefs(previous);
+        toast.error(t("saveFailed"));
+      }
+    } catch {
+      setPrefs(previous);
+      toast.error(t("saveFailed"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

@@ -462,17 +462,14 @@
     },
     "branding": {
       "loading": "Loading…",
-      "intro": "These colors and logo are used across your dashboard and on customers' wallet passes.",
+      "intro": "This logo is used across your dashboard and on customers' wallet passes.",
       "logo": "Logo",
       "uploadLogo": "Upload logo",
       "uploading": "Uploading…",
-      "primaryColor": "Primary color",
-      "secondaryColor": "Secondary color",
       "saved": "Saved.",
       "saveFailed": "Could not save. Try again.",
       "saving": "Saving…",
-      "save": "Save",
-      "previewLabel": "Wallet pass preview"
+      "save": "Save"
     },
     "business": {
       "loading": "Loading…",

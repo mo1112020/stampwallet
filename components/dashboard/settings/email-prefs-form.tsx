@@ -14,15 +14,25 @@ export function EmailPrefsForm({ initialPrefs }: { initialPrefs: EmailPrefs }) {
   const [saving, setSaving] = useState(false);
 
   async function save(next: EmailPrefs) {
+    const previous = prefs;
     setPrefs(next);
     setSaving(true);
-    const res = await fetch("/api/settings/merchant", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email_prefs: next }),
-    });
-    setSaving(false);
-    if (!res.ok) toast.error(tCommon("saveFailed"));
+    try {
+      const res = await fetch("/api/settings/merchant", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email_prefs: next }),
+      });
+      if (!res.ok) {
+        setPrefs(previous);
+        toast.error(tCommon("saveFailed"));
+      }
+    } catch {
+      setPrefs(previous);
+      toast.error(tCommon("saveFailed"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

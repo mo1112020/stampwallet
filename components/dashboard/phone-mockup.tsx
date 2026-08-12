@@ -244,15 +244,18 @@ export function PhoneMockup({
                 </div>
               )}
 
-              {/* Info row */}
+              {/* Info row — labels/values mirror lib/wallet/renderPassFields.ts
+                  exactly (remainingLabel/remainingValue, secondaryLabel/
+                  secondaryValue) so this preview never drifts from what the
+                  real Apple/Google Wallet card actually shows. */}
               <div className="px-3 pt-3 pb-1 flex justify-between text-[9px]">
                 <div>
-                  <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? "points to reward" : programType === "steps" ? "next stage" : "stamps to reward"}</p>
+                  <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? "points to reward" : programType === "steps" ? "next milestone" : "stamps to reward"}</p>
                   <p className="font-bold text-[11px]">{programType === "points" ? `${pointsTarget - demoPoints} left` : programType === "steps" ? (stages[1]?.label ?? "Complete") : `${Math.max(0, stampsRequired - stampsCollected)} left`}</p>
                 </div>
                 <div className="text-right">
                   <p className="opacity-60 uppercase tracking-wide">Reward</p>
-                  <p className="max-w-[84px] truncate text-[11px] font-bold">{programType === "steps" ? (stages.at(-1)?.label ?? "Reward") : (rewardDescription ?? "Free item")}</p>
+                  <p className="max-w-[84px] truncate text-[11px] font-bold">{programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}</p>
                 </div>
               </div>
 
@@ -289,7 +292,7 @@ export function PhoneMockup({
                     <div>
                       <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">Reward</p>
                       <p className="mt-0.5 font-medium">
-                        {programType === "steps" ? (stages.at(-1)?.label ?? "Reward") : (rewardDescription ?? "Free item")}
+                        {programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}
                       </p>
                     </div>
                     {cardDetails?.description && (
