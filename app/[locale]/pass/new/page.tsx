@@ -1,7 +1,8 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { readableTextColor } from "@/lib/print/color";
@@ -48,6 +49,21 @@ function EnrollForm() {
   const [isIOS, setIsIOS] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Tracks which "Add to Wallet" link was tapped — the pass isn't pre-
+  // generated, so generateApplePass (fetching the cover photo, rendering
+  // the strip image) runs on click, and the link previously gave zero
+  // feedback during that gap, reading as an unresponsive/broken button.
+  const [installing, setInstalling] = useState<"apple" | "google" | null>(null);
+  const installTimeoutRef = useRef<number | null>(null);
+
+  function handleInstallClick(platform: "apple" | "google") {
+    setInstalling(platform);
+    // Apple's link is a same-tab file download, so this page stays mounted
+    // and the spinner would otherwise persist forever if the download
+    // silently fails — clear it after a few seconds regardless.
+    if (installTimeoutRef.current) window.clearTimeout(installTimeoutRef.current);
+    installTimeoutRef.current = window.setTimeout(() => setInstalling(null), 4000);
+  }
 
   useEffect(() => {
     if (!programId) {
@@ -177,12 +193,24 @@ function EnrollForm() {
           <p className="mt-2 text-sm text-[var(--muted)]">Add it to your wallet and start collecting rewards.</p>
           <div className="mt-6 space-y-3">
             {isIOS && appleUrl ? (
-              <a href={appleUrl} className="block rounded-full bg-black px-5 py-3 font-semibold text-white">
-                Add to Apple Wallet
+              <a
+                href={appleUrl}
+                onClick={() => handleInstallClick("apple")}
+                aria-disabled={installing === "apple"}
+                className="flex items-center justify-center gap-2 rounded-full bg-black px-5 py-3 font-semibold text-white"
+              >
+                {installing === "apple" && <Loader2 className="h-4 w-4 animate-spin" />}
+                {installing === "apple" ? "Adding to Wallet…" : "Add to Apple Wallet"}
               </a>
             ) : googleUrl ? (
-              <a href={googleUrl} className="block rounded-full bg-black px-5 py-3 font-semibold text-white">
-                Add to Google Wallet
+              <a
+                href={googleUrl}
+                onClick={() => handleInstallClick("google")}
+                aria-disabled={installing === "google"}
+                className="flex items-center justify-center gap-2 rounded-full bg-black px-5 py-3 font-semibold text-white"
+              >
+                {installing === "google" && <Loader2 className="h-4 w-4 animate-spin" />}
+                {installing === "google" ? "Adding to Wallet…" : "Add to Google Wallet"}
               </a>
             ) : googleUnavailable ? (
               <p className="text-sm text-[var(--muted)]">
@@ -269,7 +297,8 @@ function EnrollForm() {
             I agree to receive program updates and offers.
           </label>
           {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-          <Button type="submit" className="mt-6 h-12 w-full" style={{ backgroundColor: color }} disabled={loading}>
+          <Button type="submit" className="mt-6 flex h-12 w-full items-center justify-center gap-2" style={{ backgroundColor: color }} disabled={loading}>
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {loading ? "Creating your pass…" : "Join & get your pass"}
           </Button>
         </form>
