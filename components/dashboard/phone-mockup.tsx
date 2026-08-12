@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
-import { Clock, ExternalLink, type LucideIcon } from "lucide-react";
+import { ExternalLink, type LucideIcon } from "lucide-react";
 import type { BarcodeStyle, CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import { BarcodeImage } from "@/components/dashboard/print/barcode-image";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
@@ -268,36 +268,38 @@ export function PhoneMockup({
                 )}
               </div>
 
-              {expirationPreview && (
-                <div className="mx-3 mt-2 flex flex-col items-center gap-0.5">
-                  <div className="flex items-center justify-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[8px] font-semibold uppercase tracking-wide">
-                    <Clock className="h-2.5 w-2.5" />
-                    {formatDaysRemaining(expirationPreview)}
-                  </div>
-                  {/* This always shows the full configured window, as if a
-                      member joined today — a real member's card counts down
-                      from THEIR join date instead, so it legitimately shows
-                      fewer days remaining the longer they've been enrolled.
-                      Without this note that read as a mismatch/bug when
-                      compared against an existing customer's real card. */}
-                  <p className="text-[7px] opacity-60">for a member joining today</p>
-                </div>
-              )}
-
-              {/* Info row — labels/values mirror lib/wallet/renderPassFields.ts
-                  exactly (remainingLabel/remainingValue, secondaryLabel/
-                  secondaryValue) so this preview never drifts from what the
-                  real Apple/Google Wallet card actually shows. */}
-              <div className="px-3 pt-3 pb-1 flex justify-between text-[9px]">
-                <div>
-                  <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? "points to reward" : programType === "steps" ? "next milestone" : "stamps to reward"}</p>
-                  <p className="font-bold text-[11px]">{programType === "points" ? `${pointsTarget - demoPoints} left` : programType === "steps" ? (stages[1]?.label ?? "Complete") : `${Math.max(0, stampsRequired - stampsCollected)} left`}</p>
-                </div>
-                <div className="text-right">
+              {/* Info row — labels/values AND layout mirror the real Apple/
+                  Google card exactly: Apple renders secondaryFields (Reward)
+                  and auxiliaryFields (next milestone, then expiry when
+                  enabled) as left-aligned columns in one row — there's no
+                  "badge" styling available for expiry, it's a plain field
+                  like the other two, so it belongs in this row rather than
+                  as a standalone pill above it (the previous design here). */}
+              <div className="px-3 pt-3 pb-1 flex justify-between gap-2 text-[9px]">
+                <div className="min-w-0">
                   <p className="opacity-60 uppercase tracking-wide">Reward</p>
-                  <p className="max-w-[84px] truncate text-[11px] font-bold">{programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}</p>
+                  <p className="truncate text-[11px] font-bold">{programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}</p>
                 </div>
+                <div className="min-w-0">
+                  <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? "points to reward" : programType === "steps" ? "next milestone" : "stamps to reward"}</p>
+                  <p className="truncate text-[11px] font-bold">{programType === "points" ? `${pointsTarget - demoPoints} left` : programType === "steps" ? (stages[1]?.label ?? "Complete") : `${Math.max(0, stampsRequired - stampsCollected)} left`}</p>
+                </div>
+                {expirationPreview && (
+                  <div className="min-w-0">
+                    <p className="opacity-60 uppercase tracking-wide">Expires</p>
+                    <p className="truncate text-[11px] font-bold">{formatDaysRemaining(expirationPreview)}</p>
+                  </div>
+                )}
               </div>
+              {expirationPreview && (
+                // Always shows the full configured window, as if a member
+                // joined today — a real member's card counts down from
+                // THEIR join date instead, so it legitimately shows fewer
+                // days the longer they've been enrolled. Without this note
+                // that reads as a mismatch/bug against an existing
+                // customer's real card.
+                <p className="px-3 pb-1 text-[7px] opacity-50">Expiration shown is for a member joining today</p>
+              )}
 
               {/* Barcode — same BarcodeImage every real pass/print asset uses,
                   so this preview accurately reflects the selected barcode
