@@ -37,6 +37,11 @@ function playScanFeedback() {
   }
 }
 
+// How long the green "matched" frame shows before handing off to the
+// parent's onScan — long enough to register as a deliberate confirmation,
+// short enough not to feel like it's stalling the scan.
+const MATCH_FLASH_MS = 220;
+
 /**
  * Live QR/PDF417 camera scanner. Decodes continuously while mounted and not
  * paused; the parent is expected to pause it (rather than unmount) while
@@ -65,6 +70,11 @@ export function CameraScanner({
   const [error, setError] = useState<string | null>(null);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
+  // Briefly shows a "matched" state (green frame) before handing off to the
+  // parent — the parent swaps this component out for a loading screen the
+  // moment onScan fires, so without this delay a successful scan gave no
+  // visible confirmation at all beyond the vibration/beep.
+  const [matched, setMatched] = useState(false);
 
   useEffect(() => {
     if (paused) return;
@@ -74,6 +84,7 @@ export function CameraScanner({
     setError(null);
     setTorchOn(false);
     setTorchSupported(false);
+    setMatched(false);
 
     Promise.all([import("@zxing/browser"), import("@zxing/library")]).then(([{ BrowserMultiFormatReader }, { BarcodeFormat, DecodeHintType }]) => {
       if (cancelled) return;
@@ -102,7 +113,11 @@ export function CameraScanner({
             if (cancelled || !result || hasScannedRef.current) return;
             hasScannedRef.current = true;
             playScanFeedback();
-            onScanRef.current(result.getText());
+            setMatched(true);
+            const text = result.getText();
+            window.setTimeout(() => {
+              if (!cancelled) onScanRef.current(text);
+            }, MATCH_FLASH_MS);
           }
         )
         .then((controls) => {
@@ -171,7 +186,18 @@ export function CameraScanner({
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-black">
       <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
-      <div className="pointer-events-none absolute inset-8 rounded-2xl border-2 border-white/70" />
+      <div
+        className={`pointer-events-none absolute inset-8 overflow-hidden rounded-2xl border-2 transition-colors duration-150 ${
+          matched ? "border-[#22c55e]" : "border-white/70"
+        }`}
+      >
+        {/* Sweeping scan line — the frame alone gave no sense that anything
+            was actively happening while waiting for a code to line up. */}
+        {!matched && (
+          <div className="scan-line-sweep absolute inset-x-0 h-0.5 bg-[#22c55e]/90 shadow-[0_0_8px_2px_rgba(34,197,94,0.6)]" />
+        )}
+        {matched && <div className="absolute inset-0 bg-[#22c55e]/15" />}
+      </div>
       {torchSupported && (
         <button
           type="button"

@@ -275,14 +275,16 @@ export async function renderStampCardHeroImage(params: {
     const x = startX + col * (cell + gap);
     const y = startY + row * (cell + gap);
     const filled = i < collected;
-    const iconColor = filled ? "#ffffff" : secondaryColor;
+    const iconColor = filled ? "#ffffff" : "rgba(255,255,255,0.9)";
     const iconSize = cell * 0.5;
 
+    // Same legibility fix as renderAppleStripImage — a 0.45 group opacity
+    // over a photo made unfilled stamps nearly invisible.
     cells.push(`
-      <g opacity="${filled ? 1 : 0.45}">
+      <g>
         <circle cx="${x + cell / 2}" cy="${y + cell / 2}" r="${cell / 2}"
-          fill="${filled ? secondaryColor : "transparent"}"
-          stroke="${secondaryColor}" stroke-width="3" />
+          fill="${filled ? secondaryColor : "rgba(0,0,0,0.35)"}"
+          stroke="${filled ? secondaryColor : "rgba(255,255,255,0.85)"}" stroke-width="3" />
         ${iconGroupMarkup(config.icon, iconColor, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize)}
       </g>
     `);
@@ -468,14 +470,19 @@ export async function renderAppleStripImage(params: {
     const x = startX + col * (cell + gap);
     const y = startY + row * (cell + gap);
     const filled = i < collected;
-    const iconColor = filled ? "#ffffff" : secondaryColor;
+    const iconColor = filled ? "#ffffff" : "rgba(255,255,255,0.9)";
     const iconSize = cell * 0.5;
 
+    // Unfilled stamps sit on top of the cover photo — the old 0.55 group
+    // opacity compounded with an already-translucent fill/stroke (and with
+    // the icon's own stroke) left them barely readable against a busy
+    // background. Full opacity plus a dark scrim behind keeps "not earned
+    // yet" clearly distinct from "earned" while staying legible.
     cells.push(`
-      <g opacity="${filled ? 1 : 0.55}">
+      <g>
         <circle cx="${x + cell / 2}" cy="${y + cell / 2}" r="${cell / 2}"
-          fill="${filled ? secondaryColor : "rgba(255,255,255,0.12)"}"
-          stroke="${filled ? secondaryColor : "rgba(255,255,255,0.6)"}" stroke-width="${Math.max(1, cell * 0.05)}" />
+          fill="${filled ? secondaryColor : "rgba(0,0,0,0.35)"}"
+          stroke="${filled ? secondaryColor : "rgba(255,255,255,0.85)"}" stroke-width="${Math.max(1, cell * 0.05)}" />
         ${iconGroupMarkup(config.icon, iconColor, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize)}
       </g>
     `);

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { CameraScanner } from "@/components/scanner/camera-scanner";
@@ -16,6 +17,16 @@ type LookupResult = {
   customer: { name: string | null; phone: string | null; email: string | null } | null;
   business_name: string;
 };
+
+type SearchResult = {
+  pass_id: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  program_name: string;
+  program_active: boolean;
+};
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 type ScanOutcome = {
   reward_available: boolean;
@@ -63,6 +74,17 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const resumeTimerRef = useRef<number | null>(null);
 
+  // Manual fallback for whenever the camera can't read a code — bad
+  // lighting, a cracked/dirty phone screen, denied camera permission, or a
+  // device with no camera at all. Always visible above the camera rather
+  // than only appearing after a camera error, so it's available regardless
+  // of why scanning isn't working.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchDebounceRef = useRef<number | null>(null);
+  const searchRequestIdRef = useRef(0);
+
   // Shared by every request this component makes: a 401 mid-session means
   // the merchant/staff session expired (or was revoked elsewhere) — that's
   // a distinct, recoverable state from "this specific scan failed" and
@@ -104,8 +126,40 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
   useEffect(() => {
     return () => {
       if (resumeTimerRef.current) window.clearTimeout(resumeTimerRef.current);
+      if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
     };
   }, []);
+
+  // Debounced so every keystroke doesn't fire its own request; a stale
+  // response landing after a newer one is dropped via the request-id guard
+  // rather than a naive "last fetch wins by timing," which isn't reliable
+  // when requests can complete out of order.
+  useEffect(() => {
+    if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    searchDebounceRef.current = window.setTimeout(async () => {
+      const requestId = ++searchRequestIdRef.current;
+      const res = await authedFetch(`/api/scan/search?q=${encodeURIComponent(query)}`);
+      if (requestId !== searchRequestIdRef.current) return;
+      setSearching(false);
+      if (!res || !res.ok) return;
+      const json = await res.json();
+      if (requestId !== searchRequestIdRef.current) return;
+      setSearchResults(json.data ?? []);
+    }, SEARCH_DEBOUNCE_MS);
+  }, [searchQuery, authedFetch]);
+
+  function clearSearch() {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearching(false);
+  }
 
   function reset() {
     if (resumeTimerRef.current) {
@@ -117,6 +171,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
     setOutcome(null);
     setErrorMessage(null);
     setAmount(1);
+    clearSearch();
   }
 
   function goToLogin() {
@@ -185,6 +240,73 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
   return (
     <div>
       <div>
+        {stage === "scanning" && (
+          <div className="mb-4">
+            <div className="relative">
+              <Search className={`pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${mutedClass}`} />
+              <Input
+                type="search"
+                inputMode="search"
+                placeholder={t("searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-10 pe-10"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  aria-label={t("clearSearch")}
+                  className={`absolute end-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100`}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {(searching || searchResults.length > 0) && (
+              <div
+                className={`mt-2 overflow-hidden rounded-2xl border ${
+                  dark ? "border-white/10 bg-white/5" : "border-[var(--line)] bg-[var(--surface)]"
+                }`}
+              >
+                {searching ? (
+                  <p className={`p-4 text-sm ${mutedClass}`}>{t("searching")}</p>
+                ) : searchResults.length === 0 ? (
+                  <p className={`p-4 text-sm ${mutedClass}`}>{t("noResults")}</p>
+                ) : (
+                  <ul className={`divide-y ${dark ? "divide-white/10" : "divide-[var(--line)]"}`}>
+                    {searchResults.map((r, i) => (
+                      <li key={`${r.pass_id}-${i}`}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            clearSearch();
+                            handleScan(r.pass_id);
+                          }}
+                          className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-start ${
+                            dark ? "hover:bg-white/5" : "hover:bg-[var(--surface-2)]"
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate font-medium">{r.customer_name || t("unknownCustomer")}</p>
+                            <p className={`truncate text-xs ${mutedClass}`}>
+                              {[r.customer_phone, r.program_name].filter(Boolean).join(" · ")}
+                            </p>
+                          </div>
+                          {!r.program_active && (
+                            <span className={`shrink-0 text-xs ${mutedClass}`}>{t("inactiveProgram")}</span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {stage === "scanning" && <CameraScanner onScan={handleScan} />}
 
         {(stage === "loading" || stage === "submitting") && (

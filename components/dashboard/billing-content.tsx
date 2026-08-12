@@ -16,9 +16,9 @@ import type { BillingInvoice, BillingUsage } from "@/lib/billing/data";
 import { cn } from "@/lib/utils";
 import type { Merchant, Plan } from "@/types";
 
-const UPGRADE_PLANS: { plan: PaidPlan; blurb: string }[] = [
+const UPGRADE_PLANS: { plan: PaidPlan; blurb: string; popular?: boolean }[] = [
   { plan: "starter", blurb: "For growing businesses ready to customize their brand." },
-  { plan: "pro", blurb: "For established loyalty programs across multiple locations." },
+  { plan: "pro", blurb: "For established loyalty programs across multiple locations.", popular: true },
 ];
 
 const INTERVALS: { value: PlanInterval; label: string; months: number }[] = [
@@ -26,6 +26,22 @@ const INTERVALS: { value: PlanInterval; label: string; months: number }[] = [
   { value: "quarterly", label: "Quarterly", months: 3 },
   { value: "yearly", label: "Yearly", months: 12 },
 ];
+
+/** Percentage saved vs paying monthly for the same duration — derived from
+ * the real price table rather than hardcoded, so it can't drift out of sync
+ * if prices change. Returns 0 for the monthly interval itself. */
+function intervalSavingsPct(intervalValue: PlanInterval) {
+  const months = INTERVALS.find((i) => i.value === intervalValue)!.months;
+  if (months === 1) return 0;
+  // Both paid plans currently share the same discount curve; averaging keeps
+  // this honest if they ever diverge slightly.
+  const pcts = (Object.keys(PLAN_PRICES_USD_CENTS) as PaidPlan[]).map((p) => {
+    const atMonthly = PLAN_PRICES_USD_CENTS[p].monthly * months;
+    const atInterval = PLAN_PRICES_USD_CENTS[p][intervalValue];
+    return (atMonthly - atInterval) / atMonthly;
+  });
+  return Math.round((pcts.reduce((a, b) => a + b, 0) / pcts.length) * 100);
+}
 
 const COMPARE_PLANS: Plan[] = ["free", "starter", "pro", "enterprise"];
 
@@ -219,12 +235,12 @@ export function BillingContent({
 
       {/* Current plan hero */}
       <Reveal as="div" className="mt-6">
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-[var(--primary)]/20 bg-gradient-to-br from-[var(--primary-soft)]/50 to-transparent">
           <div className="flex flex-wrap items-center justify-between gap-4 p-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">{t("currentPlan")}</p>
               <div className="mt-1 flex items-center gap-2">
-                <h2 className="text-2xl font-bold capitalize text-[var(--ink)]">{plan}</h2>
+                <h2 className="text-3xl font-bold capitalize tracking-tight text-[var(--ink)]">{plan}</h2>
                 {PLAN_LIMITS[plan].customBranding && <Badge variant="primary">Custom branding</Badge>}
               </div>
               {merchant.scheduled_cancel_at ? (
@@ -258,49 +274,88 @@ export function BillingContent({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">Plans</h3>
           <div className="inline-flex rounded-full border border-[var(--line)] p-1">
-            {INTERVALS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setInterval(value)}
-                className={cn(
-                  "rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
-                  interval === value ? "bg-[var(--primary)] text-[var(--primary-fg)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
-                )}
-              >
-                {label}
-              </button>
-            ))}
+            {INTERVALS.map(({ value, label }) => {
+              const savings = intervalSavingsPct(value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setInterval(value)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                    interval === value ? "bg-[var(--primary)] text-[var(--primary-fg)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
+                  )}
+                >
+                  {label}
+                  {savings > 0 && (
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none",
+                        interval === value
+                          ? "bg-white/20 text-[var(--primary-fg)]"
+                          : "bg-[var(--success-soft)] text-[var(--success)]"
+                      )}
+                    >
+                      -{savings}%
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
         <StaggerGroup className="mt-3 grid gap-4 sm:grid-cols-2">
-          {UPGRADE_PLANS.map(({ plan: upgradePlan, blurb }) => {
+          {UPGRADE_PLANS.map(({ plan: upgradePlan, blurb, popular }) => {
             const limits = PLAN_LIMITS[upgradePlan];
             const isCurrent = plan === upgradePlan && merchant.plan_interval === interval && hasActiveSubscription;
             const cents = PLAN_PRICES_USD_CENTS[upgradePlan][interval];
-            const monthlyEquivalent = cents / INTERVALS.find((i) => i.value === interval)!.months;
+            const months = INTERVALS.find((i) => i.value === interval)!.months;
+            const monthlyEquivalent = cents / months;
+            const fullPriceIfMonthly = PLAN_PRICES_USD_CENTS[upgradePlan].monthly;
+            const features = [
+              `${limits.maxActivePrograms ?? "Unlimited"} active programs`,
+              `${limits.maxActiveCustomers?.toLocaleString() ?? "Unlimited"} customers`,
+              `${limits.maxSeats ?? "Unlimited"} team seats`,
+              `${limits.maxLocations ?? "Unlimited"} locations`,
+            ];
             return (
-              <Card key={upgradePlan} className={cn("flex flex-col p-6", isCurrent && "ring-2 ring-[var(--primary)]")}>
-                <div className="flex items-center justify-between">
+              <Card
+                key={upgradePlan}
+                className={cn(
+                  "relative flex flex-col p-6 transition-shadow hover:shadow-md",
+                  isCurrent && "ring-2 ring-[var(--primary)]",
+                  !isCurrent && popular && "ring-1 ring-[var(--primary)]/30"
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
                   <h4 className="text-lg font-semibold capitalize text-[var(--ink)]">{upgradePlan}</h4>
-                  {isCurrent && <Badge variant="primary">Current</Badge>}
+                  {isCurrent ? (
+                    <Badge variant="primary">Current</Badge>
+                  ) : popular ? (
+                    <Badge variant="primary">Most popular</Badge>
+                  ) : null}
                 </div>
                 <p className="mt-1 text-sm text-[var(--muted)]">{blurb}</p>
-                <p className="mt-3 text-2xl font-bold text-[var(--ink)]">
-                  {formatUsd(monthlyEquivalent)}
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="text-3xl font-bold tracking-tight text-[var(--ink)]">{formatUsd(monthlyEquivalent)}</span>
                   <span className="text-sm font-normal text-[var(--muted)]">/mo</span>
+                  {interval !== "monthly" && (
+                    <span className="text-sm text-[var(--muted)] line-through">{formatUsd(fullPriceIfMonthly)}</span>
+                  )}
+                </div>
+                <p className="mt-1 min-h-[1rem] text-xs text-[var(--muted)]">
+                  {interval !== "monthly" ? `${formatUsd(cents)} billed ${interval}` : "Billed monthly"}
                 </p>
-                {interval !== "monthly" && (
-                  <p className="text-xs text-[var(--muted)]">{formatUsd(cents)} billed {interval}</p>
-                )}
-                <ul className="mt-4 space-y-1.5 text-sm text-[var(--muted)]">
-                  <li>{limits.maxActivePrograms ?? "Unlimited"} active programs</li>
-                  <li>{limits.maxActiveCustomers?.toLocaleString() ?? "Unlimited"} customers</li>
-                  <li>{limits.maxSeats ?? "Unlimited"} team seats</li>
-                  <li>{limits.maxLocations ?? "Unlimited"} locations</li>
+                <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]">
+                  {features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2">
+                      <Check className="h-4 w-4 shrink-0 text-[var(--success)]" />
+                      {feature}
+                    </li>
+                  ))}
                 </ul>
                 <Button
-                  className="mt-5 w-full"
+                  className="mt-6 w-full"
                   variant={isCurrent ? "outline" : "default"}
                   disabled={isCurrent || pendingAction !== null}
                   onClick={() => selectPlan(upgradePlan)}

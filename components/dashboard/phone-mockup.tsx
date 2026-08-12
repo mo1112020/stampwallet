@@ -216,18 +216,24 @@ export function PhoneMockup({
                       {Array.from({ length: clampedRequired }).map((_, i) => {
                         const filled = i < stampsCollected;
                         return (
+                          // Unfilled stamps sit on top of a photo, so the old
+                          // 0.55 group opacity (compounding with an already
+                          // translucent fill/border) left them barely
+                          // readable against a busy background. Full opacity
+                          // with a stronger scrim + border keeps "not earned
+                          // yet" visually distinct from "earned" while still
+                          // being clearly visible.
                           <div
                             key={i}
                             className="flex aspect-square items-center justify-center rounded-full"
                             style={{
-                              opacity: filled ? 1 : 0.55,
-                              backgroundColor: filled ? secondaryColor : "rgba(255,255,255,0.12)",
-                              border: `${STAMP_BORDER_WIDTH[scale]} solid ${filled ? secondaryColor : "rgba(255,255,255,0.6)"}`,
+                              backgroundColor: filled ? secondaryColor : "rgba(0,0,0,0.35)",
+                              border: `${STAMP_BORDER_WIDTH[scale]} solid ${filled ? secondaryColor : "rgba(255,255,255,0.85)"}`,
                             }}
                           >
                             <Icon
                               className={STAMP_ICON_SIZE[scale]}
-                              style={{ color: filled ? "#fff" : secondaryColor }}
+                              style={{ color: filled ? "#fff" : "rgba(255,255,255,0.9)" }}
                             />
                           </div>
                         );
@@ -275,31 +281,34 @@ export function PhoneMockup({
                   "badge" styling available for expiry, it's a plain field
                   like the other two, so it belongs in this row rather than
                   as a standalone pill above it (the previous design here). */}
-              <div className="px-3 pt-3 pb-1 flex justify-between gap-2 text-[9px]">
+              {/* Two columns, not three: this mockup card is ~211px wide vs a
+                  real phone's ~390px, so squeezing Reward/Next/Expires onto
+                  one row truncated every value to an unreadable fragment
+                  ("Free ...", "10% Di...", "12 days re..."). Expiry drops to
+                  its own line below instead — same fields and order as the
+                  real card, just reflowed for the narrower preview. */}
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 px-3 pt-3 pb-1 text-[9px]">
                 <div className="min-w-0">
                   <p className="opacity-60 uppercase tracking-wide">Reward</p>
                   <p className="truncate text-[11px] font-bold">{programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}</p>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 text-end">
                   <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? "points to reward" : programType === "steps" ? "next milestone" : "stamps to reward"}</p>
                   <p className="truncate text-[11px] font-bold">{programType === "points" ? `${pointsTarget - demoPoints} left` : programType === "steps" ? (stages[1]?.label ?? "Complete") : `${Math.max(0, stampsRequired - stampsCollected)} left`}</p>
                 </div>
                 {expirationPreview && (
-                  <div className="min-w-0">
+                  <div className="col-span-2 min-w-0 border-t border-white/15 pt-2">
                     <p className="opacity-60 uppercase tracking-wide">Expires</p>
                     <p className="truncate text-[11px] font-bold">{formatDaysRemaining(expirationPreview)}</p>
+                    {/* Always the full configured window, as if a member
+                        joined today — a real member's card counts down from
+                        THEIR join date, so it legitimately shows fewer days
+                        the longer they've been enrolled. Without this note
+                        that reads as a mismatch against a real card. */}
+                    <p className="mt-0.5 text-[7px] opacity-50">For a member joining today</p>
                   </div>
                 )}
               </div>
-              {expirationPreview && (
-                // Always shows the full configured window, as if a member
-                // joined today — a real member's card counts down from
-                // THEIR join date instead, so it legitimately shows fewer
-                // days the longer they've been enrolled. Without this note
-                // that reads as a mismatch/bug against an existing
-                // customer's real card.
-                <p className="px-3 pb-1 text-[7px] opacity-50">Expiration shown is for a member joining today</p>
-              )}
 
               {/* Barcode — same BarcodeImage every real pass/print asset uses,
                   so this preview accurately reflects the selected barcode

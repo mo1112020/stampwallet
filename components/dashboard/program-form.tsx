@@ -112,6 +112,12 @@ const BARCODE_STYLE_OPTIONS: { value: BarcodeStyle; label: string; description: 
   { value: "pdf417", label: "PDF417", description: "Stacked 2D barcode" },
 ];
 
+/** Matches what the generated wallet cards actually render — Google's
+ * heroImage shows up to 4 milestones and Apple's strip up to 3 (see
+ * lib/wallet/heroImage.ts). Also enforced server-side in
+ * lib/validators/index.ts's stepsConfigSchema. */
+const MAX_STAGES = 4;
+
 const defaultConfigs: Record<ProgramType, ProgramConfig> = {
   stamp: { stamps_required: 10, reward_description: "Free item", icon: "Coffee", initial_stamps: 0 },
   points: { points_per_reward: 1000, reward_description: "Free gift", points_label: "pts" },
@@ -994,17 +1000,25 @@ export function ProgramForm({
                   </div>
                 ))}
               </div>
+              {/* Capped at MAX_STAGES — that's how many the generated wallet
+                  cards actually render (see lib/wallet/heroImage.ts's
+                  renderStepsCardHeroImage / renderAppleStepsStrip), so
+                  allowing more here would silently create milestones the
+                  customer's real card never shows. */}
               <Button
                 type="button"
                 variant="secondary"
                 className="mt-4 w-full border-dashed"
+                disabled={(config as StepsConfig).stages.length >= MAX_STAGES}
                 onClick={() => {
+                  const current = (config as StepsConfig).stages;
+                  if (current.length >= MAX_STAGES) return;
                   const stages = [
-                    ...(config as StepsConfig).stages,
+                    ...current,
                     {
                       key: `stage_${Date.now()}`,
                       label: "New stage",
-                      threshold: ((config as StepsConfig).stages.at(-1)?.threshold ?? 0) + 5,
+                      threshold: (current.at(-1)?.threshold ?? 0) + 5,
                     },
                   ];
                   setConfig({ stages });
@@ -1012,6 +1026,11 @@ export function ProgramForm({
               >
                 + Add Stage
               </Button>
+              {(config as StepsConfig).stages.length >= MAX_STAGES && (
+                <p className="mt-2 text-center text-xs text-[var(--muted)]">
+                  Up to {MAX_STAGES} stages — that&apos;s what fits on the wallet card.
+                </p>
+              )}
             </div>
           </div>
         )}

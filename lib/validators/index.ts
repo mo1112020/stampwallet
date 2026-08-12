@@ -47,6 +47,10 @@ export const pointsConfigSchema = cardAppearanceSchema.extend({
 });
 
 export const stepsConfigSchema = cardAppearanceSchema.extend({
+  // Max 4: that's how many milestones the generated wallet cards actually
+  // render (lib/wallet/heroImage.ts), so more would silently create stages
+  // the customer's real card never shows. Mirrors MAX_STAGES in
+  // components/dashboard/program-form.tsx.
   stages: z
     .array(
       z.object({
@@ -55,7 +59,8 @@ export const stepsConfigSchema = cardAppearanceSchema.extend({
         threshold: z.number().int().min(0),
       })
     )
-    .min(1),
+    .min(1)
+    .max(4),
 });
 
 export const createProgramSchema = z.discriminatedUnion("type", [

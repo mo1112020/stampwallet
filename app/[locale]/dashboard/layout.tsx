@@ -29,7 +29,14 @@ export default async function DashboardLayout({
   const merchant = session.merchant;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[var(--background)]">
+    // 100dvh, not h-screen/100vh: on mobile, 100vh is the viewport height
+    // with the browser's URL bar *hidden*, so while that bar is showing the
+    // layout is taller than what's actually visible — and it resizes as the
+    // bar collapses/expands during scroll, which made this whole fixed
+    // shell (topbar included) visibly shift out of place. dvh tracks the
+    // real visible viewport instead. Same unit the marketing hero already
+    // uses for the same reason.
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[var(--background)]">
       {/* Fixed top bar */}
       <DashboardTopbar
         locale={locale}

@@ -389,6 +389,11 @@
     "offlineBody": "Scanning needs an internet connection so stamps and points are never lost or double-counted. Reconnect and try again.",
     "flashOn": "Flash on",
     "flashOff": "Flash off",
+    "searchPlaceholder": "Camera not working? Search by name or phone",
+    "clearSearch": "Clear search",
+    "searching": "Searching…",
+    "noResults": "No matching customers",
+    "inactiveProgram": "Inactive",
     "install": {
       "title": "Install the Scanner",
       "body": "Add WalletOS Scanner to your home screen for a fast, full-screen scanning experience — no browser bar, opens straight to the camera.",

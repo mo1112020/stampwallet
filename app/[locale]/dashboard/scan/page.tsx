@@ -8,7 +8,7 @@ export default function ScanPage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--primary)]">
+      <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">
         {t("title")}
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">{t("subtitle")}</p>
