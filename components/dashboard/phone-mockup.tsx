@@ -269,9 +269,18 @@ export function PhoneMockup({
               </div>
 
               {expirationPreview && (
-                <div className="mx-3 mt-2 flex items-center justify-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[8px] font-semibold uppercase tracking-wide">
-                  <Clock className="h-2.5 w-2.5" />
-                  {formatDaysRemaining(expirationPreview)}
+                <div className="mx-3 mt-2 flex flex-col items-center gap-0.5">
+                  <div className="flex items-center justify-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[8px] font-semibold uppercase tracking-wide">
+                    <Clock className="h-2.5 w-2.5" />
+                    {formatDaysRemaining(expirationPreview)}
+                  </div>
+                  {/* This always shows the full configured window, as if a
+                      member joined today — a real member's card counts down
+                      from THEIR join date instead, so it legitimately shows
+                      fewer days remaining the longer they've been enrolled.
+                      Without this note that read as a mismatch/bug when
+                      compared against an existing customer's real card. */}
+                  <p className="text-[7px] opacity-60">for a member joining today</p>
                 </div>
               )}
 
@@ -294,7 +303,10 @@ export function PhoneMockup({
                   so this preview accurately reflects the selected barcode
                   style (not just a fixed decorative mockup). The value here
                   is a placeholder: this preview has no real customer pass id
-                  yet, only the visual style is meaningful. */}
+                  yet, only the visual style is meaningful. No caption below
+                  it — "Tap ••• for details" was preview-only instructional
+                  copy that never appears on the real Apple/Google card, so
+                  it read as a mismatch when compared side by side. */}
               <div className="mx-3 mb-3 mt-2 flex flex-col items-center rounded-xl bg-white px-2 py-1.5">
                 <BarcodeImage
                   value="00000000-0000-0000-0000-000000000000"
@@ -302,7 +314,6 @@ export function PhoneMockup({
                   size={barcodeStyle === "pdf417" ? 140 : 56}
                   dark="#000000"
                 />
-                <p className="mt-0.5 text-[8px] text-gray-400">Tap ••• for details</p>
               </div>
             </div>
 
