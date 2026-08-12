@@ -44,7 +44,21 @@ function LoginContent() {
       setError(key ? t(key) : err.message);
       return;
     }
-    router.push(`/${locale}/dashboard`);
+    // "staff"-role accounts only have the scan capability in /dashboard
+    // (lib/auth/permissions.ts) — same reasoning/fix as
+    // app/[locale]/reset-password/page.tsx. Falls back to /dashboard (the
+    // previous, still-correct-for-most-users behavior) if this lookup fails.
+    let destination = `/${locale}/dashboard`;
+    try {
+      const res = await fetch("/api/auth/session-role");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data?.role === "staff") destination = `/${locale}/scan-app`;
+      }
+    } catch {
+      // Falls back to the /dashboard default already set above.
+    }
+    router.push(destination);
     router.refresh();
   }
 
