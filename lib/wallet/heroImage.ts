@@ -348,7 +348,10 @@ export async function renderStepsCardHeroImage(params: {
         <circle cx="${padding + circleR}" cy="${y}" r="${circleR}" fill="${circleFill}" stroke="${secondaryColor}" stroke-width="3" />
         ${done ? `<path d="M ${padding + circleR - circleR * 0.5} ${y} l ${circleR * 0.3} ${circleR * 0.35} l ${circleR * 0.55} -${circleR * 0.6}" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />` : ""}
         <text x="${padding + circleR * 2 + 24}" y="${y + 11}" font-family="${FONT_FAMILY}" font-size="${current ? 32 : 28}" font-weight="${current ? 700 : 400}" fill="#ffffff">${escapeXml(stage.label)}</text>
-        <text x="${CANVAS_WIDTH - padding}" y="${y + 10}" font-family="${FONT_FAMILY}" font-size="26" fill="#ffffff" opacity="0.8" text-anchor="end">${stage.threshold}</text>
+        <!-- No extra opacity here — see the same fix in renderAppleStepsStrip;
+             it compounded with the row's own 0.5 opacity, leaving these
+             numbers at ~0.4 effective and nearly invisible on incomplete rows. -->
+        <text x="${CANVAS_WIDTH - padding}" y="${y + 10}" font-family="${FONT_FAMILY}" font-size="30" font-weight="600" fill="#ffffff" text-anchor="end">${stage.threshold}</text>
       </g>
     `;
   });
@@ -538,7 +541,11 @@ export async function renderAppleStepsStrip(params: {
   })();
   const visible = stages.slice(0, 3);
 
-  const padding = 20 * STRIP_SCALE;
+  // Apple's own guidance: strip content near the edges can get cropped,
+  // since this fixed 375x123 image is scaled to whatever the actual card
+  // width is on a given iPhone (which varies by model) — 20pt of margin
+  // cut it close for the right-aligned threshold numbers specifically.
+  const padding = 30 * STRIP_SCALE;
   const rowHeight = (height - padding * 2) / Math.max(1, visible.length);
   const circleR = Math.min(12 * STRIP_SCALE * 0.5, rowHeight * 0.24);
   const rows = visible.map((stage, i) => {
@@ -552,7 +559,12 @@ export async function renderAppleStepsStrip(params: {
         <circle cx="${padding + circleR}" cy="${y}" r="${circleR}" fill="${circleFill}" stroke="${secondaryColor}" stroke-width="2" />
         ${done ? `<path d="M ${padding + circleR - circleR * 0.5} ${y} l ${circleR * 0.3} ${circleR * 0.35} l ${circleR * 0.55} -${circleR * 0.6}" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />` : ""}
         <text x="${padding + circleR * 2 + 16}" y="${y + 9}" font-family="${FONT_FAMILY}" font-size="${current ? 26 : 22}" font-weight="${current ? 700 : 400}" fill="#ffffff">${escapeXml(stage.label)}</text>
-        <text x="${width - padding}" y="${y + 8}" font-family="${FONT_FAMILY}" font-size="20" fill="#ffffff" opacity="0.8" text-anchor="end">${stage.threshold}</text>
+        <!-- No extra opacity here (unlike the old 0.8) — it multiplied with
+             the row's own opacity (0.55 for incomplete rows), leaving these
+             numbers at ~0.44 effective opacity: nearly invisible against a
+             real photo and the reason the strip read as empty on the right,
+             even though the labels (no extra dimming) stayed legible. -->
+        <text x="${width - padding}" y="${y + 8}" font-family="${FONT_FAMILY}" font-size="24" font-weight="600" fill="#ffffff" text-anchor="end">${stage.threshold}</text>
       </g>
     `;
   });
