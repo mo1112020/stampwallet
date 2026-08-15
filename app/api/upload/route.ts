@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireMerchant } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
 
 export async function POST(request: NextRequest) {
   const auth = await requireMerchant();
@@ -73,5 +74,5 @@ export async function POST(request: NextRequest) {
     .from("card-backgrounds")
     .getPublicUrl(fileName);
 
-  return NextResponse.json({ url: publicUrl.publicUrl });
+  return NextResponse.json({ url: toAppDomainStorageUrl(publicUrl.publicUrl) });
 }

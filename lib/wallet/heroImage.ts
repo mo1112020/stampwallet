@@ -2,6 +2,7 @@ import sharp from "sharp";
 import path from "path";
 import { Resvg } from "@resvg/resvg-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
 import { getStampGridColumns, getStampCellScale, type StampCellScale } from "@/lib/stamp-grid";
 import { getIconNode } from "@/lib/wallet/stampIcons";
 import type { PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
@@ -649,7 +650,7 @@ export async function uploadHeroImage(key: string, buffer: Buffer): Promise<stri
     });
     if (error) throw new Error(error.message);
     const { data } = admin.storage.from("card-backgrounds").getPublicUrl(path);
-    return `${data.publicUrl}?v=${Date.now()}`;
+    return `${toAppDomainStorageUrl(data.publicUrl)}?v=${Date.now()}`;
   } catch (err) {
     // No service role configured, or storage unreachable — callers fall
     // back to leaving heroImage unset/unchanged rather than failing the
