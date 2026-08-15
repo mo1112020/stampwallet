@@ -106,6 +106,11 @@ export type Merchant = {
   /** Set only between "merchant clicked cancel" and the cancellation
    * actually taking effect — null the rest of the time. */
   scheduled_cancel_at: string | null;
+  /** Set the moment paid access actually ends; cleared on resubscribe. See
+   * lib/billing/enforcement.ts. */
+  billing_grace_ends_at: string | null;
+  /** Set once enforceBillingLimits() has run for the current lapse. */
+  billing_enforced_at: string | null;
   locale_default: Locale;
   onboarding_completed: boolean;
   currency: string | null;
@@ -139,6 +144,9 @@ export type LoyaltyProgram = {
   name: string;
   type: ProgramType;
   is_active: boolean;
+  /** True when is_active:false was set by enforceBillingLimits(), not the
+   * merchant — see lib/billing/enforcement.ts. */
+  deactivated_by_billing: boolean;
   config: ProgramConfig;
   created_at: string;
   updated_at: string;
@@ -185,13 +193,23 @@ export type StaffAccount = {
   merchant_id: string;
   role: Exclude<StaffRole, "owner">;
   status: StaffStatus;
+  /** True when suspended by enforceBillingLimits(), independent of status —
+   * meant to be temporary and auto-reversed on resubscribe, unlike a real
+   * owner-issued revoke. */
+  suspended_by_billing: boolean;
   invited_email: string;
   created_at: string;
   updated_at: string;
 };
 
 export type NotificationCampaignType = "manual" | "scheduled" | "automated";
-export type NotificationTrigger = "reward_unlocked" | "birthday" | "expiring_reward" | "inactive_customer";
+export type NotificationTrigger =
+  | "reward_unlocked"
+  | "birthday"
+  | "expiring_reward"
+  | "inactive_customer"
+  | "billing_paused"
+  | "billing_restored";
 export type NotificationCampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "canceled";
 
 export type SegmentScope = "all" | "program" | "inactive_days" | "birthday_month" | "progress_threshold" | "customers";
@@ -235,6 +253,9 @@ export type StoreLocation = {
   radius_meters: number;
   relevant_text: string | null;
   is_active: boolean;
+  /** True when is_active:false was set by enforceBillingLimits(), not the
+   * merchant — see lib/billing/enforcement.ts. */
+  deactivated_by_billing: boolean;
   created_at: string;
   updated_at: string;
   /** Programs this location's geo-push applies to. Empty = applies to all. */

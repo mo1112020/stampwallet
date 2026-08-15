@@ -105,6 +105,12 @@ const resolveSession = cache(async (): Promise<ResolvedSession> => {
   if (staffRow.status === "revoked") {
     return { ok: false, reason: "revoked" };
   }
+  // Distinct from a real owner-issued revoke — this is temporary, reversed
+  // automatically the moment the merchant's subscription is active again
+  // (see lib/billing/enforcement.ts restoreBillingLimits).
+  if (staffRow.suspended_by_billing) {
+    return { ok: false, reason: "suspended_billing" };
+  }
 
   if (staffRow.status === "invited") {
     await supabase.from("staff_accounts").update({ status: "active" }).eq("id", staffRow.id);
@@ -126,7 +132,7 @@ export async function requireSession(): Promise<SessionContext | { error: NextRe
   const resolved = await resolveSession();
   if (resolved.ok) return resolved.session;
 
-  const status = resolved.reason === "revoked" ? 403 : 401;
+  const status = resolved.reason === "revoked" || resolved.reason === "suspended_billing" ? 403 : 401;
   return { error: jsonError(resolved.reason, resolved.reason, status) };
 }
 

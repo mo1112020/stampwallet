@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { pushApplePassUpdate } from "@/lib/wallet/apple";
 import { pushGooglePassUpdate } from "@/lib/wallet/google";
 import { resolveSegmentTargets } from "@/lib/notifications/segments";
+import { isWithinFreePlanNotificationCap } from "@/lib/billing/notificationCap";
 import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
 export type WalletPushResult = {
@@ -39,6 +40,26 @@ export async function pushWalletUpdate(params: {
   let pushTokens: string[] = [];
   try {
     const admin = createAdminClient();
+
+    // Only ever relevant once billing enforcement has actually run (not
+    // just "plan is free" — a merchant is set to plan:"free" the moment
+    // their access ends, days before enforcement/the cap itself kicks in,
+    // and this must not jump the gun on the grace period promised in the
+    // warning email). A merchant who's simply always been on Free never
+    // trips this in practice either way — enrollment is already capped at
+    // the same limit, so they can never have more than
+    // PLAN_LIMITS.free.maxActiveCustomers customers to begin with. See
+    // lib/billing/notificationCap.ts.
+    if (params.merchant.plan === "free" && params.merchant.billing_enforced_at) {
+      const withinCap = await isWithinFreePlanNotificationCap(admin, params.program.id, params.passId);
+      if (!withinCap) {
+        return {
+          apple: { applicable: false, ok: true },
+          google: { applicable: false, ok: true },
+        };
+      }
+    }
+
     const { data } = await admin
       .from("apple_device_registrations")
       .select("push_token")

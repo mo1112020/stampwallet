@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { hasActiveAccess } from "@/lib/billing/access";
-import { disableCardExpirationForMerchant } from "@/lib/billing/enforcement";
+import { disableCardExpirationForMerchant, startBillingGrace, restoreBillingLimits } from "@/lib/billing/enforcement";
 import { planForStripePriceId } from "@/lib/billing/plans";
 import { createStripeClient } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -227,12 +227,24 @@ async function syncSubscription(
         ["stripe_customer_id", customerId],
       ];
 
+  // Resolved via a SELECT first (rather than folding straight into the
+  // UPDATE below, like this used to) specifically to capture
+  // subscription_status *before* this event overwrites it — that's the only
+  // way to tell "access just ended" and "access just came back" apart from
+  // "no change," which is what decides whether billing-enforcement grace
+  // starts, reverses, or does nothing.
   let resolvedMerchantId: string | null = null;
+  let previousStatus: SubscriptionStatus | null = null;
   for (const [column, value] of lookups) {
-    const { data, error } = await admin.from("merchants").update(update).eq(column, value).select("id").maybeSingle();
+    const { data, error } = await admin
+      .from("merchants")
+      .select("id, subscription_status")
+      .eq(column, value)
+      .maybeSingle();
     if (error) throw error;
     if (data) {
       resolvedMerchantId = data.id;
+      previousStatus = data.subscription_status;
       break;
     }
   }
@@ -240,6 +252,22 @@ async function syncSubscription(
   if (!resolvedMerchantId) {
     console.error(`Stripe webhook: no merchant matched subscription ${sub.id} (customer ${customerId})`);
     return null;
+  }
+
+  const { error: updateError } = await admin.from("merchants").update(update).eq("id", resolvedMerchantId);
+  if (updateError) throw updateError;
+
+  const wasEnded = !hasActiveAccess(previousStatus);
+  if (isEnded && !wasEnded) {
+    // Access just ended — see lib/billing/enforcement.ts. Only warns for
+    // now; nothing is actually paused/suspended until the grace period
+    // this starts runs out (daily cron sweep).
+    await startBillingGrace(admin, resolvedMerchantId);
+  } else if (!isEnded && wasEnded) {
+    // Resubscribed, whether mid-grace-period or after enforcement already
+    // ran — reverses either case identically (restoreBillingLimits is a
+    // no-op for anything that was never actually paused/suspended).
+    await restoreBillingLimits(admin, resolvedMerchantId);
   }
 
   if (isEnded) {

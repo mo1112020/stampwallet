@@ -4,10 +4,13 @@ import { Users } from "lucide-react";
 import { getSessionOrNull } from "@/lib/api";
 import { roleHasCapability } from "@/lib/auth/permissions";
 import { listAllCustomers } from "@/lib/customers/queries";
+import { hasActiveAccess } from "@/lib/billing/access";
+import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { Card } from "@/components/ui/card";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { CustomersToolbar } from "@/components/dashboard/customers-toolbar";
+import { BillingBlurBanner } from "@/components/dashboard/billing-blur-banner";
 
 function StatTile({ label, value }: { label: string; value: string | number }) {
   return (
@@ -54,6 +57,15 @@ export default async function CustomersPage({
     session.supabase.from("loyalty_programs").select("id, name").eq("merchant_id", session.merchantId).order("name"),
   ]);
 
+  // Soft paywall: once billing enforcement has actually moved this account
+  // onto the Free plan (not merely "plan is free" — see
+  // lib/wallet/push.ts's identical distinction), blur customers beyond what
+  // that plan allows visible rather than hiding them outright, and point at
+  // resubscribing to bring the rest back.
+  const billingCapped = !hasActiveAccess(session.merchant.subscription_status) && Boolean(session.merchant.billing_enforced_at);
+  const customerCap = PLAN_LIMITS.free.maxActiveCustomers ?? Infinity;
+  const hiddenCount = billingCapped ? Math.max(0, customers.length - customerCap) : 0;
+
   return (
     <div className="mx-auto max-w-6xl">
       <Reveal as="div">
@@ -89,8 +101,15 @@ export default async function CustomersPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--line)]">
-                {customers.map((c) => (
-                  <tr key={c.id} className="transition-colors hover:bg-[var(--surface-2)]">
+                {customers.map((c, i) => (
+                  <tr
+                    key={c.id}
+                    className={
+                      billingCapped && i >= customerCap
+                        ? "select-none blur-sm transition-colors"
+                        : "transition-colors hover:bg-[var(--surface-2)]"
+                    }
+                  >
                     <td className="px-4 py-3 font-medium text-[var(--ink)]">{c.name || t("unknownCustomer")}</td>
                     <td className="px-4 py-3 text-[var(--muted)]">{new Date(c.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-[var(--muted)]">
@@ -124,6 +143,7 @@ export default async function CustomersPage({
             </table>
           </Card>
         )}
+        {hiddenCount > 0 && <BillingBlurBanner hiddenCount={hiddenCount} pricingUrl={`/${locale}/pricing`} />}
       </div>
     </div>
   );
