@@ -10,6 +10,21 @@ import type {
   StepsProgress,
 } from "@/types";
 
+/**
+ * Reference implementation of the award/redeem math.
+ *
+ * Production writes no longer call this directly — /api/scan (app/api/scan/route.ts)
+ * calls the public.record_scan_event() RPC (supabase/migrations/019_atomic_scan_events.sql)
+ * instead, so the read-check-write for a single scan happens atomically under
+ * a Postgres row lock rather than as a JS read-then-write (which had a
+ * lost-update race under concurrent scans of the same pass).
+ *
+ * This file is kept as the canonical, unit-tested spec for that logic — the
+ * SQL function is a hand-written mirror of it. If you change the rules here
+ * (or there), update both, and update the parity tests in
+ * lib/scan/progress.test.ts.
+ */
+
 export type AwardResult = {
   progress: Progress;
   resultedInReward: boolean;
@@ -75,6 +90,14 @@ export function applyAward(
   };
 }
 
+/** Thrown by applyRedeem when progress hasn't actually reached the reward threshold. */
+export class RewardNotEarnedError extends Error {
+  constructor() {
+    super("reward_not_earned");
+    this.name = "RewardNotEarnedError";
+  }
+}
+
 export function applyRedeem(
   type: ProgramType,
   config: ProgramConfig,
@@ -82,6 +105,10 @@ export function applyRedeem(
 ): { progress: Progress; rewardDescription: string; delta: Record<string, number> } {
   if (type === "stamp") {
     const c = config as StampConfig;
+    const p = progress as StampProgress;
+    if (p.stamps_collected < c.stamps_required) {
+      throw new RewardNotEarnedError();
+    }
     return {
       progress: { stamps_collected: 0 },
       rewardDescription: c.reward_description,
@@ -92,7 +119,10 @@ export function applyRedeem(
   if (type === "points") {
     const c = config as PointsConfig;
     const p = progress as PointsProgress;
-    const next = Math.max(0, p.points - c.points_per_reward);
+    if (p.points < c.points_per_reward) {
+      throw new RewardNotEarnedError();
+    }
+    const next = p.points - c.points_per_reward;
     return {
       progress: { points: next },
       rewardDescription: c.reward_description,
@@ -110,6 +140,9 @@ export function applyRedeem(
       rewardDescription: "Complete",
       delta: {},
     };
+  }
+  if (p.current_value < nextStage.threshold) {
+    throw new RewardNotEarnedError();
   }
   return {
     progress: {

@@ -31,7 +31,16 @@ export const createClient = cache(async () => {
             cookieStore.set(name, value, options)
           );
         } catch {
-          // Called from a Server Component — middleware will refresh sessions.
+          // Called from a Server Component, which can't write cookies on its
+          // own — proxy.ts (Next.js 16's renamed middleware; see
+          // node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md)
+          // runs getUser() and persists the refreshed session cookie back to
+          // the response for every path under isDashboard/isAuth/isScanApp.
+          // Routes outside that set skip the Supabase round trip entirely
+          // and won't get a session refresh here either — that's fine for
+          // logged-out marketing/public pages, but any new authenticated
+          // route needs to be added to proxy.ts's matcher logic, or its
+          // sessions will silently never refresh.
         }
       },
     },

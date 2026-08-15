@@ -44,12 +44,26 @@ export async function proxy(request: NextRequest) {
     locales.some((l) => pathname.startsWith(`/${l}/login`)) ||
     locales.some((l) => pathname.startsWith(`/${l}/signup`));
 
+  // The Scanner PWA (staff-facing, separate login from the merchant
+  // dashboard) used to be entirely outside this check, so its sessions
+  // never got the getUser()-triggered refresh below, and a refreshed
+  // access-token cookie had no path back to the browser (server components
+  // can read cookies but can't reliably write them — see the comment in
+  // lib/supabase/server.ts). That's the same session-refresh gap dashboard
+  // auth relies on this file to close, just left open for one whole app
+  // area. isScanAppLogin is carved out of isScanApp so the login page
+  // itself doesn't get treated as "needs a session" (it doesn't have one
+  // yet) while still getting the getUser() round trip that lets an
+  // already-authenticated staff member bounce straight to /scan-app.
+  const isScanApp = locales.some((l) => pathname.startsWith(`/${l}/scan-app`));
+  const isScanAppLogin = locales.some((l) => pathname.startsWith(`/${l}/scan-app/login`));
+
   // Every other route (marketing pages, /pass/*, etc.) doesn't gate on auth,
   // so skip the Supabase round trip entirely there — auth.getUser() is a
   // real network call to the Auth server, and doing it unconditionally on
   // every request was adding hundreds of ms (up to seconds) to pages that
   // never needed to know who the visitor is.
-  if (!isDashboard && !isAuth) {
+  if (!isDashboard && !isAuth && !isScanApp) {
     return response;
   }
 
@@ -85,6 +99,16 @@ export async function proxy(request: NextRequest) {
   if (isAuth && user) {
     const locale = pathname.split("/")[1] || defaultLocale;
     return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+  }
+
+  if (isScanApp && !isScanAppLogin && !user) {
+    const locale = pathname.split("/")[1] || defaultLocale;
+    return NextResponse.redirect(new URL(`/${locale}/scan-app/login`, request.url));
+  }
+
+  if (isScanAppLogin && user) {
+    const locale = pathname.split("/")[1] || defaultLocale;
+    return NextResponse.redirect(new URL(`/${locale}/scan-app`, request.url));
   }
 
   return response;

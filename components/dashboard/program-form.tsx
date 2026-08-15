@@ -382,11 +382,25 @@ export function ProgramForm({
     if (!initial) return;
     if (!window.confirm(`Delete “${name}”? This permanently removes the program and its member progress.`)) return;
     setLoading(true);
-    const res = await fetch(`/api/programs/${initial.id}`, { method: "DELETE" });
-    setLoading(false);
-    if (res.ok) {
+    setError(null);
+    try {
+      const res = await fetch(`/api/programs/${initial.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) {
+        // The server blocks a hard delete once anyone is enrolled (deleting
+        // would cascade-erase their stamp/point history and orphan any
+        // wallet pass already on their phone). Point the merchant at the
+        // "Active" toggle above instead — same PATCH the normal save uses,
+        // fully reversible, and it preserves everything.
+        setError(json.error?.message ?? "Couldn't delete this program.");
+        return;
+      }
       router.push(`/${locale}/dashboard/programs`);
       router.refresh();
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
   }
 

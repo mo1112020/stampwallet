@@ -1,6 +1,5 @@
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { applyAward, applyRedeem } from "@/lib/scan/progress";
 import { pushWalletUpdate } from "@/lib/wallet/push";
 import { triggerAutomatedNotification } from "@/lib/notifications/campaigns";
 import { scanSchema } from "@/lib/validators";
@@ -42,53 +41,40 @@ export async function POST(request: Request) {
     return jsonError("Program is inactive", "inactive", 400);
   }
 
-  let nextProgress: Progress;
-  let delta: Record<string, number>;
-  let resultedInReward = false;
-  let rewardDescription = "";
-
-  if (parsed.data.action === "award") {
-    const result = applyAward(
-      program.type,
-      program.config,
-      row.progress as Progress,
-      parsed.data.amount
-    );
-    nextProgress = result.progress;
-    delta = result.delta;
-    resultedInReward = result.resultedInReward;
-    rewardDescription = result.rewardDescription;
-  } else {
-    const result = applyRedeem(program.type, program.config, row.progress as Progress);
-    nextProgress = result.progress;
-    delta = result.delta;
-    rewardDescription = result.rewardDescription;
-  }
-
-  const { data: updated, error: updateError } = await auth.supabase
-    .from("customer_progress")
-    .update({ progress: nextProgress })
-    .eq("id", row.id)
-    .select("*")
-    .single();
-
-  if (updateError || !updated) {
-    return jsonError(updateError?.message ?? "Update failed", "update_failed", 500);
-  }
-
-  await auth.supabase.from("scan_events").insert({
-    customer_progress_id: row.id,
-    scanned_by: auth.userId,
-    delta,
-    resulted_in_reward: resultedInReward,
+  // The pre-checks above (ownership, is_active) are a fast, friendly early
+  // exit — the RPC below re-verifies both authoritatively from inside the
+  // same locked transaction that computes and writes the new progress, so
+  // there's no gap between "checked" and "written" for a concurrent request
+  // to slip through. See supabase/migrations/019_atomic_scan_events.sql.
+  const { data: rpcRows, error: rpcError } = await auth.supabase.rpc("record_scan_event", {
+    p_pass_id: parsed.data.pass_id,
+    p_merchant_id: auth.merchantId,
+    p_scanned_by: auth.userId,
+    p_action: parsed.data.action,
+    p_amount: parsed.data.amount ?? null,
   });
 
-  if (parsed.data.action === "redeem") {
-    await auth.supabase.from("redemptions").insert({
-      customer_progress_id: row.id,
-      reward_description: rewardDescription,
-    });
+  if (rpcError || !rpcRows || rpcRows.length === 0) {
+    const message = rpcError?.message ?? "";
+    if (message.includes("not_found")) return jsonError("Pass not found", "not_found", 404);
+    if (message.includes("forbidden")) return jsonError("Forbidden", "forbidden", 403);
+    if (message.includes("inactive")) return jsonError("Program is inactive", "inactive", 400);
+    if (message.includes("reward_not_earned")) {
+      return jsonError("This reward hasn't been earned yet", "reward_not_earned", 400);
+    }
+    return jsonError(message || "Update failed", "update_failed", 500);
   }
+
+  const {
+    progress: nextProgress,
+    resulted_in_reward: resultedInReward,
+    reward_description: rewardDescription,
+  } = rpcRows[0] as {
+    progress: Progress;
+    resulted_in_reward: boolean;
+    reward_description: string;
+    delta: Record<string, number>;
+  };
 
   const rewardUnlockedNotification =
     parsed.data.action === "award" && resultedInReward && merchant.notification_prefs?.reward_unlocked;
@@ -128,7 +114,7 @@ export async function POST(request: Request) {
   }
 
   return jsonOk({
-    progress: updated.progress,
+    progress: nextProgress,
     reward_available: resultedInReward || parsed.data.action === "redeem",
     reward_description: rewardDescription,
     pass_id: row.pass_id,
