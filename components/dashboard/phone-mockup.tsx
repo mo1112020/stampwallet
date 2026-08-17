@@ -278,6 +278,7 @@ export function PhoneMockup({
                     >
                       {Array.from({ length: clampedRequired }).map((_, i) => {
                         const filled = i < stampsCollected;
+                        const iconSize = cell * 0.6;
                         return (
                           // Unfilled stamps sit on top of a photo, so the old
                           // 0.55 group opacity (compounding with an already
@@ -296,8 +297,21 @@ export function PhoneMockup({
                               border: `1px solid ${filled ? secondaryColor : "rgba(255,255,255,0.85)"}`,
                             }}
                           >
-                            <Icon
-                              style={{ width: cell * 0.5, height: cell * 0.5, color: filled ? "#fff" : "rgba(255,255,255,0.9)" }}
+                            {/* OpenMoji icons (see lib/wallet/stampIconAssets.ts
+                             * for the same set embedded server-side) are already
+                             * full color, not a recolorable single-tone icon
+                             * like the old Lucide set — "not yet earned" is
+                             * expressed by desaturating + dimming instead. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/icons/stamp/${iconName}.svg`}
+                              alt=""
+                              style={{
+                                width: iconSize,
+                                height: iconSize,
+                                filter: filled ? undefined : "grayscale(1)",
+                                opacity: filled ? 1 : 0.55,
+                              }}
                             />
                           </div>
                         );

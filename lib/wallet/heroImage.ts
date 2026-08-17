@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
 import { getStampGridColumns, getStampCellScale, solveStampGridCell, type StampCellScale } from "@/lib/stamp-grid";
 import { STRIP_WIDTH_1X, STRIP_HEIGHT_1X } from "@/lib/wallet/stripDimensions";
-import { getIconNode } from "@/lib/wallet/stampIcons";
+import { getStampIconDataUri } from "@/lib/wallet/stampIconAssets";
 import type { BackgroundImagePosition, PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
 
 function clampPercent(n: number | undefined): number {
@@ -59,22 +59,24 @@ const CANVAS_HEIGHT = 812;
 const CELL_PX: Record<StampCellScale, number> = { lg: 130, md: 100, sm: 82, xs: 64 };
 const GAP_PX: Record<StampCellScale, number> = { lg: 26, md: 20, sm: 16, xs: 12 };
 
-/** Lucide icons ship as [tagName, attrs][] tuples (attrs always simple
- * string values plus a React-only `key`) — serializing them directly avoids
- * needing react-dom/server (see stampIcons.ts for why). viewBox is always
- * "0 0 24 24" for Lucide's default icon set. */
-function iconGroupMarkup(iconName: string, color: string, x: number, y: number, size: number): string {
-  const node = getIconNode(iconName);
-  const shapes = node
-    .map(([tag, attrs]) => {
-      const attrString = Object.entries(attrs)
-        .filter(([k]) => k !== "key")
-        .map(([k, v]) => `${k}="${v}"`)
-        .join(" ");
-      return `<${tag} ${attrString} />`;
-    })
-    .join("");
-  return `<g transform="translate(${x},${y}) scale(${size / 24})" stroke="${color}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${shapes}</g>`;
+// Referenced (not inlined per-call) by iconGroupMarkup below — a shared
+// <filter> def embedded once per SVG document that uses it. feColorMatrix
+// type="saturate" is the actual SVG-spec grayscale primitive; CSS's
+// `filter: grayscale()` shorthand has historically inconsistent support in
+// SVG rasterizers (librsvg included), so this uses the primitive directly
+// rather than risk an "unfilled" stamp silently rendering in full color.
+const GRAYSCALE_FILTER_DEFS = `<defs><filter id="stampIconGrayscale"><feColorMatrix type="saturate" values="0" /></filter></defs>`;
+
+/** Embeds one of the bundled OpenMoji stamp icons (see stampIconAssets.ts —
+ * full-color, not a recolorable single-tone icon like the old Lucide set)
+ * at the given position/size. `filled` distinguishes an earned stamp from
+ * one not yet earned — since the icon itself can't be recolored the way a
+ * stroke-based icon could, "not yet earned" is expressed by desaturating
+ * and dimming the whole icon instead. */
+function iconGroupMarkup(iconName: string, x: number, y: number, size: number, filled: boolean): string {
+  const dataUri = getStampIconDataUri(iconName);
+  const filledAttrs = filled ? "" : ` filter="url(#stampIconGrayscale)" opacity="0.55"`;
+  return `<image href="${dataUri}" x="${x}" y="${y}" width="${size}" height="${size}"${filledAttrs} />`;
 }
 
 async function fetchAsPngDataUri(
@@ -309,8 +311,7 @@ export async function renderStampCardHeroImage(params: {
     const x = startX + col * (cell + gap);
     const y = startY + row * (cell + gap);
     const filled = i < collected;
-    const iconColor = filled ? "#ffffff" : "rgba(255,255,255,0.9)";
-    const iconSize = cell * 0.5;
+    const iconSize = cell * 0.6;
 
     // Same legibility fix as renderAppleStripImage — a 0.45 group opacity
     // over a photo made unfilled stamps nearly invisible.
@@ -319,12 +320,13 @@ export async function renderStampCardHeroImage(params: {
         <circle cx="${x + cell / 2}" cy="${y + cell / 2}" r="${cell / 2}"
           fill="${filled ? secondaryColor : "rgba(0,0,0,0.35)"}"
           stroke="${filled ? secondaryColor : "rgba(255,255,255,0.85)"}" stroke-width="3" />
-        ${iconGroupMarkup(config.icon, iconColor, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize)}
+        ${iconGroupMarkup(config.icon, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize, filled)}
       </g>
     `);
   }
 
   const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    ${GRAYSCALE_FILTER_DEFS}
     <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
     ${coverLayer}
     ${seamFade}
@@ -478,8 +480,7 @@ export async function renderAppleStripImage(params: {
     const x = startX + col * (cell + gap);
     const y = startY + row * (cell + gap);
     const filled = i < collected;
-    const iconColor = filled ? "#ffffff" : "rgba(255,255,255,0.9)";
-    const iconSize = cell * 0.5;
+    const iconSize = cell * 0.6;
 
     // Unfilled stamps sit on top of the cover photo — the old 0.55 group
     // opacity compounded with an already-translucent fill/stroke (and with
@@ -491,12 +492,13 @@ export async function renderAppleStripImage(params: {
         <circle cx="${x + cell / 2}" cy="${y + cell / 2}" r="${cell / 2}"
           fill="${filled ? secondaryColor : "rgba(0,0,0,0.35)"}"
           stroke="${filled ? secondaryColor : "rgba(255,255,255,0.85)"}" stroke-width="${Math.max(1, cell * 0.05)}" />
-        ${iconGroupMarkup(config.icon, iconColor, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize)}
+        ${iconGroupMarkup(config.icon, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize, filled)}
       </g>
     `);
   }
 
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${GRAYSCALE_FILTER_DEFS}
     ${bg}
     ${cells.join("")}
   </svg>`;

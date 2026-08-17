@@ -105,6 +105,16 @@ export function SettingsNav({ locale }: { locale: string }) {
             {tNav("billing")}
             <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
+          {/* CC BY-SA 4.0 requires attribution — this satisfies it with one
+           * unobtrusive mention rather than crediting per-icon. See
+           * public/icons/stamp/LICENSE.txt and lib/wallet/stampIconAssets.ts. */}
+          <p className="px-3 pt-3 text-[11px] text-[var(--muted)]">
+            Stamp icons by{" "}
+            <a href="https://openmoji.org" target="_blank" rel="noreferrer" className="underline hover:text-[var(--ink)]">
+              OpenMoji
+            </a>{" "}
+            (CC BY-SA 4.0)
+          </p>
         </div>
       </nav>
     </>

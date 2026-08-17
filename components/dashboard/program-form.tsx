@@ -10,100 +10,68 @@ import { PreviewCrossfade } from "@/components/motion/preview-crossfade";
 import { cn } from "@/lib/utils";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
 import type { BackgroundImagePosition, BarcodeStyle, CardExpirationConfig, EnrollmentPageConfig, EnrollmentPageStyle, Plan, ProgramConfig, ProgramType, StepsConfig } from "@/types";
-import { Lock } from "lucide-react";
-import {
-  Coffee, Pizza, Scissors, ShoppingBag, Gift, Star,
-  Dumbbell, Music, BookOpen, Bike, Car, Smile,
-  Utensils, Croissant, Beer, Flower2, Shirt, Dog,
-  Gamepad2, Paintbrush, Wine, Flame, CircleDot,
-  Heart, Camera, Zap, Globe, Home, Leaf, Sun, Moon,
-  Ticket, Apple, Soup, IceCream, Sandwich, ChevronDown, ChevronUp, ImageUp, Loader2,
-} from "lucide-react";
+import { Lock, ChevronDown, ChevronUp, ImageUp, Loader2 } from "lucide-react";
 
-// Pre-made background images (Unsplash)
+// Pre-made background images — mirrored into this app's own card-backgrounds
+// Storage bucket and served from walletos.online (see the templates gallery,
+// app/[locale]/dashboard/templates/page.tsx, for the full writeup) rather
+// than hotlinking images.unsplash.com directly. This list used to have its
+// own separate set of raw Unsplash URLs (never touched by that earlier fix)
+// with the exact same fragility — "bakery" here pointed at the identical
+// now-deleted Unsplash photo the templates gallery's bakery entry did.
 const PRESET_IMAGES = [
   { id: "none", label: "None", url: undefined },
-  { id: "coffee",     label: "Coffee",     url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80" },
-  { id: "bakery",     label: "Bakery",      url: "https://images.unsplash.com/photo-1549931319-a545dcf3bc7f?w=400&q=80" },
-  { id: "pizza",      label: "Pizza",       url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80" },
-  { id: "restaurant", label: "Restaurant",  url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80" },
-  { id: "bbq",        label: "BBQ",         url: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80" },
-  { id: "salon",      label: "Salon",       url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80" },
-  { id: "barber",     label: "Barber",      url: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80" },
-  { id: "gym",        label: "Gym",         url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80" },
-  { id: "bike",       label: "Bike",        url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
-  { id: "gaming",     label: "Gaming",      url: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=80" },
-  { id: "spa",        label: "Spa",         url: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&q=80" },
-  { id: "bookstore",  label: "Bookstore",   url: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=400&q=80" },
-  { id: "music",      label: "Music",       url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80" },
-  { id: "fashion",    label: "Fashion",     url: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80" },
-  { id: "petshop",    label: "Pets",        url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80" },
-  { id: "art",        label: "Art",         url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80" },
-  { id: "bar",        label: "Bar",         url: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80" },
+  { id: "coffee",     label: "Coffee",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/cafe.jpg" },
+  { id: "bakery",     label: "Bakery",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bakery.jpg" },
+  { id: "pizza",      label: "Pizza",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/pizza.jpg" },
+  { id: "restaurant", label: "Restaurant",  url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/restaurant.jpg" },
+  { id: "bbq",        label: "BBQ",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barbecue.jpg" },
+  { id: "salon",      label: "Salon",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/salon.jpg" },
+  { id: "barber",     label: "Barber",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barber.jpg" },
+  { id: "gym",        label: "Gym",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gym.jpg" },
+  { id: "bike",       label: "Bike",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bike.jpg" },
+  { id: "gaming",     label: "Gaming",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gaming.jpg" },
+  { id: "spa",        label: "Spa",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/spa.jpg" },
+  { id: "bookstore",  label: "Bookstore",   url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bookstore.jpg" },
+  { id: "music",      label: "Music",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/music.jpg" },
+  { id: "fashion",    label: "Fashion",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/fashion.jpg" },
+  { id: "petshop",    label: "Pets",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/petshop.jpg" },
+  { id: "art",        label: "Art",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/art.jpg" },
+  { id: "bar",        label: "Bar",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bar.jpg" },
+  { id: "nail-salon", label: "Nail Salon",  url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/nail-salon.jpg" },
+  { id: "yoga",       label: "Yoga",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/yoga.jpg" },
+  { id: "car-wash",   label: "Car Wash",    url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/car-wash.jpg" },
+  { id: "ice-cream",  label: "Ice Cream",   url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/ice-cream.jpg" },
+  { id: "sushi",      label: "Sushi",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/sushi.jpg" },
+  { id: "florist",    label: "Florist",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/florist.jpg" },
+  { id: "tattoo",     label: "Tattoo",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/tattoo.jpg" },
+  { id: "jewelry",    label: "Jewelry",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/jewelry.jpg" },
 ];
 
-// Organized icon categories
+// Organized icon categories — icons themselves are OpenMoji color SVGs
+// (public/icons/stamp/<name>.svg, see lib/wallet/stampIconAssets.ts for the
+// same set embedded server-side into the real Apple/Google card render),
+// not Lucide components, so only the name is needed here.
 const ICON_CATEGORIES = [
   {
     label: "Food & Drink",
-    icons: [
-      { name: "Coffee", icon: Coffee },
-      { name: "Pizza", icon: Pizza },
-      { name: "Croissant", icon: Croissant },
-      { name: "Utensils", icon: Utensils },
-      { name: "Beer", icon: Beer },
-      { name: "Wine", icon: Wine },
-      { name: "Apple", icon: Apple },
-      { name: "Soup", icon: Soup },
-      { name: "IceCream", icon: IceCream },
-      { name: "Sandwich", icon: Sandwich },
-    ],
+    icons: ["Coffee", "Pizza", "Croissant", "Utensils", "Beer", "Wine", "Apple", "Soup", "IceCream", "Sandwich"],
   },
   {
     label: "Sports & Fitness",
-    icons: [
-      { name: "Dumbbell", icon: Dumbbell },
-      { name: "Bike", icon: Bike },
-      { name: "Gamepad2", icon: Gamepad2 },
-      { name: "CircleDot", icon: CircleDot },
-      { name: "Flame", icon: Flame },
-      { name: "Zap", icon: Zap },
-    ],
+    icons: ["Dumbbell", "Bike", "Gamepad2", "CircleDot", "Flame", "Zap"],
   },
   {
     label: "Retail & Services",
-    icons: [
-      { name: "ShoppingBag", icon: ShoppingBag },
-      { name: "Scissors", icon: Scissors },
-      { name: "Shirt", icon: Shirt },
-      { name: "Ticket", icon: Ticket },
-      { name: "Gift", icon: Gift },
-      { name: "Car", icon: Car },
-    ],
+    icons: ["ShoppingBag", "Scissors", "Shirt", "Ticket", "Gift", "Car"],
   },
   {
     label: "Culture & Lifestyle",
-    icons: [
-      { name: "Music", icon: Music },
-      { name: "BookOpen", icon: BookOpen },
-      { name: "Paintbrush", icon: Paintbrush },
-      { name: "Camera", icon: Camera },
-      { name: "Flower2", icon: Flower2 },
-      { name: "Leaf", icon: Leaf },
-    ],
+    icons: ["Music", "BookOpen", "Paintbrush", "Camera", "Flower2", "Leaf"],
   },
   {
     label: "Other",
-    icons: [
-      { name: "Star", icon: Star },
-      { name: "Heart", icon: Heart },
-      { name: "Smile", icon: Smile },
-      { name: "Dog", icon: Dog },
-      { name: "Globe", icon: Globe },
-      { name: "Home", icon: Home },
-      { name: "Sun", icon: Sun },
-      { name: "Moon", icon: Moon },
-    ],
+    icons: ["Star", "Heart", "Smile", "Dog", "Globe", "Home", "Sun", "Moon"],
   },
 ];
 
@@ -919,19 +887,20 @@ export function ProgramForm({
                   <div key={cat.label}>
                     <p className="mb-1 text-xs font-medium text-[var(--muted)] uppercase tracking-wide">{cat.label}</p>
                     <div className="flex flex-wrap gap-2">
-                      {(showAllIcons ? cat.icons : cat.icons.slice(0, 6)).map(({ name: iconName, icon: IconComp }) => (
+                      {(showAllIcons ? cat.icons : cat.icons.slice(0, 6)).map((iconName) => (
                         <button
                           key={iconName}
                           type="button"
                           title={iconName}
                           onClick={() => pickIcon(iconName)}
-                          className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-all ${
+                          className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-all active:scale-95 ${
                             selectedIcon === iconName
-                              ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] scale-110 shadow-sm"
-                              : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                              ? "border-[var(--primary)] bg-[var(--primary-soft)] scale-110 shadow-sm"
+                              : "border-[var(--line)] hover:border-[var(--primary)] hover:bg-[var(--surface-2)]"
                           }`}
                         >
-                          <IconComp className="h-4 w-4" />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={`/icons/stamp/${iconName}.svg`} alt={iconName} className="h-6 w-6" />
                         </button>
                       ))}
                     </div>
