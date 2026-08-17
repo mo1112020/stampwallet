@@ -285,6 +285,47 @@ const templates = [
     iconName: "Gem",
     backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/jewelry.jpg",
   },
+  // No background photo — solid brand color + the stamp icon grid only
+  // (PhoneMockup's gradient fallback kicks in automatically when
+  // backgroundImage is unset). A merchant who'd rather not source/upload a
+  // cover photo at all gets a clean starting point instead of every
+  // template forcing one.
+  {
+    id: "coffee-solid",
+    name: "Coffee Roastery",
+    primaryColor: "#3e2723",
+    secondaryColor: "#c69c6d",
+    textColor: "text-white",
+    iconName: "CoffeeBean",
+    backgroundImage: undefined,
+  },
+  {
+    id: "coffee-togo-solid",
+    name: "Coffee To Go",
+    primaryColor: "#bf5b04",
+    secondaryColor: "#ffe8cc",
+    textColor: "text-white",
+    iconName: "Coffee",
+    backgroundImage: undefined,
+  },
+  {
+    id: "tea-solid",
+    name: "Tea House",
+    primaryColor: "#1b4332",
+    secondaryColor: "#95d5b2",
+    textColor: "text-white",
+    iconName: "Tea",
+    backgroundImage: undefined,
+  },
+  {
+    id: "fitness-solid",
+    name: "Fitness Studio",
+    primaryColor: "#1a1a2e",
+    secondaryColor: "#ff6b35",
+    textColor: "text-white",
+    iconName: "Dumbbell",
+    backgroundImage: undefined,
+  },
 ];
 
 export default async function TemplatesPage({
@@ -325,7 +366,7 @@ export default async function TemplatesPage({
             backgroundImage={tpl.backgroundImage}
             isTemplate={true}
             actionText="Open"
-            actionHref={`/${locale}/dashboard/programs/new?name=${encodeURIComponent(tpl.name)}&primaryColor=${encodeURIComponent(tpl.primaryColor)}&secondaryColor=${encodeURIComponent(tpl.secondaryColor)}&iconName=${encodeURIComponent(tpl.iconName)}&backgroundImage=${encodeURIComponent(tpl.backgroundImage)}`}
+            actionHref={`/${locale}/dashboard/programs/new?name=${encodeURIComponent(tpl.name)}&primaryColor=${encodeURIComponent(tpl.primaryColor)}&secondaryColor=${encodeURIComponent(tpl.secondaryColor)}&iconName=${encodeURIComponent(tpl.iconName)}${tpl.backgroundImage ? `&backgroundImage=${encodeURIComponent(tpl.backgroundImage)}` : ""}`}
           />
         ))}
       </div>

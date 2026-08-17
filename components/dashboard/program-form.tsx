@@ -55,7 +55,7 @@ const PRESET_IMAGES = [
 const ICON_CATEGORIES = [
   {
     label: "Food & Drink",
-    icons: ["Coffee", "Pizza", "Croissant", "Utensils", "Beer", "Wine", "Apple", "Soup", "IceCream", "Sandwich"],
+    icons: ["Coffee", "CoffeeBean", "Tea", "Pizza", "Croissant", "Utensils", "Beer", "Wine", "Apple", "Soup", "IceCream", "Sandwich"],
   },
   {
     label: "Sports & Fitness",
