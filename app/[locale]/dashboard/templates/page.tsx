@@ -246,7 +246,7 @@ const templates = [
     primaryColor: "#6a1b9a",
     secondaryColor: "#ce93d8",
     textColor: "text-white",
-    iconName: "IceCreamCone",
+    iconName: "IceCream",
     backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/ice-cream.jpg",
   },
   {
@@ -264,7 +264,7 @@ const templates = [
     primaryColor: "#33691e",
     secondaryColor: "#c5e1a5",
     textColor: "text-white",
-    iconName: "Flower",
+    iconName: "Flower2",
     backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/florist.jpg",
   },
   {
@@ -273,7 +273,7 @@ const templates = [
     primaryColor: "#1a1a1a",
     secondaryColor: "#e53935",
     textColor: "text-white",
-    iconName: "PenTool",
+    iconName: "Writing",
     backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/tattoo.jpg",
   },
   {

@@ -306,6 +306,18 @@ export function PhoneMockup({
                             <img
                               src={`/icons/stamp/${iconName}.svg`}
                               alt=""
+                              // A program's icon name has to independently
+                              // match a bundled file (see stampIconAssets.ts
+                              // for the source of truth) — the server side
+                              // already falls back to Star when the name
+                              // doesn't match; this is the same fallback for
+                              // this client-rendered <img>, which would
+                              // otherwise just silently 404 into a blank
+                              // stamp with no visible error at all.
+                              onError={(e) => {
+                                const img = e.currentTarget;
+                                if (!img.src.endsWith("/Star.svg")) img.src = "/icons/stamp/Star.svg";
+                              }}
                               style={{
                                 width: iconSize,
                                 height: iconSize,

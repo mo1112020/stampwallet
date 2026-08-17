@@ -55,7 +55,7 @@ const PRESET_IMAGES = [
 const ICON_CATEGORIES = [
   {
     label: "Food & Drink",
-    icons: ["Coffee", "CoffeeBean", "Tea", "Pizza", "Croissant", "Utensils", "Beer", "Wine", "Apple", "Soup", "IceCream", "Sandwich"],
+    icons: ["Coffee", "CoffeeBean", "Tea", "Pizza", "Croissant", "Utensils", "Beer", "Wine", "Apple", "Soup", "IceCream", "Sandwich", "Fish"],
   },
   {
     label: "Sports & Fitness",
@@ -63,15 +63,15 @@ const ICON_CATEGORIES = [
   },
   {
     label: "Retail & Services",
-    icons: ["ShoppingBag", "Scissors", "Shirt", "Ticket", "Gift", "Car"],
+    icons: ["ShoppingBag", "Scissors", "Shirt", "Ticket", "Gift", "Car", "Droplets", "Gem"],
   },
   {
     label: "Culture & Lifestyle",
-    icons: ["Music", "BookOpen", "Paintbrush", "Camera", "Flower2", "Leaf"],
+    icons: ["Music", "BookOpen", "Paintbrush", "Camera", "Flower2", "Leaf", "Writing"],
   },
   {
     label: "Other",
-    icons: ["Star", "Heart", "Smile", "Dog", "Globe", "Home", "Sun", "Moon"],
+    icons: ["Star", "Heart", "Smile", "Dog", "Globe", "Home", "Sun", "Moon", "Sparkles"],
   },
 ];
 
@@ -900,7 +900,15 @@ export function ProgramForm({
                           }`}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={`/icons/stamp/${iconName}.svg`} alt={iconName} className="h-6 w-6" />
+                          <img
+                            src={`/icons/stamp/${iconName}.svg`}
+                            alt={iconName}
+                            className="h-6 w-6"
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              if (!img.src.endsWith("/Star.svg")) img.src = "/icons/stamp/Star.svg";
+                            }}
+                          />
                         </button>
                       ))}
                     </div>
