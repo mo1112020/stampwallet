@@ -23,7 +23,17 @@ import { computeExpirationStatus, formatDaysRemaining } from "@/lib/wallet/expir
 // for Google's much taller canvas, which is why it never matched what
 // actually ships to a customer's iPhone.
 const MOCKUP_STRIP_WIDTH = 191;
-const MOCKUP_STRIP_HEIGHT = Math.round((MOCKUP_STRIP_WIDTH * STRIP_HEIGHT_1X) / STRIP_WIDTH_1X);
+// Deliberately a bit taller than Apple's exact ratio would give (that ratio
+// is still what's used for cell/text sizing math below, via
+// STRIP_HEIGHT_1X) — at this preview's small physical size, the exact
+// strip proportions read as too cramped to comfortably preview text/icon
+// legibility while designing a card, even though they're what actually
+// ships. This multiplier only affects the preview's on-screen height, not
+// STRIP_WIDTH_1X/STRIP_HEIGHT_1X (the shared source of truth heroImage.ts's
+// real Apple/Google render also uses), so it can never leak into what a
+// customer's real card looks like.
+const MOCKUP_STRIP_HEIGHT_BOOST = 1.15;
+const MOCKUP_STRIP_HEIGHT = Math.round((MOCKUP_STRIP_WIDTH * STRIP_HEIGHT_1X * MOCKUP_STRIP_HEIGHT_BOOST) / STRIP_WIDTH_1X);
 const MOCKUP_STRIP_PADDING = Math.round((18 * MOCKUP_STRIP_WIDTH) / STRIP_WIDTH_1X);
 
 export type PhoneMockupProps = {
@@ -140,7 +150,6 @@ export function PhoneMockup({
   const rewardDescription = (programConfig as { reward_description?: string } | undefined)?.reward_description;
   const pointsTarget = pointsConfig?.points_per_reward ?? 1000;
   const demoPoints = Math.min(420, pointsTarget);
-  const pointsPercent = Math.min(100, Math.round((demoPoints / pointsTarget) * 100));
   const stages = [...(stepsConfig?.stages ?? [])].sort((a, b) => a.threshold - b.threshold);
 
   return (
@@ -332,20 +341,15 @@ export function PhoneMockup({
                   );
                 })()}
 
-                {/* Big balance + progress bar overlaid on the photo — matches
-                    renderApplePointsStrip/renderPointsCardHeroImage's
-                    proportions (number ~52% down, thin bar near the bottom),
-                    rescaled for Apple's actual 375x123pt strip instead of the
-                    old, much taller box. */}
+                {/* Big balance + label overlaid on the photo, matching
+                    renderApplePointsStrip exactly — centered as a group, no
+                    progress bar. A bar used to be drawn here (and on the
+                    real card), but checking against a live points card on
+                    a real iPhone confirmed there isn't one there. */}
                 {programType === "points" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4 text-white">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-base font-bold leading-none">{demoPoints}</span>
-                      <span className="text-[7px] font-semibold opacity-90">{pointsConfig?.points_label ?? "pts"} of {pointsTarget}</span>
-                    </div>
-                    <div className="h-1 w-[85%] overflow-hidden rounded-full bg-white/25">
-                      <div className="h-full rounded-full" style={{ width: `${pointsPercent}%`, backgroundColor: secondaryColor }} />
-                    </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-4 text-white">
+                    <span className="text-lg font-bold leading-none">{demoPoints}</span>
+                    <span className="text-[7px] font-semibold opacity-90">{pointsConfig?.points_label ?? "pts"} of {pointsTarget}</span>
                   </div>
                 )}
 

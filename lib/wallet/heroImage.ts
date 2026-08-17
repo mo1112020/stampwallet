@@ -602,8 +602,13 @@ export async function renderAppleStepsStrip(params: {
   return { "1x": oneX, "2x": twoX, "3x": threeX };
 }
 
-/** Apple equivalent of renderPointsCardHeroImage — current balance plus a
- * thin progress bar, overlaid on the full-bleed darkened photo. */
+/** Apple equivalent of renderPointsCardHeroImage — current balance and
+ * label, overlaid on the full-bleed darkened photo. No progress bar:
+ * checked against a live points card on a real iPhone (the strip is only
+ * 144pt tall, and Apple crops/positions it without any input from this
+ * code beyond the raw pixels) and confirmed there's no bar visible there —
+ * a previous version drew one near the very bottom of the strip that
+ * apparently never actually showed up on-device. */
 export async function renderApplePointsStrip(params: {
   config: PointsConfig;
   progress: PointsProgress;
@@ -612,30 +617,23 @@ export async function renderApplePointsStrip(params: {
   backgroundImageUrl?: string;
   backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
-  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
+  const { config, progress, primaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const width = STRIP_WIDTH_1X * STRIP_SCALE;
   const height = STRIP_HEIGHT_1X * STRIP_SCALE;
   const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height, backgroundImagePosition);
 
   const target = Math.max(1, config.points_per_reward);
   const current = Math.max(0, Math.min(target, progress.points));
-  const percent = current / target;
 
-  const barWidth = width - 64;
-  const barHeight = 14;
-  const barX = 32;
-  const barY = height - 38;
-  const numberY = height * 0.52;
+  // Vertically centered as a two-line group (number + label), matching
+  // where the number actually sits on a real card (~50% down the strip).
+  const numberY = height * 0.5;
+  const labelY = numberY + 34;
 
-  // Matches the dashboard preview's proportions (a bold, dominant number) —
-  // the original 52/18 sizing left most of the strip's vertical space empty
-  // and read as noticeably smaller than the preview promised.
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
     ${bg}
     <text x="${width / 2}" y="${numberY}" font-family="${FONT_FAMILY}" font-size="108" font-weight="700" fill="#ffffff" text-anchor="middle">${current}</text>
-    <text x="${width / 2}" y="${numberY + 34}" font-family="${FONT_FAMILY}" font-size="24" fill="#ffffff" opacity="0.85" text-anchor="middle">${escapeXml(config.points_label)} of ${target}</text>
-    <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="#ffffff" opacity="0.22" />
-    <rect x="${barX}" y="${barY}" width="${Math.max(barHeight, barWidth * percent)}" height="${barHeight}" rx="${barHeight / 2}" fill="${secondaryColor}" />
+    <text x="${width / 2}" y="${labelY}" font-family="${FONT_FAMILY}" font-size="24" fill="#ffffff" opacity="0.85" text-anchor="middle">${escapeXml(config.points_label)} of ${target}</text>
   </svg>`;
 
   const master = rasterizeSvgWithText(svg);
