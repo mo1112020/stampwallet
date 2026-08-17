@@ -52,22 +52,28 @@ async function deliverToTarget(
     (result.apple.applicable && !result.apple.ok) || (result.google.applicable && !result.google.ok);
   const status = applicablePlatforms.length === 0 ? "stubbed" : failed ? "failed" : "sent";
 
-  await admin.from("notification_sends").insert({
-    campaign_id: campaignId,
-    customer_progress_id: target.customerProgressId,
-    platform,
-    status,
-    message,
-    error: failed
-      ? [
-          result.apple.applicable && !result.apple.ok ? "Apple Wallet push failed" : null,
-          result.google.applicable && !result.google.ok ? "Google Wallet push failed" : null,
-        ]
-          .filter(Boolean)
-          .join("; ")
-      : null,
-    sent_at: new Date().toISOString(),
-  });
+  // upsert, not insert: sendCampaignNow pre-creates a "queued" row per target
+  // (see below) so the campaign's recipient list — and each customer's live
+  // status — is visible in the UI before delivery finishes, not just after.
+  await admin.from("notification_sends").upsert(
+    {
+      campaign_id: campaignId,
+      customer_progress_id: target.customerProgressId,
+      platform,
+      status,
+      message,
+      error: failed
+        ? [
+            result.apple.applicable && !result.apple.ok ? "Apple Wallet push failed" : null,
+            result.google.applicable && !result.google.ok ? "Google Wallet push failed" : null,
+          ]
+            .filter(Boolean)
+            .join("; ")
+        : null,
+      sent_at: new Date().toISOString(),
+    },
+    { onConflict: "campaign_id,customer_progress_id" }
+  );
 }
 
 /**
@@ -171,7 +177,14 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 }
 
 /** Manual/scheduled campaigns: one campaign row, fans out to every target
- * in its segment. */
+ * in its segment.
+ *
+ * Always resolves to a terminal status ("sent" or "failed") via the
+ * try/catch below — previously a throw between marking "sending" and the
+ * final update (e.g. resolveSegmentTargets erroring, or the caller's
+ * execution getting cut short) left the campaign stuck on "sending"
+ * forever, with no status this function could ever move it out of and no
+ * way for the merchant to retry or cancel it. */
 export async function sendCampaignNow(campaignId: string) {
   const admin = createAdminClient();
   const { data: campaign } = await admin
@@ -183,33 +196,58 @@ export async function sendCampaignNow(campaignId: string) {
 
   await admin.from("notification_campaigns").update({ status: "sending" }).eq("id", campaignId);
 
-  const targets = await resolveSegmentTargets(campaign.merchant_id, campaign.segment);
+  try {
+    const targets = await resolveSegmentTargets(campaign.merchant_id, campaign.segment);
 
-  for (const target of targets) {
-    try {
-      await withTimeout(
-        // A manual/scheduled campaign never carries fresh progress — always
-        // skip the hero-image regen.
-        deliverToTarget(campaignId, campaign.title, campaign.message, target, true),
-        // See lib/wallet/push.ts's pushProgramUpdateToAllCustomers for why
-        // this is 45s and not 25s — Google's push does real image work
-        // Apple's doesn't, and 25s was tight enough to read as "Android
-        // notifications always fail" when it was actually timing out.
-        45000,
-        `delivery to ${target.customerProgressId}`
+    // Pre-register every target as "queued" up front so the campaign's
+    // recipient count and per-customer progress are visible immediately,
+    // instead of only appearing one row at a time as each delivery finishes.
+    if (targets.length > 0) {
+      await admin.from("notification_sends").upsert(
+        targets.map((target) => ({
+          campaign_id: campaignId,
+          customer_progress_id: target.customerProgressId,
+          platform: "both" as const,
+          status: "queued" as const,
+          message: campaign.message,
+        })),
+        { onConflict: "campaign_id,customer_progress_id", ignoreDuplicates: true }
       );
-    } catch (err) {
-      console.error("[notifications] send failed for", target.customerProgressId, err);
-      await admin.from("notification_sends").insert({
-        campaign_id: campaignId,
-        customer_progress_id: target.customerProgressId,
-        platform: "both",
-        status: "failed",
-        message: campaign.message,
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
     }
-  }
 
-  await admin.from("notification_campaigns").update({ status: "sent" }).eq("id", campaignId);
+    for (const target of targets) {
+      try {
+        await withTimeout(
+          // A manual/scheduled campaign never carries fresh progress — always
+          // skip the hero-image regen.
+          deliverToTarget(campaignId, campaign.title, campaign.message, target, true),
+          // See lib/wallet/push.ts's pushProgramUpdateToAllCustomers for why
+          // this is 45s and not 25s — Google's push does real image work
+          // Apple's doesn't, and 25s was tight enough to read as "Android
+          // notifications always fail" when it was actually timing out.
+          45000,
+          `delivery to ${target.customerProgressId}`
+        );
+      } catch (err) {
+        console.error("[notifications] send failed for", target.customerProgressId, err);
+        await admin.from("notification_sends").upsert(
+          {
+            campaign_id: campaignId,
+            customer_progress_id: target.customerProgressId,
+            platform: "both",
+            status: "failed",
+            message: campaign.message,
+            error: err instanceof Error ? err.message : "Unknown error",
+          },
+          { onConflict: "campaign_id,customer_progress_id" }
+        );
+      }
+    }
+
+    await admin.from("notification_campaigns").update({ status: "sent" }).eq("id", campaignId);
+  } catch (err) {
+    console.error("[notifications] campaign failed", campaignId, err);
+    await admin.from("notification_campaigns").update({ status: "failed" }).eq("id", campaignId);
+    throw err;
+  }
 }

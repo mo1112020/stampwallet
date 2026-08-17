@@ -9,12 +9,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { NotificationCampaign, NotificationCampaignStatus, NotificationSend } from "@/types";
 
-const STATUS_VARIANT: Record<NotificationCampaignStatus, "success" | "primary" | "default" | "warning"> = {
+const STATUS_VARIANT: Record<NotificationCampaignStatus, "success" | "primary" | "default" | "warning" | "danger"> = {
   sent: "success",
   sending: "primary",
   scheduled: "primary",
   draft: "default",
+  failed: "danger",
   canceled: "warning",
+};
+
+const SEND_STATUS_DOT: Record<string, string> = {
+  queued: "bg-[var(--success)] animate-pulse",
+  sent: "bg-[var(--success)]",
+  stubbed: "bg-[var(--muted)]",
+  failed: "bg-[var(--danger)]",
 };
 
 type SendWithCustomer = NotificationSend & {
@@ -32,15 +40,31 @@ export default function CampaignDetailPage() {
   const [sends, setSends] = useState<SendWithCustomer[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch(`/api/notifications/campaigns/${id}`)
+  function load() {
+    return fetch(`/api/notifications/campaigns/${id}`)
       .then((r) => r.json())
       .then((json) => {
         setCampaign(json.data?.campaign ?? null);
         setSends(json.data?.sends ?? []);
         setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Poll while the campaign is actively sending so the recipient list and
+  // per-customer status update live instead of needing a manual refresh.
+  useEffect(() => {
+    if (campaign?.status !== "sending") return;
+    const interval = window.setInterval(load, 2000);
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign?.status]);
+
+  const sentCount = sends.filter((s) => s.status !== "queued").length;
 
   async function cancel() {
     await fetch(`/api/notifications/campaigns/${id}`, { method: "DELETE" });
@@ -69,7 +93,7 @@ export default function CampaignDetailPage() {
       </div>
       <p className="mt-3 text-[var(--muted)]">{campaign.message}</p>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        {sends.length} {t("recipients")}
+        {campaign.status === "sending" ? `${sentCount} / ${sends.length}` : sends.length} {t("recipients")}
       </p>
 
       {(campaign.status === "scheduled" || campaign.status === "draft") && (
@@ -91,7 +115,10 @@ export default function CampaignDetailPage() {
                 <span className="text-[var(--ink)]">
                   {send.customer_progress?.customers?.name || t("unknownCustomer")}
                 </span>
-                <span className="text-[var(--muted)]">{t(`sendStatus.${send.status}`)}</span>
+                <span className="inline-flex items-center gap-2 text-[var(--muted)]">
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${SEND_STATUS_DOT[send.status] ?? "bg-[var(--muted)]"}`} />
+                  {t(`sendStatus.${send.status}`)}
+                </span>
               </Card>
             ))}
           </div>

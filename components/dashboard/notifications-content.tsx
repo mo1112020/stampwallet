@@ -143,11 +143,12 @@ function CustomerPicker({
   );
 }
 
-const STATUS_VARIANT: Record<NotificationCampaignStatus, "success" | "primary" | "default" | "warning"> = {
+const STATUS_VARIANT: Record<NotificationCampaignStatus, "success" | "primary" | "default" | "warning" | "danger"> = {
   sent: "success",
   sending: "primary",
   scheduled: "primary",
   draft: "default",
+  failed: "danger",
   canceled: "warning",
 };
 
@@ -181,6 +182,16 @@ export function NotificationsContent({
   const [scheduledFor, setScheduledFor] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Keep campaign history's status badges live (e.g. "Sending" -> "Sent")
+  // without a manual reload — only polls while something is actually
+  // in flight, not on every visit to the page.
+  const hasInFlightCampaign = campaigns.some((c) => c.status === "sending");
+  useEffect(() => {
+    if (!hasInFlightCampaign) return;
+    const interval = window.setInterval(() => router.refresh(), 3000);
+    return () => window.clearInterval(interval);
+  }, [hasInFlightCampaign, router]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

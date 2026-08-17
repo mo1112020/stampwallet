@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { sendCampaignNow } from "@/lib/notifications/campaigns";
 import { createCampaignSchema } from "@/lib/validators";
@@ -47,10 +48,16 @@ export async function POST(request: Request) {
   }
 
   if (parsed.data.type === "manual") {
-    // Best-effort inline send. For very large segments this should move to
-    // a background job instead of blocking the request — fine at MVP scale.
-    sendCampaignNow(campaign.id).catch((err) =>
-      console.error("[notifications] campaign send failed", campaign.id, err)
+    // after() (not a bare un-awaited call) so the serverless function stays
+    // alive until the send finishes instead of freezing the instant the
+    // response above is returned — a bare fire-and-forget call here is what
+    // left several campaigns permanently stuck on "sending": the process
+    // could be frozen mid-loop, or between the loop finishing and the final
+    // status update, with no guarantee either ever got to run.
+    after(() =>
+      sendCampaignNow(campaign.id).catch((err) =>
+        console.error("[notifications] campaign send failed", campaign.id, err)
+      )
     );
   }
 

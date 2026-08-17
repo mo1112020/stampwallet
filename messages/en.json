@@ -711,6 +711,7 @@
       "scheduled": "Scheduled",
       "sending": "Sending",
       "sent": "Sent",
+      "failed": "Failed",
       "canceled": "Canceled"
     },
     "sendStatus": {

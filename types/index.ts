@@ -210,7 +210,7 @@ export type NotificationTrigger =
   | "inactive_customer"
   | "billing_paused"
   | "billing_restored";
-export type NotificationCampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "canceled";
+export type NotificationCampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "failed" | "canceled";
 
 export type SegmentScope = "all" | "program" | "inactive_days" | "birthday_month" | "progress_threshold" | "customers";
 

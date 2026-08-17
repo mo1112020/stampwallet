@@ -711,6 +711,7 @@
       "scheduled": "مجدولة",
       "sending": "قيد الإرسال",
       "sent": "تم الإرسال",
+      "failed": "فشلت",
       "canceled": "ملغاة"
     },
     "sendStatus": {
