@@ -3,7 +3,7 @@ import path from "path";
 import { Resvg } from "@resvg/resvg-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
-import { getStampGridColumns, getStampCellScale, type StampCellScale } from "@/lib/stamp-grid";
+import { getStampGridColumns, getStampCellScale, solveStampGridCell, type StampCellScale } from "@/lib/stamp-grid";
 import { getIconNode } from "@/lib/wallet/stampIcons";
 import type { PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
 
@@ -447,17 +447,8 @@ export async function renderAppleStripImage(params: {
   const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
 
   const required = Math.max(1, config.stamps_required);
-  const columns = getStampGridColumns(required);
-  const rows = Math.ceil(required / columns);
-
   const padding = 18 * STRIP_SCALE;
-  const gapRatio = 0.22; // gap as a fraction of cell size
-  const availableWidth = width - padding * 2;
-  const availableHeight = height - padding * 2;
-  const cellFromWidth = availableWidth / (columns + (columns - 1) * gapRatio);
-  const cellFromHeight = availableHeight / (rows + (rows - 1) * gapRatio);
-  const cell = Math.max(8, Math.floor(Math.min(cellFromWidth, cellFromHeight)));
-  const gap = Math.round(cell * gapRatio);
+  const { columns, rows, cell, gap } = solveStampGridCell({ stampsRequired: required, width, height, padding });
 
   const gridWidth = columns * cell + (columns - 1) * gap;
   const gridHeight = rows * cell + (rows - 1) * gap;

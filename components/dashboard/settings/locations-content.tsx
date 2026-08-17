@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { LocationPushPreview } from "@/components/dashboard/settings/location-preview";
+import { toast } from "@/components/ui/toaster";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { cn } from "@/lib/utils";
 import type { Plan, StoreLocation } from "@/types";
@@ -47,6 +48,13 @@ export function LocationsContent({
 }) {
   const t = useTranslations("settings.locations");
   const router = useRouter();
+  // Optimistic local mirror of the `locations` prop — toggling/removing a
+  // location used to only update the fetch(...).then(router.refresh())
+  // round trip finished, so the switch appeared to do nothing (no
+  // animation, stale until an actual page reload) for however long that
+  // took. This flips instantly, then reconciles with the server.
+  const [localLocations, setLocalLocations] = useState(locations);
+  useEffect(() => setLocalLocations(locations), [locations]);
   const [form, setForm] = useState(emptyForm);
   const [pickedLat, setPickedLat] = useState<number | null>(null);
   const [pickedLng, setPickedLng] = useState<number | null>(null);
@@ -67,7 +75,7 @@ export function LocationsContent({
   }, []);
 
   const limit = PLAN_LIMITS[merchant.plan].maxLocations;
-  const atLimit = limit !== null && locations.length >= limit;
+  const atLimit = limit !== null && localLocations.length >= limit;
 
   function useMyLocation() {
     if (!navigator.geolocation) return;
@@ -117,16 +125,30 @@ export function LocationsContent({
   }
 
   async function toggleActive(location: StoreLocation) {
-    await fetch(`/api/settings/locations/${location.id}`, {
+    const nextActive = !location.is_active;
+    setLocalLocations((prev) => prev.map((l) => (l.id === location.id ? { ...l, is_active: nextActive } : l)));
+    const res = await fetch(`/api/settings/locations/${location.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_active: !location.is_active }),
+      body: JSON.stringify({ is_active: nextActive }),
     });
+    if (!res.ok) {
+      setLocalLocations((prev) => prev.map((l) => (l.id === location.id ? { ...l, is_active: location.is_active } : l)));
+      toast.error(t("saveFailed"));
+      return;
+    }
     router.refresh();
   }
 
   async function remove(id: string) {
-    await fetch(`/api/settings/locations/${id}`, { method: "DELETE" });
+    const removed = localLocations.find((l) => l.id === id);
+    setLocalLocations((prev) => prev.filter((l) => l.id !== id));
+    const res = await fetch(`/api/settings/locations/${id}`, { method: "DELETE" });
+    if (!res.ok && removed) {
+      setLocalLocations((prev) => [...prev, removed]);
+      toast.error(t("saveFailed"));
+      return;
+    }
     router.refresh();
   }
 
@@ -287,13 +309,13 @@ export function LocationsContent({
 
       <div className="mt-10">
         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)] sm:text-sm">{t("listTitle")}</p>
-        {locations.length === 0 ? (
+        {localLocations.length === 0 ? (
           <Card className="mt-3">
             <p className="p-5 text-xs text-[var(--muted)] sm:text-sm">{t("noLocations")}</p>
           </Card>
         ) : (
           <StaggerGroup className="mt-3 space-y-2">
-            {locations.map((loc) => (
+            {localLocations.map((loc) => (
               <Card key={loc.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-[var(--ink)]">{loc.name}</p>
@@ -309,7 +331,7 @@ export function LocationsContent({
                     role="switch"
                     aria-checked={loc.is_active}
                     className={cn(
-                      "h-6 w-11 shrink-0 rounded-full transition-colors",
+                      "h-6 w-11 shrink-0 rounded-full transition-colors active:scale-95 [transition-property:background-color,transform] duration-150",
                       loc.is_active ? "bg-[var(--success)]" : "bg-[var(--surface-3)]"
                     )}
                   >

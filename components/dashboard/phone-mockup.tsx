@@ -7,29 +7,22 @@ import { ExternalLink, type LucideIcon } from "lucide-react";
 import type { BarcodeStyle, CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import { BarcodeImage } from "@/components/dashboard/print/barcode-image";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
-import { getStampCellScale, getStampGridColumns } from "@/lib/stamp-grid";
+import { solveStampGridCell } from "@/lib/stamp-grid";
 import { computeExpirationStatus, formatDaysRemaining } from "@/lib/wallet/expiration";
 
-const STAMP_ICON_SIZE: Record<ReturnType<typeof getStampCellScale>, string> = {
-  lg: "h-3 w-3",
-  md: "h-2.5 w-2.5",
-  sm: "h-2 w-2",
-  xs: "h-1.5 w-1.5",
-};
-
-const STAMP_GAP: Record<ReturnType<typeof getStampCellScale>, string> = {
-  lg: "gap-1.5",
-  md: "gap-1",
-  sm: "gap-1",
-  xs: "gap-0.5",
-};
-
-const STAMP_BORDER_WIDTH: Record<ReturnType<typeof getStampCellScale>, string> = {
-  lg: "1.5px",
-  md: "1.5px",
-  sm: "1px",
-  xs: "1px",
-};
+// Apple's own strip image is a fixed 375x123pt banner (see STRIP_WIDTH_1X /
+// STRIP_HEIGHT_1X in lib/wallet/heroImage.ts) — much wider and shorter than
+// this preview used to render it. The card here is always MOCKUP_STRIP_WIDTH
+// px wide (235px phone frame - 20px border - 24px inner padding), so the
+// strip height is derived from Apple's real ratio rather than guessed, and
+// the stamp grid below solves cell size from these exact pixels using the
+// same solveStampGridCell formula the real Apple render uses — previously
+// this preview used a fixed lg/md/sm/xs size table tuned for Google's much
+// taller canvas, which is why it never matched what actually ships to a
+// customer's iPhone.
+const MOCKUP_STRIP_WIDTH = 191;
+const MOCKUP_STRIP_HEIGHT = Math.round((MOCKUP_STRIP_WIDTH * 123) / 375);
+const MOCKUP_STRIP_PADDING = Math.round((18 * MOCKUP_STRIP_WIDTH) / 375);
 
 export type PhoneMockupProps = {
   name: string;
@@ -182,7 +175,7 @@ export function PhoneMockup({
                   separate section underneath, so a below-photo block (the
                   previous points/steps layout) never matched what actually
                   ships to Apple/Google Wallet. */}
-              <div className="relative h-[168px] w-full overflow-hidden">
+              <div className="relative w-full overflow-hidden" style={{ height: MOCKUP_STRIP_HEIGHT }}>
                 {backgroundImage ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -206,12 +199,17 @@ export function PhoneMockup({
 
                 {programType === "stamp" && (() => {
                   const clampedRequired = Math.min(25, Math.max(1, stampsRequired));
-                  const columns = getStampGridColumns(clampedRequired);
-                  const scale = getStampCellScale(clampedRequired);
+                  const { columns, rows, cell, gap } = solveStampGridCell({
+                    stampsRequired: clampedRequired,
+                    width: MOCKUP_STRIP_WIDTH,
+                    height: MOCKUP_STRIP_HEIGHT,
+                    padding: MOCKUP_STRIP_PADDING,
+                    minCell: 6,
+                  });
                   return (
                     <div
-                      className={`absolute inset-0 grid place-content-center px-3 ${STAMP_GAP[scale]}`}
-                      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+                      className="absolute inset-0 grid place-content-center"
+                      style={{ gridTemplateColumns: `repeat(${columns}, ${cell}px)`, gridTemplateRows: `repeat(${rows}, ${cell}px)`, gap }}
                     >
                       {Array.from({ length: clampedRequired }).map((_, i) => {
                         const filled = i < stampsCollected;
@@ -225,15 +223,16 @@ export function PhoneMockup({
                           // being clearly visible.
                           <div
                             key={i}
-                            className="flex aspect-square items-center justify-center rounded-full"
+                            className="flex items-center justify-center rounded-full"
                             style={{
+                              width: cell,
+                              height: cell,
                               backgroundColor: filled ? secondaryColor : "rgba(0,0,0,0.35)",
-                              border: `${STAMP_BORDER_WIDTH[scale]} solid ${filled ? secondaryColor : "rgba(255,255,255,0.85)"}`,
+                              border: `1px solid ${filled ? secondaryColor : "rgba(255,255,255,0.85)"}`,
                             }}
                           >
                             <Icon
-                              className={STAMP_ICON_SIZE[scale]}
-                              style={{ color: filled ? "#fff" : "rgba(255,255,255,0.9)" }}
+                              style={{ width: cell * 0.5, height: cell * 0.5, color: filled ? "#fff" : "rgba(255,255,255,0.9)" }}
                             />
                           </div>
                         );
@@ -243,29 +242,31 @@ export function PhoneMockup({
                 })()}
 
                 {/* Big balance + progress bar overlaid on the photo — matches
-                    renderApplePointsStrip/renderPointsCardHeroImage exactly
-                    (white text, thin bar), not the old white-box+dots design
-                    that never appeared on a real card. */}
+                    renderApplePointsStrip/renderPointsCardHeroImage's
+                    proportions (number ~52% down, thin bar near the bottom),
+                    rescaled for Apple's actual 375x123pt strip instead of the
+                    old, much taller box. */}
                 {programType === "points" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-white">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4 text-white">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold leading-none">{demoPoints}</span>
-                      <span className="text-xs font-semibold opacity-90">{pointsConfig?.points_label ?? "pts"} of {pointsTarget}</span>
+                      <span className="text-base font-bold leading-none">{demoPoints}</span>
+                      <span className="text-[7px] font-semibold opacity-90">{pointsConfig?.points_label ?? "pts"} of {pointsTarget}</span>
                     </div>
-                    <div className="h-1.5 w-full max-w-[160px] overflow-hidden rounded-full bg-white/25">
+                    <div className="h-1 w-[85%] overflow-hidden rounded-full bg-white/25">
                       <div className="h-full rounded-full" style={{ width: `${pointsPercent}%`, backgroundColor: secondaryColor }} />
                     </div>
                   </div>
                 )}
 
                 {/* Milestone list overlaid on the photo — matches
-                    renderAppleStepsStrip/renderStepsCardHeroImage's layout,
-                    not a separate section below a short strip. */}
+                    renderAppleStepsStrip's layout, capped at 3 visible
+                    stages like the real render (no room for a 4th at Apple's
+                    actual strip height). */}
                 {programType === "steps" && (
-                  <div className="absolute inset-0 flex flex-col justify-center gap-1.5 px-4 text-white">
-                    {stages.slice(0, 4).map((stage, index) => (
-                      <div key={stage.key} className="flex items-center gap-2 text-[9px]">
-                        <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full border" style={{ borderColor: secondaryColor, backgroundColor: index === 0 ? secondaryColor : "transparent" }} />
+                  <div className="absolute inset-0 flex flex-col justify-center gap-0.5 px-3 text-white">
+                    {stages.slice(0, 3).map((stage, index) => (
+                      <div key={stage.key} className="flex items-center gap-1.5 text-[6.5px] leading-none">
+                        <span className="flex h-2 w-2 shrink-0 items-center justify-center rounded-full border" style={{ borderColor: secondaryColor, backgroundColor: index === 0 ? secondaryColor : "transparent" }} />
                         <span className={index === 0 ? "font-semibold" : "opacity-65"}>{stage.label}</span>
                         <span className="ml-auto opacity-60">{stage.threshold}</span>
                       </div>

@@ -311,7 +311,7 @@ export function BillingContent({
                   onClick={() => setInterval(value)}
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
-                    interval === value ? "bg-[var(--primary)] text-[var(--primary-fg)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
+                    interval === value ? "bg-[var(--primary)] text-white" : "text-[var(--muted)] hover:text-[var(--ink)]"
                   )}
                 >
                   {label}
@@ -320,7 +320,7 @@ export function BillingContent({
                       className={cn(
                         "rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none",
                         interval === value
-                          ? "bg-white/20 text-[var(--primary-fg)]"
+                          ? "bg-white/20 text-white"
                           : "bg-[var(--success-soft)] text-[var(--success)]"
                       )}
                     >
