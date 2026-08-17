@@ -4,6 +4,7 @@ import { Resvg } from "@resvg/resvg-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
 import { getStampGridColumns, getStampCellScale, solveStampGridCell, type StampCellScale } from "@/lib/stamp-grid";
+import { STRIP_WIDTH_1X, STRIP_HEIGHT_1X } from "@/lib/wallet/stripDimensions";
 import { getIconNode } from "@/lib/wallet/stampIcons";
 import type { PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
 
@@ -413,15 +414,13 @@ export async function renderPointsCardHeroImage(params: {
   return rasterizeSvgWithText(svg);
 }
 
-// Apple's PassKit Package Format Reference gives 375x123pt (@1x) as the
-// storeCard "strip" image size when no square/thumbnail image is present —
-// unlike Google's heroImage this is embedded directly in the .pkpass (no
-// public URL needed), and it's the ONLY region of an Apple Wallet pass that
-// can hold custom graphics; the primary/secondary/auxiliary fields below it
-// are always plain platform-rendered text, which is why the stamp grid has
-// to live in this image rather than being a "field" of some kind.
-const STRIP_WIDTH_1X = 375;
-const STRIP_HEIGHT_1X = 123;
+// See lib/wallet/stripDimensions.ts for the exact figures and why they live
+// in their own file — this is the ONLY region of an Apple Wallet pass that
+// can hold custom graphics (unlike Google's heroImage, it's embedded
+// directly in the .pkpass, no public URL needed); the primary/secondary/
+// auxiliary fields below it are always plain platform-rendered text, which
+// is why the stamp grid has to live in this image rather than being a
+// "field" of some kind.
 const STRIP_SCALE = 3; // generate at @3x, downsample for @2x/@1x
 
 /** Apple equivalent of renderStampCardHeroImage — same brand cover photo +

@@ -8,21 +8,22 @@ import type { BarcodeStyle, CardAppearance, PointsConfig, ProgramConfig, Program
 import { BarcodeImage } from "@/components/dashboard/print/barcode-image";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { solveStampGridCell } from "@/lib/stamp-grid";
+import { STRIP_WIDTH_1X, STRIP_HEIGHT_1X } from "@/lib/wallet/stripDimensions";
 import { computeExpirationStatus, formatDaysRemaining } from "@/lib/wallet/expiration";
 
-// Apple's own strip image is a fixed 375x123pt banner (see STRIP_WIDTH_1X /
-// STRIP_HEIGHT_1X in lib/wallet/heroImage.ts) — much wider and shorter than
-// this preview used to render it. The card here is always MOCKUP_STRIP_WIDTH
-// px wide (235px phone frame - 20px border - 24px inner padding), so the
-// strip height is derived from Apple's real ratio rather than guessed, and
-// the stamp grid below solves cell size from these exact pixels using the
-// same solveStampGridCell formula the real Apple render uses — previously
-// this preview used a fixed lg/md/sm/xs size table tuned for Google's much
-// taller canvas, which is why it never matched what actually ships to a
-// customer's iPhone.
+// Apple's own strip image is a fixed-ratio banner (see stripDimensions.ts —
+// imported, not hardcoded here again, so this preview can't drift out of
+// sync with the real render a second time). The card here is always
+// MOCKUP_STRIP_WIDTH px wide (235px phone frame - 20px border - 24px inner
+// padding), so the strip height is derived from Apple's real ratio rather
+// than guessed, and the stamp grid below solves cell size from these exact
+// pixels using the same solveStampGridCell formula the real Apple render
+// uses — previously this preview used a fixed lg/md/sm/xs size table tuned
+// for Google's much taller canvas, which is why it never matched what
+// actually ships to a customer's iPhone.
 const MOCKUP_STRIP_WIDTH = 191;
-const MOCKUP_STRIP_HEIGHT = Math.round((MOCKUP_STRIP_WIDTH * 123) / 375);
-const MOCKUP_STRIP_PADDING = Math.round((18 * MOCKUP_STRIP_WIDTH) / 375);
+const MOCKUP_STRIP_HEIGHT = Math.round((MOCKUP_STRIP_WIDTH * STRIP_HEIGHT_1X) / STRIP_WIDTH_1X);
+const MOCKUP_STRIP_PADDING = Math.round((18 * MOCKUP_STRIP_WIDTH) / STRIP_WIDTH_1X);
 
 export type PhoneMockupProps = {
   name: string;
