@@ -34,10 +34,18 @@ export type CardExpirationConfig = {
  * see components/dashboard/print/print-studio.tsx. */
 export type BarcodeStyle = "qr" | "pdf417";
 
+/** 0-100 percentages, same semantics as CSS object-position — {x:50,y:50} is
+ * centered (the old, only, implicit behavior before this existed). Lets a
+ * merchant choose which part of an uploaded photo survives the cover-crop
+ * into the strip/hero image, instead of always being forced to the center. */
+export type BackgroundImagePosition = { x: number; y: number };
+
 export type CardAppearance = {
   primary_color?: string;
   secondary_color?: string;
   background_image_url?: string;
+  /** Defaults to {x:50,y:50} (center) when unset. */
+  background_image_position?: BackgroundImagePosition;
   details?: CardDetails;
   enrollment_page?: EnrollmentPageConfig;
   /** Optional — powers the analytics revenue-impact KPI when set. Never estimated if absent. */

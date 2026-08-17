@@ -9,7 +9,7 @@ import { JoinPagePhonePreview } from "@/components/dashboard/join-page-phone-pre
 import { PreviewCrossfade } from "@/components/motion/preview-crossfade";
 import { cn } from "@/lib/utils";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
-import type { BarcodeStyle, CardExpirationConfig, EnrollmentPageConfig, EnrollmentPageStyle, Plan, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import type { BackgroundImagePosition, BarcodeStyle, CardExpirationConfig, EnrollmentPageConfig, EnrollmentPageStyle, Plan, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import { Lock } from "lucide-react";
 import {
   Coffee, Pizza, Scissors, ShoppingBag, Gift, Star,
@@ -206,6 +206,9 @@ export function ProgramForm({
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(
     initialBackgroundImage ?? (initial?.config as any)?.background_image_url
   );
+  const [backgroundImagePosition, setBackgroundImagePosition] = useState<BackgroundImagePosition>(
+    (initial?.config as any)?.background_image_position ?? { x: 50, y: 50 }
+  );
   const [showAllIcons, setShowAllIcons] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [uploadingBackground, setUploadingBackground] = useState(false);
@@ -246,7 +249,7 @@ export function ProgramForm({
     const appearance = {
       primary_color: primaryColor,
       secondary_color: secondaryColor,
-      ...(backgroundImage ? { background_image_url: backgroundImage } : {}),
+      ...(backgroundImage ? { background_image_url: backgroundImage, background_image_position: backgroundImagePosition } : {}),
       ...((config as any).details ? { details: (config as any).details } : {}),
       ...((config as any).enrollment_page ? { enrollment_page: (config as any).enrollment_page } : {}),
       barcode_style: barcodeStyle,
@@ -267,12 +270,26 @@ export function ProgramForm({
 
   function setBackground(url?: string) {
     setBackgroundImage(url);
+    // A newly picked photo resets to centered — the old position was
+    // chosen for a different photo's content and has no reason to still be
+    // right for this one.
+    setBackgroundImagePosition({ x: 50, y: 50 });
     setConfig((prev) => {
       const next = { ...(prev as any) };
-      if (url) next.background_image_url = url;
-      else delete next.background_image_url;
+      if (url) {
+        next.background_image_url = url;
+        next.background_image_position = { x: 50, y: 50 };
+      } else {
+        delete next.background_image_url;
+        delete next.background_image_position;
+      }
       return next as ProgramConfig;
     });
+  }
+
+  function setBackgroundPosition(position: BackgroundImagePosition) {
+    setBackgroundImagePosition(position);
+    setConfig((prev) => ({ ...(prev as any), background_image_position: position } as ProgramConfig));
   }
 
   function setCardColor(kind: "primary_color" | "secondary_color", value: string) {
@@ -529,7 +546,9 @@ export function ProgramForm({
           {/* Background image selection */}
           <div>
             <Label className="text-[var(--muted)]">Background Image</Label>
-            <p className="mt-1 mb-4 text-sm text-[var(--muted)]">Choose a photo for your card background.</p>
+            <p className="mt-1 mb-4 text-sm text-[var(--muted)]">
+              Choose a photo for your card background. Once picked, drag the photo in the live preview on the right to choose which part of it shows.
+            </p>
             
             <div className="flex flex-wrap items-center gap-4">
               <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-3)] shadow-sm flex items-center justify-center">
@@ -1163,6 +1182,8 @@ export function ProgramForm({
                     secondaryColor={secondaryColor}
                     iconName={selectedIcon}
                     backgroundImage={backgroundImage}
+                    backgroundImagePosition={backgroundImagePosition}
+                    onBackgroundImagePositionChange={setBackgroundPosition}
                     programType={type}
                     programConfig={config}
                     stampsRequired={stampsRequired}

@@ -76,6 +76,7 @@ async function objectHeroImage(
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,
+        backgroundImagePosition: config.background_image_position,
       });
       key = `stamp-${passId}`;
     } else if (program.type === "steps") {
@@ -85,6 +86,7 @@ async function objectHeroImage(
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,
+        backgroundImagePosition: config.background_image_position,
       });
       key = `steps-${passId}`;
     } else {
@@ -94,6 +96,7 @@ async function objectHeroImage(
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,
+        backgroundImagePosition: config.background_image_position,
       });
       key = `points-${passId}`;
     }
@@ -218,6 +221,7 @@ export async function generateGoogleWalletLink(params: {
     // Same field the dashboard's Print/Preview cover photo and the
     // enrollment page pull from (CardAppearance.background_image_url).
     const backgroundImageUrl = (params.program.config as CardAppearance).background_image_url;
+    const backgroundImagePosition = (params.program.config as CardAppearance).background_image_position;
     const website = (params.program.config as CardAppearance).details?.website;
     const barcodeStyle = (params.program.config as CardAppearance).barcode_style;
 
@@ -227,7 +231,10 @@ export async function generateGoogleWalletLink(params: {
     // crop/frame it however it chose, which is what produced a hero image
     // that didn't match the preview's framing.
     const classHeroImageUrl = backgroundImageUrl
-      ? await uploadHeroImage(`class-${params.program.id}`, await renderCoverHeroImage(backgroundImageUrl, primaryColor))
+      ? await uploadHeroImage(
+          `class-${params.program.id}`,
+          await renderCoverHeroImage(backgroundImageUrl, primaryColor, backgroundImagePosition)
+        )
       : null;
 
     await upsertResource(client, "loyaltyClass", classId, {

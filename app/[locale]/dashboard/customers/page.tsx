@@ -110,21 +110,43 @@ export default async function CustomersPage({
                         : "transition-colors hover:bg-[var(--surface-2)]"
                     }
                   >
-                    <td className="px-4 py-3 font-medium text-[var(--ink)]">{c.name || t("unknownCustomer")}</td>
-                    <td className="px-4 py-3 text-[var(--muted)]">{new Date(c.created_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-3 text-[var(--muted)]">
+                    <td className="px-4 py-3 align-top font-medium text-[var(--ink)]">{c.name || t("unknownCustomer")}</td>
+                    <td className="px-4 py-3 align-top text-[var(--muted)]">{new Date(c.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 align-top text-[var(--muted)]">
                       {c.birthday ? new Date(c.birthday).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
                     </td>
-                    <td className="px-4 py-3 text-[var(--muted)]">{c.phone || c.email || "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]">
-                        {c.cardsCount}
-                      </span>
-                      {c.programs.length > 0 && (
-                        <span className="ms-2 truncate text-xs text-[var(--muted)]">{c.programs.join(", ")}</span>
-                      )}
+                    <td className="px-4 py-3 align-top text-[var(--muted)]">{c.phone || c.email || "—"}</td>
+                    <td className="px-4 py-3 align-top">
+                      {/* A customer with several cards used to dump every program
+                       * name into one unbroken comma-joined string with a
+                       * `truncate` that couldn't actually truncate anything
+                       * (no width constraint on the span) — it just stretched
+                       * the row. Wrapping chips + a capped "+N more" overflow
+                       * scale to any card count instead. */}
+                      <div className="flex max-w-[16rem] flex-wrap items-center gap-1">
+                        <span className="shrink-0 rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--ink)]">
+                          {c.cardsCount}
+                        </span>
+                        {c.programs.slice(0, 2).map((name) => (
+                          <span
+                            key={name}
+                            title={name}
+                            className="max-w-[8rem] truncate rounded-full border border-[var(--line)] px-2 py-0.5 text-xs text-[var(--muted)]"
+                          >
+                            {name}
+                          </span>
+                        ))}
+                        {c.programs.length > 2 && (
+                          <span
+                            title={c.programs.slice(2).join(", ")}
+                            className="shrink-0 rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium text-[var(--muted)]"
+                          >
+                            +{c.programs.length - 2}
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 align-top">
                       <div className="flex items-center gap-1.5">
                         {c.hasApple && (
                           // eslint-disable-next-line @next/next/no-img-element

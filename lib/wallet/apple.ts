@@ -39,6 +39,7 @@ async function buildStripBuffers(
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,
+        backgroundImagePosition: config.background_image_position,
       });
     }
     if (program.type === "steps") {
@@ -48,6 +49,7 @@ async function buildStripBuffers(
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,
+        backgroundImagePosition: config.background_image_position,
       });
     }
     if (program.type === "points") {
@@ -57,9 +59,10 @@ async function buildStripBuffers(
         primaryColor,
         secondaryColor,
         backgroundImageUrl: config.background_image_url,
+        backgroundImagePosition: config.background_image_position,
       });
     }
-    return await renderAppleStripCover(config.background_image_url, primaryColor);
+    return await renderAppleStripCover(config.background_image_url, primaryColor, config.background_image_position);
   } catch (err) {
     console.error("[wallet:apple] strip image render failed", program.id, err);
     return null;

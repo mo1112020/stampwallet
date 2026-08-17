@@ -6,7 +6,12 @@ import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
 import { getStampGridColumns, getStampCellScale, solveStampGridCell, type StampCellScale } from "@/lib/stamp-grid";
 import { STRIP_WIDTH_1X, STRIP_HEIGHT_1X } from "@/lib/wallet/stripDimensions";
 import { getIconNode } from "@/lib/wallet/stampIcons";
-import type { PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
+import type { BackgroundImagePosition, PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
+
+function clampPercent(n: number | undefined): number {
+  if (typeof n !== "number" || Number.isNaN(n)) return 50;
+  return Math.min(100, Math.max(0, n));
+}
 
 /** Stage labels/reward text are merchant-authored free text embedded
  * directly into generated SVG markup below — unescaped, a name containing
@@ -72,7 +77,12 @@ function iconGroupMarkup(iconName: string, color: string, x: number, y: number, 
   return `<g transform="translate(${x},${y}) scale(${size / 24})" stroke="${color}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${shapes}</g>`;
 }
 
-async function fetchAsPngDataUri(url: string, targetWidth: number, targetHeight: number): Promise<string | null> {
+async function fetchAsPngDataUri(
+  url: string,
+  targetWidth: number,
+  targetHeight: number,
+  position?: BackgroundImagePosition
+): Promise<string | null> {
   try {
     // An unbounded fetch here is a real outage risk, not a theoretical one —
     // this function runs inside every stamp/points push (see google.ts), and
@@ -85,6 +95,12 @@ async function fetchAsPngDataUri(url: string, targetWidth: number, targetHeight:
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const raw = Buffer.from(await res.arrayBuffer());
+    const tw = Math.round(targetWidth);
+    const th = Math.round(targetHeight);
+
+    const src = sharp(raw);
+    const meta = await src.metadata();
+
     // Merchants upload real phone-camera photos here (multiple MB, several
     // thousand pixels wide) — embedding one as-is used to mean encoding the
     // ENTIRE original resolution losslessly as PNG (a 3.4MB/2816x1536 JPEG
@@ -99,10 +115,29 @@ async function fetchAsPngDataUri(url: string, targetWidth: number, targetHeight:
     // smaller than PNG for photographic content, and the difference is
     // invisible under the dark overlay every caller draws on top of it
     // anyway) cuts a typical upload from ~14MB of base64 to well under 200KB.
-    const resized = await sharp(raw)
-      .resize(Math.round(targetWidth), Math.round(targetHeight), { fit: "cover" })
-      .jpeg({ quality: 82 })
-      .toBuffer();
+    let pipeline = src;
+    if (meta.width && meta.height) {
+      // Manual cover-fit + crop instead of sharp's built-in `fit: "cover"`
+      // (which only offers 9 fixed compass-point positions) — scale to just
+      // cover the target box, then extract from an offset derived from the
+      // 0-100 x/y percentages, same semantics as CSS object-position. This
+      // is what lets a merchant choose which part of their photo survives
+      // the crop instead of always being forced to dead-center.
+      const scale = Math.max(tw / meta.width, th / meta.height);
+      const scaledW = Math.max(tw, Math.round(meta.width * scale));
+      const scaledH = Math.max(th, Math.round(meta.height * scale));
+      const maxLeft = scaledW - tw;
+      const maxTop = scaledH - th;
+      const left = Math.round((maxLeft * clampPercent(position?.x)) / 100);
+      const top = Math.round((maxTop * clampPercent(position?.y)) / 100);
+      pipeline = pipeline.resize(scaledW, scaledH).extract({ left, top, width: tw, height: th });
+    } else {
+      // Metadata read failed (corrupt/unsupported source) — fall back to
+      // sharp's own centered cover-fit rather than failing the whole render.
+      pipeline = pipeline.resize(tw, th, { fit: "cover" });
+    }
+
+    const resized = await pipeline.jpeg({ quality: 82 }).toBuffer();
     return `data:image/jpeg;base64,${resized.toString("base64")}`;
   } catch {
     return null;
@@ -181,10 +216,11 @@ async function backgroundLayerSvg(
   backgroundImageUrl: string | undefined,
   primaryColor: string,
   width: number = CANVAS_WIDTH,
-  height: number = CANVAS_HEIGHT
+  height: number = CANVAS_HEIGHT,
+  position?: BackgroundImagePosition
 ): Promise<string> {
   if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, width, height);
+    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, width, height, position);
     if (dataUri) {
       return `
         <image href="${dataUri}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid slice" />
@@ -197,8 +233,12 @@ async function backgroundLayerSvg(
 
 /** Plain cover-photo heroImage (points/steps programs, and stamp programs'
  * class-level fallback before any object-level progress image exists). */
-export async function renderCoverHeroImage(backgroundImageUrl: string | undefined, primaryColor: string): Promise<Buffer> {
-  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor);
+export async function renderCoverHeroImage(
+  backgroundImageUrl: string | undefined,
+  primaryColor: string,
+  position?: BackgroundImagePosition
+): Promise<Buffer> {
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, undefined, undefined, position);
   const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">${bg}</svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
@@ -225,21 +265,13 @@ export async function renderStampCardHeroImage(params: {
   primaryColor: string;
   secondaryColor: string;
   backgroundImageUrl?: string;
+  backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<Buffer> {
-  const { config, collected, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const { config, collected, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
   const gridAreaHeight = CANVAS_HEIGHT - coverHeight;
 
-  let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
-  if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, CANVAS_WIDTH, coverHeight);
-    if (dataUri) {
-      coverLayer = `
-        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
-        <rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="#000000" opacity="0.28" />
-      `;
-    }
-  }
+  const coverLayer = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, coverHeight, backgroundImagePosition);
   // Fades the cover's bottom edge into the grid section's solid color —
   // the same image-to-card transition the phone-mockup preview uses,
   // avoiding a hard seam between the two sections of one flattened image.
@@ -315,21 +347,13 @@ export async function renderStepsCardHeroImage(params: {
   primaryColor: string;
   secondaryColor: string;
   backgroundImageUrl?: string;
+  backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<Buffer> {
-  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
   const contentHeight = CANVAS_HEIGHT - coverHeight;
 
-  let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
-  if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, CANVAS_WIDTH, coverHeight);
-    if (dataUri) {
-      coverLayer = `
-        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
-        <rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="#000000" opacity="0.28" />
-      `;
-    }
-  }
+  const coverLayer = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, coverHeight, backgroundImagePosition);
 
   const stages = [...config.stages].sort((a, b) => a.threshold - b.threshold);
   const currentIndex = (() => {
@@ -377,21 +401,13 @@ export async function renderPointsCardHeroImage(params: {
   primaryColor: string;
   secondaryColor: string;
   backgroundImageUrl?: string;
+  backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<Buffer> {
-  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
   const contentHeight = CANVAS_HEIGHT - coverHeight;
 
-  let coverLayer = `<rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="${primaryColor}" />`;
-  if (backgroundImageUrl) {
-    const dataUri = await fetchAsPngDataUri(backgroundImageUrl, CANVAS_WIDTH, coverHeight);
-    if (dataUri) {
-      coverLayer = `
-        <image href="${dataUri}" x="0" y="0" width="${CANVAS_WIDTH}" height="${coverHeight}" preserveAspectRatio="xMidYMid slice" />
-        <rect width="${CANVAS_WIDTH}" height="${coverHeight}" fill="#000000" opacity="0.28" />
-      `;
-    }
-  }
+  const coverLayer = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, coverHeight, backgroundImagePosition);
 
   const target = Math.max(1, config.points_per_reward);
   const current = Math.max(0, Math.min(target, progress.points));
@@ -438,12 +454,13 @@ export async function renderAppleStripImage(params: {
   primaryColor: string;
   secondaryColor: string;
   backgroundImageUrl?: string;
+  backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
-  const { config, collected, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const { config, collected, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const width = STRIP_WIDTH_1X * STRIP_SCALE;
   const height = STRIP_HEIGHT_1X * STRIP_SCALE;
 
-  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height, backgroundImagePosition);
 
   const required = Math.max(1, config.stamps_required);
   const padding = 18 * STRIP_SCALE;
@@ -499,11 +516,12 @@ export async function renderAppleStripImage(params: {
  * for Google Wallet). */
 export async function renderAppleStripCover(
   backgroundImageUrl: string | undefined,
-  primaryColor: string
+  primaryColor: string,
+  backgroundImagePosition?: BackgroundImagePosition
 ): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
   const width = STRIP_WIDTH_1X * STRIP_SCALE;
   const height = STRIP_HEIGHT_1X * STRIP_SCALE;
-  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height, backgroundImagePosition);
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${bg}</svg>`;
   const master = await sharp(Buffer.from(svg)).png().toBuffer();
   const [oneX, twoX, threeX] = await Promise.all([
@@ -526,11 +544,12 @@ export async function renderAppleStepsStrip(params: {
   primaryColor: string;
   secondaryColor: string;
   backgroundImageUrl?: string;
+  backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
-  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const width = STRIP_WIDTH_1X * STRIP_SCALE;
   const height = STRIP_HEIGHT_1X * STRIP_SCALE;
-  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height, backgroundImagePosition);
 
   const stages = [...config.stages].sort((a, b) => a.threshold - b.threshold);
   const currentIndex = (() => {
@@ -589,11 +608,12 @@ export async function renderApplePointsStrip(params: {
   primaryColor: string;
   secondaryColor: string;
   backgroundImageUrl?: string;
+  backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<{ "1x": Buffer; "2x": Buffer; "3x": Buffer }> {
-  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl } = params;
+  const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
   const width = STRIP_WIDTH_1X * STRIP_SCALE;
   const height = STRIP_HEIGHT_1X * STRIP_SCALE;
-  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height);
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, width, height, backgroundImagePosition);
 
   const target = Math.max(1, config.points_per_reward);
   const current = Math.max(0, Math.min(target, progress.points));

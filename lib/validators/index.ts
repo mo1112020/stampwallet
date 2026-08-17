@@ -4,6 +4,15 @@ const cardAppearanceSchema = z.object({
   primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   secondary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   background_image_url: z.string().url().optional(),
+  // 0-100 percentages, CSS object-position semantics — see
+  // types/index.ts's BackgroundImagePosition. Absent = centered (unchanged
+  // pre-existing behavior).
+  background_image_position: z
+    .object({
+      x: z.number().min(0).max(100),
+      y: z.number().min(0).max(100),
+    })
+    .optional(),
   details: z.object({
     description: z.string().max(500).optional(),
     terms: z.string().max(1000).optional(),

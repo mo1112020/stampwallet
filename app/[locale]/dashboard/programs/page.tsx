@@ -65,6 +65,7 @@ export default async function ProgramsPage({
               secondaryColor={config?.secondary_color ?? merchant?.brand_color_secondary ?? "#FAAE62"}
               iconName={iconName}
               backgroundImage={config?.background_image_url}
+              backgroundImagePosition={config?.background_image_position}
               barcodeStyle={config?.barcode_style}
               programType={p.type as ProgramType}
               programConfig={p.config as ProgramConfig}

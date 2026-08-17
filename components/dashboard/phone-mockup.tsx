@@ -1,10 +1,11 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
-import { ExternalLink, type LucideIcon } from "lucide-react";
-import type { BarcodeStyle, CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
+import { ExternalLink, Move, type LucideIcon } from "lucide-react";
+import type { BackgroundImagePosition, BarcodeStyle, CardAppearance, PointsConfig, ProgramConfig, ProgramType, StepsConfig } from "@/types";
 import { BarcodeImage } from "@/components/dashboard/print/barcode-image";
 import { useReducedMotion } from "@/lib/motion/use-reduced-motion";
 import { solveStampGridCell } from "@/lib/stamp-grid";
@@ -32,6 +33,15 @@ export type PhoneMockupProps = {
   textColor?: string;
   iconName?: string;
   backgroundImage?: string;
+  /** 0-100 percentages, CSS object-position semantics. Defaults to
+   * centered. Only meaningful when backgroundImage is set. */
+  backgroundImagePosition?: BackgroundImagePosition;
+  /** Presence of this handler (not just a truthy backgroundImage) is what
+   * turns on drag-to-reposition on the strip photo — every read-only
+   * PhoneMockup use (Programs grid, Templates gallery, EmptyPhoneMockup)
+   * simply never passes it, so dragging the card there does nothing rather
+   * than silently trying to "edit" a card the user can't actually save. */
+  onBackgroundImagePositionChange?: (position: BackgroundImagePosition) => void;
   /** Merchant name/logo shown in the card's own header bar — distinct from
    * `name` (the program name, shown below the card), matching how the real
    * Apple/Google Wallet card header always shows the *merchant's* name and
@@ -70,6 +80,8 @@ export function PhoneMockup({
   textColor = "text-white",
   iconName = "Star",
   backgroundImage,
+  backgroundImagePosition,
+  onBackgroundImagePositionChange,
   businessName,
   logoUrl,
   stampsRequired = 10,
@@ -89,6 +101,38 @@ export function PhoneMockup({
   const Icon = getIconComponent(iconName);
   const reduced = useReducedMotion();
   const isFlipCard = flipped !== undefined;
+  const canReposition = Boolean(onBackgroundImagePositionChange && backgroundImage);
+  const posX = backgroundImagePosition?.x ?? 50;
+  const posY = backgroundImagePosition?.y ?? 50;
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  function positionFromPointer(e: { clientX: number; clientY: number }) {
+    const el = stripRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
+    onBackgroundImagePositionChange?.({ x: Math.round(x), y: Math.round(y) });
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (!canReposition) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+    positionFromPointer(e);
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!canReposition || !dragging) return;
+    positionFromPointer(e);
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (!canReposition) return;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    setDragging(false);
+  }
   const pointsConfig = programConfig as PointsConfig | undefined;
   const stepsConfig = programConfig as StepsConfig | undefined;
   // Preview assumes "just enrolled" (now) so the countdown shows the full configured window.
@@ -176,17 +220,37 @@ export function PhoneMockup({
                   separate section underneath, so a below-photo block (the
                   previous points/steps layout) never matched what actually
                   ships to Apple/Google Wallet. */}
-              <div className="relative w-full overflow-hidden" style={{ height: MOCKUP_STRIP_HEIGHT }}>
+              <div
+                ref={stripRef}
+                className={cn("relative w-full overflow-hidden", canReposition && "touch-none", canReposition && (dragging ? "cursor-grabbing" : "cursor-grab"))}
+                style={{ height: MOCKUP_STRIP_HEIGHT }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+              >
                 {backgroundImage ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={backgroundImage}
                       alt={name}
+                      draggable={false}
                       className="h-full w-full object-cover"
+                      style={{ objectPosition: `${posX}% ${posY}%` }}
                     />
                     {/* dark gradient overlay so the grid/icons stay legible */}
                     <div className="absolute inset-0 bg-black/28" />
+                    {canReposition && (
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute end-1.5 top-1.5 flex items-center gap-1 rounded-full bg-black/45 px-1.5 py-1 text-white transition-opacity",
+                          dragging ? "opacity-100" : "opacity-60"
+                        )}
+                      >
+                        <Move className="h-2.5 w-2.5" strokeWidth={2} />
+                      </div>
+                    )}
                   </>
                 ) : (
                   /* Colour gradient fallback */
