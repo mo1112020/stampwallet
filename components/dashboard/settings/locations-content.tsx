@@ -24,11 +24,14 @@ const LocationMap = dynamic(
 
 const METERS_TO_FEET = 3.28084;
 const FALLBACK_CENTER = { lat: 24.7136, lng: 46.6753 };
+// Geo-push radius is fixed, not a per-location setting — see the comment on
+// storeLocationSchema (lib/validators/index.ts) for why it's locked here and
+// enforced again server-side rather than trusted from the client.
+const RADIUS_METERS = 150;
 
 const emptyForm = {
   name: "",
   address: "",
-  radius_meters: "150",
   relevant_text: "",
   program_ids: [] as string[],
 };
@@ -97,7 +100,6 @@ export function LocationsContent({
         address: form.address || null,
         latitude: pickedLat,
         longitude: pickedLng,
-        radius_meters: Number(form.radius_meters) || 150,
         relevant_text: form.relevant_text || null,
         program_ids: form.program_ids,
       }),
@@ -136,7 +138,6 @@ export function LocationsContent({
   }
 
   const hasPicked = pickedLat !== null && pickedLng !== null;
-  const radiusMeters = Number(form.radius_meters) || 150;
 
   const applyToCardsLabel =
     form.program_ids.length === 0
@@ -155,7 +156,7 @@ export function LocationsContent({
       </Reveal>
       <Badge variant="primary" className="mt-3 text-[11px] sm:text-xs">
         <MapPin className="h-3 w-3" />
-        {t("geoPushBadge", { meters: radiusMeters, feet: Math.round(radiusMeters * METERS_TO_FEET) })}
+        {t("geoPushBadge", { meters: RADIUS_METERS, feet: Math.round(RADIUS_METERS * METERS_TO_FEET) })}
       </Badge>
       {limit !== null && (
         <p className="mt-2 text-[11px] text-[var(--muted)] sm:text-xs">{t("limitNote", { limit })}</p>
@@ -203,7 +204,7 @@ export function LocationsContent({
                   <LocationMap
                     latitude={pickedLat ?? mapCenter.lat}
                     longitude={pickedLng ?? mapCenter.lng}
-                    radiusMeters={radiusMeters}
+                    radiusMeters={RADIUS_METERS}
                     onPick={(lat, lng) => {
                       setPickedLat(lat);
                       setPickedLng(lng);
@@ -211,19 +212,6 @@ export function LocationsContent({
                     interactive
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="radius" className="text-xs sm:text-[13px]">{t("radius")}</Label>
-                <Input
-                  id="radius"
-                  type="number"
-                  min={20}
-                  max={5000}
-                  value={form.radius_meters}
-                  onChange={(e) => setForm({ ...form, radius_meters: e.target.value })}
-                  className="text-sm"
-                />
               </div>
 
               <div>

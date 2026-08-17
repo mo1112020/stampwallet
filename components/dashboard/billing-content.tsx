@@ -236,7 +236,7 @@ export function BillingContent({
       {/* Current plan hero */}
       <Reveal as="div" className="mt-6">
         <Card className="overflow-hidden border-[var(--primary)]/20 bg-gradient-to-br from-[var(--primary-soft)]/50 to-transparent">
-          <div className="flex flex-wrap items-center justify-between gap-4 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-6 p-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">{t("currentPlan")}</p>
               <div className="mt-1 flex items-center gap-2">
@@ -251,6 +251,34 @@ export function BillingContent({
                 <p className="mt-1.5 text-sm text-[var(--muted)]">Renews {formatDate(merchant.current_period_ends_at)}</p>
               ) : null}
             </div>
+
+            {/* At-a-glance usage — same data as the Usage section below, just
+             * surfaced here too so the hero's wide middle isn't dead space
+             * and a merchant doesn't have to scroll to see where they stand. */}
+            {usage && (
+              <div className="flex flex-1 flex-wrap items-center justify-center gap-x-6 gap-y-3">
+                {([
+                  ["programs", "Programs"],
+                  ["customers", "Customers"],
+                  ["seats", "Seats"],
+                  ["locations", "Locations"],
+                ] as const).map(([key, label]) => {
+                  const metric = usage[key];
+                  return (
+                    <div key={key} className="text-center">
+                      <p className="text-lg font-semibold tabular-nums text-[var(--ink)]">
+                        {metric.used.toLocaleString()}
+                        <span className="text-sm font-normal text-[var(--muted)]">
+                          /{metric.limit !== null ? metric.limit.toLocaleString() : "∞"}
+                        </span>
+                      </p>
+                      <p className="text-xs text-[var(--muted)]">{label}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
               {merchant.stripe_customer_id && (
                 <Button variant="outline" onClick={openPortal} disabled={pendingAction !== null}>

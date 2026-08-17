@@ -176,12 +176,17 @@ export const createCampaignSchema = z
     message: "scheduled_for is required for scheduled campaigns",
   });
 
+// Geo-push radius is fixed at 150m for every location — not a per-merchant
+// setting. radius_meters is deliberately absent from this schema (rather
+// than a min/max range) so a merchant can never set their own value via the
+// API: unrecognized fields are silently dropped by zod, and the insert in
+// app/api/settings/locations/route.ts hardcodes 150 regardless of what's
+// sent, matching the store_locations table's own default.
 export const storeLocationSchema = z.object({
   name: z.string().min(1).max(100),
   address: z.string().max(300).optional().nullable(),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  radius_meters: z.number().int().min(20).max(5000).default(150),
   relevant_text: z.string().max(200).optional().nullable(),
   is_active: z.boolean().optional(),
   /** Programs this location applies to. Omitted/empty = applies to all. */

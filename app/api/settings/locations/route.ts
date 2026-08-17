@@ -52,7 +52,10 @@ export async function POST(request: Request) {
 
   const { data, error } = await auth.supabase
     .from("store_locations")
-    .insert({ ...locationFields, merchant_id: auth.merchantId })
+    // radius_meters is fixed at 150 for every location (see the comment on
+    // storeLocationSchema) — set explicitly rather than relying solely on
+    // the table's own default, so this stays true even if that ever drifts.
+    .insert({ ...locationFields, radius_meters: 150, merchant_id: auth.merchantId })
     .select("*")
     .single();
 

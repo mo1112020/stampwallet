@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { DashboardNav } from "@/components/dashboard/nav";
+import { DashboardNav, DashboardMobileNav } from "@/components/dashboard/nav";
 import { getSessionOrNull } from "@/lib/api";
 import { getAuthUser } from "@/lib/supabase/server";
 
@@ -47,14 +47,19 @@ export default async function DashboardLayout({
 
       {/* Body below topbar — fills remaining height */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sticky sidebar (desktop) / bottom tab bar (mobile) — never scrolls */}
+        {/* Sticky sidebar (desktop only) — never scrolls */}
         <DashboardNav locale={locale} />
 
-        {/* Scrollable main content — bottom padding on mobile clears the fixed tab bar */}
-        <main id="dashboard-main" className="flex-1 overflow-y-auto p-6 pb-24 md:p-10 md:pb-10 xl:p-12">
+        {/* Scrollable main content */}
+        <main id="dashboard-main" className="flex-1 overflow-y-auto p-6 md:p-10 xl:p-12">
           {children}
         </main>
       </div>
+
+      {/* Bottom tab bar (mobile only) — a normal flex sibling of the row
+       * above, not position:fixed, so it can't drift out of sync with the
+       * browser's own viewport math (see DashboardMobileNav for why). */}
+      <DashboardMobileNav locale={locale} />
     </div>
   );
 }
