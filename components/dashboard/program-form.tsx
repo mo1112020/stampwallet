@@ -405,8 +405,8 @@ export function ProgramForm({
                 step === index
                   ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]"
                   : index < step
-                    ? "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]"
-                    : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]"
+                    ? "border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"
+                    : "border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"
               )}
             >
               <span className="mr-1.5 text-xs">{index + 1}</span>
@@ -763,7 +763,7 @@ export function ProgramForm({
                 ["editorial", "Editorial", "Warm welcome with a strong story"],
                 ["spotlight", "Spotlight", "Bold color and a compact sign-up"],
               ] as [EnrollmentPageStyle, string, string][]).map(([style, title, detail]) => (
-                <button key={style} type="button" onClick={() => updateEnrollment({ style })} aria-pressed={(enrollment.style ?? "classic") === style} className={`rounded-xl border p-4 text-left ${((enrollment.style ?? "classic") === style) ? "border-[var(--primary)] bg-[var(--primary-soft)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}>
+                <button key={style} type="button" onClick={() => updateEnrollment({ style })} aria-pressed={(enrollment.style ?? "classic") === style} className={`rounded-xl border p-4 text-left transition-colors ${((enrollment.style ?? "classic") === style) ? "border-[var(--primary)] bg-[var(--primary-soft)]" : "border-[var(--line)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"}`}>
                   <span className="block text-sm font-semibold text-[var(--ink)]">{title}</span>
                   <span className="mt-1 block text-xs text-[var(--muted)]">{detail}</span>
                 </button>

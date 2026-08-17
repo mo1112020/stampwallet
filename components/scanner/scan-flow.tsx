@@ -257,7 +257,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
                   type="button"
                   onClick={clearSearch}
                   aria-label={t("clearSearch")}
-                  className={`absolute end-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100`}
+                  className={`absolute end-3 top-1/2 -translate-y-1/2 opacity-60 transition-opacity hover:opacity-100`}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -284,7 +284,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
                             clearSearch();
                             handleScan(r.pass_id);
                           }}
-                          className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-start ${
+                          className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-start transition-colors ${
                             dark ? "hover:bg-white/5" : "hover:bg-[var(--surface-2)]"
                           }`}
                         >

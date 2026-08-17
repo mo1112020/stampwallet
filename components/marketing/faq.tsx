@@ -32,7 +32,7 @@ export function FaqSection() {
           <div key={key}>
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-4 py-5 text-start"
+              className="flex w-full items-center justify-between gap-4 py-5 text-start opacity-90 transition-opacity hover:opacity-100"
               onClick={() => setOpen(isOpen ? null : key)}
               aria-expanded={isOpen}
             >

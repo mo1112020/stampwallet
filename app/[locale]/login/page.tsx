@@ -99,7 +99,7 @@ function LoginContent() {
               <button
                 type="button"
                 onClick={() => setStep("form")}
-                className="mt-8 h-12 w-full max-w-[280px] rounded-full bg-[var(--primary)] text-[15px] font-semibold text-white hover:opacity-95"
+                className="mt-8 h-12 w-full max-w-[280px] rounded-full bg-[var(--primary)] text-[15px] font-semibold text-white transition-opacity hover:opacity-95"
               >
                 {t("signIn")}
               </button>
@@ -158,7 +158,7 @@ function LoginContent() {
           <button
             type="submit"
             disabled={loading !== null}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
           >
             {loading === "email" && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("continueEmail")}

@@ -79,7 +79,7 @@ export default function CampaignDetailPage() {
       <button
         type="button"
         onClick={() => router.push(`/${locale}/dashboard/notifications`)}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--muted)] hover:text-[var(--ink)]"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--ink)]"
       >
         <ArrowLeft className="h-4 w-4" />
         {t("back")}

@@ -54,7 +54,7 @@ export function EmailPrefsForm({ initialPrefs }: { initialPrefs: EmailPrefs }) {
                 aria-checked={checked}
                 onClick={() => save({ ...prefs, [key]: !checked })}
                 disabled={saving}
-                className={`h-6 w-11 shrink-0 rounded-full transition-colors ${
+                className={`h-6 w-11 shrink-0 rounded-full transition-colors active:scale-95 disabled:opacity-50 ${
                   checked ? "bg-[var(--primary)]" : "bg-[var(--line-strong)]"
                 }`}
               >

@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("sendResetLink")}

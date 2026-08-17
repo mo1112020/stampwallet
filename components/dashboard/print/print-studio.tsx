@@ -232,7 +232,7 @@ export function PrintStudio({
             onClick={() => setAssetLocale(code)}
             className={cn(
               "rounded-full px-4 py-1.5 transition-colors",
-              assetLocale === code ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
+              assetLocale === code ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--ink)]"
             )}
           >
             {code === "en" ? "English" : "العربية"}

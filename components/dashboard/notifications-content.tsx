@@ -102,7 +102,7 @@ function CustomerPicker({
                 type="button"
                 onClick={() => add(c)}
                 disabled={selectedIds.has(c.id)}
-                className="flex w-full items-center justify-between gap-2 border-b border-[var(--line)] px-3 py-2.5 text-start text-sm last:border-b-0 hover:bg-[var(--surface-2)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-between gap-2 border-b border-[var(--line)] px-3 py-2.5 text-start text-sm transition-colors last:border-b-0 hover:bg-[var(--surface-2)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="min-w-0">
                   <span className="block truncate font-medium text-[var(--ink)]">{c.name || t("unknownCustomer")}</span>
@@ -130,7 +130,7 @@ function CustomerPicker({
                   type="button"
                   onClick={() => remove(c.id)}
                   aria-label={t("removeCustomer")}
-                  className="rounded-full p-0.5 text-[var(--muted)] hover:bg-[var(--surface-3)] hover:text-[var(--ink)]"
+                  className="rounded-full p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-[var(--ink)]"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -351,7 +351,7 @@ export function NotificationsContent({
                   onClick={() => setSendType("manual")}
                   className={cn(
                     "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition-[background-color,color,box-shadow] duration-150",
-                    sendType === "manual" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
+                    sendType === "manual" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--ink)]"
                   )}
                 >
                   <Send className="h-3.5 w-3.5" />
@@ -362,7 +362,7 @@ export function NotificationsContent({
                   onClick={() => setSendType("scheduled")}
                   className={cn(
                     "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition-[background-color,color,box-shadow] duration-150",
-                    sendType === "scheduled" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
+                    sendType === "scheduled" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--ink)]"
                   )}
                 >
                   <Clock className="h-3.5 w-3.5" />

@@ -50,7 +50,7 @@ export function AnalyticsFilters({
             key={preset.key}
             type="button"
             onClick={() => applyPreset(preset.days)}
-            className="rounded-full px-3 py-1.5 text-xs font-semibold text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
+            className="rounded-full px-3 py-1.5 text-xs font-semibold text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
           >
             {t(`range.${preset.key}`)}
           </button>

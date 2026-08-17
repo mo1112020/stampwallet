@@ -84,7 +84,7 @@ function ResetPasswordContent() {
             <p className="text-sm text-[var(--danger)]">{t("invalidResetLink")}</p>
             <Link
               href={`/${locale}/forgot-password`}
-              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95"
+              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95"
             >
               {t("forgotPassword")}
             </Link>
@@ -123,7 +123,7 @@ function ResetPasswordContent() {
             <button
               type="submit"
               disabled={loading}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95 disabled:opacity-50"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("updatePassword")}
@@ -137,7 +137,7 @@ function ResetPasswordContent() {
             <button
               type="button"
               onClick={() => router.push(destination)}
-              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white hover:opacity-95"
+              className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95"
             >
               {t("signIn")}
             </button>

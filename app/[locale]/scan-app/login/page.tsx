@@ -73,7 +73,7 @@ export default function ScanAppLoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="h-11 w-full rounded-full bg-white text-[14px] font-semibold text-[var(--ink)] hover:opacity-90 disabled:opacity-50"
+          className="h-11 w-full rounded-full bg-white text-[14px] font-semibold text-[var(--ink)] transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {tAuth("continueEmail")}
         </button>

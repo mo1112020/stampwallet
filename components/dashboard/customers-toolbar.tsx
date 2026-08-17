@@ -59,7 +59,7 @@ export function CustomersToolbar({ programs }: { programs: { id: string; name: s
           onClick={() => pushParams({ filter: null })}
           className={cn(
             "rounded-full px-3 py-1.5 transition-colors",
-            filter === "all" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
+            filter === "all" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--ink)]"
           )}
         >
           {t("filterAll")}
@@ -69,7 +69,7 @@ export function CustomersToolbar({ programs }: { programs: { id: string; name: s
           onClick={() => pushParams({ filter: "birthday_month" })}
           className={cn(
             "rounded-full px-3 py-1.5 transition-colors",
-            filter === "birthday_month" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"
+            filter === "birthday_month" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--ink)]"
           )}
         >
           {t("filterBirthday")}

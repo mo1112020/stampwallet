@@ -147,7 +147,7 @@ export function InstallPrompt() {
             type="button"
             onClick={() => dismiss("later")}
             aria-label={t("maybeLater")}
-            className="rounded-full p-1.5 text-white/50 hover:bg-white/10 hover:text-white"
+            className="rounded-full p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
@@ -186,7 +186,7 @@ export function InstallPrompt() {
           <button
             type="button"
             onClick={copyLink}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-3 text-sm font-semibold hover:bg-white/15"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-3 text-sm font-semibold transition-colors hover:bg-white/15"
           >
             {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {linkCopied ? t("linkCopied") : t("copyLink")}
@@ -198,7 +198,7 @@ export function InstallPrompt() {
             <button
               type="button"
               onClick={install}
-              className="h-11 w-full rounded-full bg-white text-sm font-semibold text-black hover:opacity-90"
+              className="h-11 w-full rounded-full bg-white text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
               {t("install")}
             </button>
@@ -206,14 +206,14 @@ export function InstallPrompt() {
           <button
             type="button"
             onClick={() => dismiss("later")}
-            className="h-11 w-full rounded-full border border-white/15 text-sm font-semibold text-white/80 hover:bg-white/5"
+            className="h-11 w-full rounded-full border border-white/15 text-sm font-semibold text-white/80 transition-colors hover:bg-white/5"
           >
             {t("maybeLater")}
           </button>
           <button
             type="button"
             onClick={() => dismiss("never")}
-            className="text-center text-xs font-medium text-white/40 hover:text-white/60"
+            className="text-center text-xs font-medium text-white/40 transition-colors hover:text-white/60"
           >
             {t("neverAskAgain")}
           </button>

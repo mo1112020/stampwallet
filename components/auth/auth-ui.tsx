@@ -71,7 +71,7 @@ export function AuthSocialButtons({
         disabled={disabled}
         onClick={onGoogle}
         className={cn(
-          "flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+          "flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
         )}
       >
         {loadingProvider === "google" ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
@@ -81,7 +81,7 @@ export function AuthSocialButtons({
         type="button"
         disabled={disabled}
         onClick={onApple}
-        className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] hover:bg-[var(--surface-2)] disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] text-[14px] font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)] disabled:opacity-50"
       >
         {loadingProvider === "apple" ? <Loader2 className="h-4 w-4 animate-spin" /> : <AppleIcon />}
         {t("continueApple")}

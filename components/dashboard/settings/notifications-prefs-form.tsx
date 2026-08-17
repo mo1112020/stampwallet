@@ -55,7 +55,7 @@ export function NotificationsPrefsForm({ initialPrefs }: { initialPrefs: Notific
               aria-checked={Boolean(prefs[key])}
               onClick={() => save({ ...prefs, [key]: !prefs[key] })}
               disabled={saving}
-              className={`h-6 w-11 shrink-0 rounded-full transition-colors ${
+              className={`h-6 w-11 shrink-0 rounded-full transition-colors active:scale-95 disabled:opacity-50 ${
                 prefs[key] ? "bg-[var(--primary)]" : "bg-[var(--line-strong)]"
               }`}
             >
