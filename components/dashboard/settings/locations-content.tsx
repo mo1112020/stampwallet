@@ -309,14 +309,20 @@ export function LocationsContent({
                     role="switch"
                     aria-checked={loc.is_active}
                     className={cn(
-                      "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+                      "h-6 w-11 shrink-0 rounded-full transition-colors",
                       loc.is_active ? "bg-[var(--success)]" : "bg-[var(--surface-3)]"
                     )}
                   >
+                    {/* Not `absolute` — same non-absolute translate-x pattern as the
+                     * other toggles in this app (email/notification prefs), which
+                     * render correctly on mobile Safari. `absolute` here with no
+                     * explicit left/start anchor left the knob's horizontal position
+                     * up to the browser's "static position" fallback, which iOS
+                     * Safari resolved outside the track instead of inside it. */}
                     <span
                       className={cn(
-                        "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-                        loc.is_active ? "translate-x-5 rtl:-translate-x-5" : "translate-x-0.5 rtl:-translate-x-0.5"
+                        "block h-5 w-5 translate-x-0.5 rtl:-translate-x-0.5 rounded-full bg-white shadow transition-transform",
+                        loc.is_active && "translate-x-[22px] rtl:-translate-x-[22px]"
                       )}
                     />
                   </button>
