@@ -1,7 +1,15 @@
 import { setRequestLocale } from "next-intl/server";
 import { PhoneMockup, EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
 
-// Each template has a relevant Unsplash photo as background
+// Each template's photo is originally sourced from Unsplash, but mirrored
+// into this app's own card-backgrounds Storage bucket and served from
+// walletos.online (see scripts run for this — the Storage path is
+// templates/<id>.jpg) rather than hotlinking images.unsplash.com directly.
+// Two reasons: hotlinked Unsplash photos can (and did — see the billiard/
+// bakery comments below) simply get deleted out from under us with no
+// warning, and a template picked as a program's card background used to
+// leave that program permanently dependent on Unsplash staying up, instead
+// of on infrastructure we control.
 const templates = [
   {
     id: "barbecue",
@@ -10,7 +18,7 @@ const templates = [
     secondaryColor: "#e74c3c",
     textColor: "text-white",
     iconName: "Flame",
-    backgroundImage: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barbecue.jpg",
   },
   {
     id: "barber",
@@ -19,7 +27,7 @@ const templates = [
     secondaryColor: "#aaaaaa",
     textColor: "text-white",
     iconName: "Scissors",
-    backgroundImage: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barber.jpg",
   },
   {
     id: "bike",
@@ -28,7 +36,7 @@ const templates = [
     secondaryColor: "#888888",
     textColor: "text-white",
     iconName: "Bike",
-    backgroundImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bike.jpg",
   },
   {
     id: "billiard",
@@ -37,7 +45,9 @@ const templates = [
     secondaryColor: "#27ae60",
     textColor: "text-white",
     iconName: "CircleDot",
-    backgroundImage: "https://images.unsplash.com/photo-1615438658906-bcd44a7c9c2c?w=400&q=80",
+    // Was photo-1615438658906-bcd44a7c9c2c — that Unsplash photo was
+    // deleted (404 from images.unsplash.com), swapped for a live one.
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/billiard.jpg",
   },
   {
     id: "bowling",
@@ -46,7 +56,7 @@ const templates = [
     secondaryColor: "#7986cb",
     textColor: "text-white",
     iconName: "CircleDot",
-    backgroundImage: "https://images.unsplash.com/photo-1593341646782-e0b495cff86d?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bowling.jpg",
   },
   {
     id: "breakfast",
@@ -55,7 +65,7 @@ const templates = [
     secondaryColor: "#f1c40f",
     textColor: "text-gray-900",
     iconName: "Croissant",
-    backgroundImage: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/breakfast.jpg",
   },
   {
     id: "atv",
@@ -64,7 +74,7 @@ const templates = [
     secondaryColor: "#8b6547",
     textColor: "text-white",
     iconName: "Gamepad2",
-    backgroundImage: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/atv.jpg",
   },
   {
     id: "art",
@@ -73,7 +83,7 @@ const templates = [
     secondaryColor: "#e8c39e",
     textColor: "text-white",
     iconName: "Paintbrush",
-    backgroundImage: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/art.jpg",
   },
   {
     id: "bags",
@@ -82,7 +92,7 @@ const templates = [
     secondaryColor: "#b88c5f",
     textColor: "text-white",
     iconName: "ShoppingBag",
-    backgroundImage: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bags.jpg",
   },
   {
     id: "bakery",
@@ -91,7 +101,9 @@ const templates = [
     secondaryColor: "#e6c27a",
     textColor: "text-white",
     iconName: "Croissant",
-    backgroundImage: "https://images.unsplash.com/photo-1549931319-a545dcf3bc7f?w=400&q=80",
+    // Was photo-1549931319-a545dcf3bc7f — that Unsplash photo was
+    // deleted (404 from images.unsplash.com), swapped for a live one.
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bakery.jpg",
   },
   {
     id: "bar",
@@ -100,7 +112,7 @@ const templates = [
     secondaryColor: "#7e57c2",
     textColor: "text-white",
     iconName: "Wine",
-    backgroundImage: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bar.jpg",
   },
   {
     id: "cafe",
@@ -109,7 +121,7 @@ const templates = [
     secondaryColor: "#bcaaa4",
     textColor: "text-white",
     iconName: "Coffee",
-    backgroundImage: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/cafe.jpg",
   },
   {
     id: "gym",
@@ -118,7 +130,7 @@ const templates = [
     secondaryColor: "#ff5722",
     textColor: "text-white",
     iconName: "Dumbbell",
-    backgroundImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gym.jpg",
   },
   {
     id: "restaurant",
@@ -127,7 +139,7 @@ const templates = [
     secondaryColor: "#ef9a9a",
     textColor: "text-white",
     iconName: "Utensils",
-    backgroundImage: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/restaurant.jpg",
   },
   {
     id: "salon",
@@ -136,7 +148,7 @@ const templates = [
     secondaryColor: "#f48fb1",
     textColor: "text-white",
     iconName: "Scissors",
-    backgroundImage: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/salon.jpg",
   },
   {
     id: "spa",
@@ -145,7 +157,7 @@ const templates = [
     secondaryColor: "#a5d6a7",
     textColor: "text-white",
     iconName: "Flower2",
-    backgroundImage: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/spa.jpg",
   },
   {
     id: "bookstore",
@@ -154,7 +166,7 @@ const templates = [
     secondaryColor: "#a1887f",
     textColor: "text-white",
     iconName: "BookOpen",
-    backgroundImage: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bookstore.jpg",
   },
   {
     id: "music",
@@ -163,7 +175,7 @@ const templates = [
     secondaryColor: "#7986cb",
     textColor: "text-white",
     iconName: "Music",
-    backgroundImage: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/music.jpg",
   },
   {
     id: "petshop",
@@ -172,7 +184,7 @@ const templates = [
     secondaryColor: "#81c784",
     textColor: "text-white",
     iconName: "Dog",
-    backgroundImage: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/petshop.jpg",
   },
   {
     id: "gaming",
@@ -181,7 +193,7 @@ const templates = [
     secondaryColor: "#7c3aed",
     textColor: "text-white",
     iconName: "Gamepad2",
-    backgroundImage: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gaming.jpg",
   },
   {
     id: "pizza",
@@ -190,7 +202,7 @@ const templates = [
     secondaryColor: "#ff8f00",
     textColor: "text-white",
     iconName: "Pizza",
-    backgroundImage: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/pizza.jpg",
   },
   {
     id: "fashion",
@@ -199,7 +211,79 @@ const templates = [
     secondaryColor: "#c0a080",
     textColor: "text-white",
     iconName: "Shirt",
-    backgroundImage: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/fashion.jpg",
+  },
+  {
+    id: "nail-salon",
+    name: "Nail Salon",
+    primaryColor: "#ad1457",
+    secondaryColor: "#f8bbd0",
+    textColor: "text-white",
+    iconName: "Sparkles",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/nail-salon.jpg",
+  },
+  {
+    id: "yoga",
+    name: "Yoga Studio",
+    primaryColor: "#00695c",
+    secondaryColor: "#80cbc4",
+    textColor: "text-white",
+    iconName: "Leaf",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/yoga.jpg",
+  },
+  {
+    id: "car-wash",
+    name: "Car Wash",
+    primaryColor: "#01579b",
+    secondaryColor: "#4fc3f7",
+    textColor: "text-white",
+    iconName: "Droplets",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/car-wash.jpg",
+  },
+  {
+    id: "ice-cream",
+    name: "Ice Cream Shop",
+    primaryColor: "#6a1b9a",
+    secondaryColor: "#ce93d8",
+    textColor: "text-white",
+    iconName: "IceCreamCone",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/ice-cream.jpg",
+  },
+  {
+    id: "sushi",
+    name: "Sushi Restaurant",
+    primaryColor: "#263238",
+    secondaryColor: "#4dd0e1",
+    textColor: "text-white",
+    iconName: "Fish",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/sushi.jpg",
+  },
+  {
+    id: "florist",
+    name: "Florist",
+    primaryColor: "#33691e",
+    secondaryColor: "#c5e1a5",
+    textColor: "text-white",
+    iconName: "Flower",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/florist.jpg",
+  },
+  {
+    id: "tattoo",
+    name: "Tattoo Studio",
+    primaryColor: "#1a1a1a",
+    secondaryColor: "#e53935",
+    textColor: "text-white",
+    iconName: "PenTool",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/tattoo.jpg",
+  },
+  {
+    id: "jewelry",
+    name: "Jewelry Store",
+    primaryColor: "#4a148c",
+    secondaryColor: "#d4af37",
+    textColor: "text-white",
+    iconName: "Gem",
+    backgroundImage: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/jewelry.jpg",
   },
 ];
 
