@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { Download } from "lucide-react";
 import { PhoneMockup, type PhoneMockupProps } from "@/components/dashboard/phone-mockup";
 import { A4Poster } from "@/components/dashboard/print/templates";
-import { exportNodeAsPdf } from "@/lib/print/export";
 import type { PrintTemplateData } from "@/components/dashboard/print/primitives";
 
 const QR_RENDER_DELAY_MS = 500;
@@ -52,6 +51,13 @@ export function ProgramCard({
 
     await new Promise((resolve) => setTimeout(resolve, QR_RENDER_DELAY_MS));
     if (posterRef.current) {
+      // Dynamic import, not a top-level one — jsPDF + html-to-image are
+      // ~400KB combined, and this component renders on the Programs list
+      // (one of the most-visited dashboard pages) for every card whether or
+      // not this button is ever clicked. Deferring the import to the click
+      // handler means that weight only loads for a merchant who actually
+      // downloads a poster.
+      const { exportNodeAsPdf } = await import("@/lib/print/export");
       await exportNodeAsPdf(posterRef.current, `${slugify(businessName)}-${slugify(phoneMockupProps.name)}-a4-poster.pdf`, 210, 297);
     }
     setPosterData(null);
