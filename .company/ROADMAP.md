@@ -11,9 +11,9 @@ Source of truth: `docs/07-roadmap.md`. This file tracks status at the company-pl
 Confirmed integration status (2026-08):
 - Apple Wallet + Google Wallet: **working**
 - Sub-phase 1 (security hardening): **done** -- see `.company/departments/devops-security/audit-2026-08-19.md`
-- Stripe billing (sub-phase 7): **2 of 3 operational steps done.** Secret key + full price catalog verified live in Stripe test mode, and now also pushed to Vercel production (redeployed 2026-08-19). **Only remaining gap: the webhook endpoint isn't registered in Stripe at all**, so `checkout.session.completed`/subscription/invoice events never reach the app in production. Needs the CEO to register it (Stripe Dashboard, 2 minutes) or grant permission for it to be done via API. See `.company/departments/dev/STATE.md` for exact URL/events needed.
+- Stripe billing (sub-phase 7): **done.** Secret key, full price catalog, and webhook endpoint all live in Vercel production and verified working end-to-end (real test event delivered, signature-verified, and logged in the app's own `billing_events` table -- not just "configured"). See `.company/departments/dev/STATE.md` for the full trail, including a redirect gotcha (bare `walletos.online` vs `www.walletos.online`) worth remembering for any other external callback URL.
 
-**This is now the critical path to launch**: one webhook registration away from billing being fully live (in test mode) end-to-end.
+**Remaining before real launch**: company registration (blocks switching Stripe to live mode -- see `.company/departments/legal/STATE.md`), and whichever of the other Phase 6 sub-phases (2-6, 8-9) aren't yet finished -- exact status per sub-phase still needs Dev to confirm.
 
 ## Phase 6 Sub-Phases (strict dependency order)
 1. Security & production-readiness hardening (unauthenticated wallet-pass-download endpoint, non-durable rate limiting, hardcoded dashboard branding)
