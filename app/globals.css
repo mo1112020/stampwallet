@@ -43,6 +43,123 @@
   --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* ============================================================
+   "Stamp & Verdict" world — marketing site redesign
+   Scoped to .ws-stamp (applied at the marketing route-group root)
+   so the dashboard/scan-app keep the existing product-UI tokens
+   above untouched. A counter tally sheet, not a SaaS dashboard:
+   warm kraft paper, ink, and a rubber-stamp accent that MARKS
+   things rather than a gradient that decorates them.
+   Physical scene: a sunlit café counter at midday — kraft paper
+   and an ink stamp changing hands. Light is the resting state.
+   ============================================================ */
+.ws-stamp {
+  --primary: #b23a1a; /* rubber-stamp ink red */
+  --primary-soft: #f3ddd0;
+  --primary-foreground: #fdf6ea;
+  --white: #fdf8ee;
+  --ink: #241a12;
+  --muted: #7d6b52;
+  --muted-foreground: #7d6b52;
+  --line: #cbb489;
+  --line-strong: #a88c5c;
+  --background: #ead9bd;
+  --foreground: var(--ink);
+  --surface: #f3e9d8;
+  --surface-2: #ead9bd;
+  --surface-3: #e0c9a0;
+  --overlay: rgba(36, 26, 18, 0.45);
+  --shadow-color: 28deg 45% 12%;
+
+  --success: #2f7d4f; /* second "approved" stamp ink, used narrowly */
+  --success-soft: #dfe9d9;
+  --danger: #a3291a;
+  --danger-soft: #f1dbd2;
+  --warning: #a3711a;
+  --warning-soft: #f1e6d2;
+
+  --ws-verdict: var(--success);
+  --ws-verdict-soft: var(--success-soft);
+
+  --font-brand: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* next-themes puts .dark on <html>, .ws-stamp lives on a descendant, so
+   this must be a descendant selector, not a compound one. */
+.dark .ws-stamp {
+  /* Counter after closing — same paper and ink family, seen by lamplight
+     rather than a different world. */
+  --primary: #d85a34;
+  --primary-soft: rgba(216, 90, 52, 0.16);
+  --primary-foreground: #1a120b;
+  --white: #fdf8ee;
+  --ink: #f0e4cd;
+  --muted: #b6a486;
+  --muted-foreground: #b6a486;
+  --line: #4a3d2c;
+  --line-strong: #5f4f38;
+  --background: #1c150e;
+  --foreground: var(--ink);
+  --surface: #241b12;
+  --surface-2: #2c2115;
+  --surface-3: #382a1a;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-color: 28deg 60% 3%;
+
+  --success: #5ea87c;
+  --success-soft: rgba(94, 168, 124, 0.16);
+  --danger: #d9714f;
+  --danger-soft: rgba(217, 113, 79, 0.16);
+  --warning: #d1a24f;
+  --warning-soft: rgba(209, 162, 79, 0.16);
+
+  --ws-verdict: var(--success);
+  --ws-verdict-soft: var(--success-soft);
+}
+
+.ws-stamp h1,
+.ws-stamp h2,
+.ws-stamp h3,
+.ws-stamp h4 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Receipt/ledger perforation — a dashed hairline for section seams instead
+   of a plain border, used sparingly (it's a seam, not decoration). */
+.ws-perforated {
+  border-top: 2px dashed var(--line-strong);
+}
+
+/* The signature interaction: things get STAMPED into place, not faded.
+   A quick press-and-settle with a slight overshoot, like ink striking paper. */
+@keyframes wsStampDown {
+  0% {
+    opacity: 0;
+    transform: scale(1.4) rotate(-6deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.92) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.ws-stamp-in {
+  animation: wsStampDown 0.5s var(--ease-spring) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-stamp-in {
+    animation: none;
+  }
+}
+
 .dark {
   --primary: #4f7dfb; /* Lighter/more saturated so it still pops on dark surfaces */
   --primary-soft: rgba(79, 125, 251, 0.16);

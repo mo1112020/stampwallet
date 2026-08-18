@@ -1,20 +1,20 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Logo } from "@/components/brand/logo";
+import { LogoStamp } from "@/components/brand/logo-stamp";
 
 export async function MarketingFooter({ locale }: { locale: string }) {
   const t = await getTranslations("site.footer");
   const nav = await getTranslations("site.nav");
 
   return (
-    <footer className="border-t border-[var(--line)] bg-[var(--surface)] text-[var(--ink)]">
+    <footer className="border-t-2 border-[var(--line-strong)] bg-[var(--surface)] text-[var(--ink)]">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:grid-cols-4">
         <div>
-          <Logo className="h-6" />
+          <LogoStamp className="text-lg" />
           <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{t("tagline")}</p>
         </div>
         <div>
-          <p className="text-[12px] font-semibold text-[var(--ink)]">{t("product")}</p>
+          <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">{t("product")}</p>
           <ul className="mt-4 space-y-2.5 text-sm text-[var(--muted)]">
             <li>
               <Link href={`/${locale}/features`} className="hover:text-[var(--ink)]">
@@ -34,7 +34,7 @@ export async function MarketingFooter({ locale }: { locale: string }) {
           </ul>
         </div>
         <div>
-          <p className="text-[12px] font-semibold text-[var(--ink)]">{t("company")}</p>
+          <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">{t("company")}</p>
           <ul className="mt-4 space-y-2.5 text-sm text-[var(--muted)]">
             <li>
               <Link href={`/${locale}/about`} className="hover:text-[var(--ink)]">
@@ -64,16 +64,14 @@ export async function MarketingFooter({ locale }: { locale: string }) {
           </ul>
         </div>
         <div>
-          <p className="text-[12px] font-semibold text-[var(--ink)]">{t("legal")}</p>
+          <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">{t("legal")}</p>
           <ul className="mt-4 space-y-2.5 text-sm text-[var(--muted)]">
             <li>{t("privacy")}</li>
             <li>{t("terms")}</li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-[var(--line)] px-6 py-5 text-center text-xs text-[var(--muted)]">
-        {t("copyright")}
-      </div>
+      <div className="ws-perforated px-6 py-5 text-center text-xs text-[var(--muted)]">{t("copyright")}</div>
     </footer>
   );
 }

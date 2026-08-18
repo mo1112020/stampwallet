@@ -22,13 +22,13 @@ export function IconCard({
 }) {
   const content = (
     <>
-      <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[var(--primary)]">
+      <span className="inline-flex h-11 w-11 items-center justify-center border-2 border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]">
         <Icon className="h-5 w-5" strokeWidth={1.75} />
       </span>
-      <h3 className="mt-4 text-lg font-semibold text-[var(--ink)]">{title}</h3>
+      <h3 className="mt-4 text-lg font-bold text-[var(--ink)]">{title}</h3>
       <p className="mt-2 text-sm text-[var(--muted)]">{body}</p>
       {href && cta && (
-        <p className="mt-4 text-sm font-semibold text-[var(--primary)]">
+        <p className="mt-4 text-sm font-bold text-[var(--primary)]">
           {cta} <span className="inline-block rtl:-scale-x-100">→</span>
         </p>
       )}
@@ -36,8 +36,8 @@ export function IconCard({
   );
 
   const cardClass = cn(
-    "flex flex-col rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-7",
-    href && "transition hover:border-[var(--line-strong)]",
+    "flex flex-col border-2 border-[var(--line-strong)] bg-[var(--surface)] p-7",
+    href && "transition-[transform,box-shadow] duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--ink)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0",
     className
   );
 

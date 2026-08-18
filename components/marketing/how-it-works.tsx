@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
+import { HowItWorksTimeline } from "@/components/motion/how-it-works-timeline";
 
 export type WorkflowStep = {
   icon: LucideIcon;
@@ -29,25 +30,36 @@ export function HowItWorks({
           <p className="mt-4 text-[var(--muted)]">{description}</p>
         </Reveal>
 
-        <StaggerGroup className="relative mt-14 grid gap-8 md:grid-cols-5 md:gap-4">
-          {/* Connecting line — desktop only, sits behind the icon circles. */}
-          <div className="pointer-events-none absolute inset-x-0 top-6 hidden h-px bg-[var(--line)] md:block" aria-hidden="true" />
+        <HowItWorksTimeline>
+          <StaggerGroup className="relative mt-14 grid gap-8 md:grid-cols-5 md:gap-4">
+            {/* Connecting ledger rule — desktop only, sits behind the stamp
+                boxes. Rendered fully drawn by default; the timeline collapses
+                and redraws it once scrolled into view. */}
+            <div
+              data-connector-line
+              className="pointer-events-none absolute inset-x-0 top-6 hidden h-0.5 origin-left bg-[repeating-linear-gradient(90deg,var(--line-strong)_0_10px,transparent_10px_18px)] md:block rtl:origin-right"
+              aria-hidden="true"
+            />
 
-          {steps.map((step, index) => (
-            <div key={step.title} className="relative flex gap-4 md:flex-col md:gap-0 md:text-center">
-              <span className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-[var(--line)] bg-[var(--surface)] text-[var(--primary)] md:mx-auto">
-                <step.icon className="h-5 w-5" strokeWidth={1.75} />
-              </span>
-              <div className="md:mt-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                  {stepLabel} {index + 1}
-                </p>
-                <h3 className="mt-1 text-base font-semibold text-[var(--ink)]">{step.title}</h3>
-                <p className="mt-1.5 text-sm text-[var(--muted)]">{step.description}</p>
+            {steps.map((step, index) => (
+              <div key={step.title} className="relative flex gap-4 md:flex-col md:gap-0 md:text-center">
+                <span
+                  data-step-icon
+                  className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center border-2 border-[var(--line-strong)] bg-[var(--surface)] text-[var(--primary)] md:mx-auto"
+                >
+                  <step.icon className="h-5 w-5" strokeWidth={1.75} />
+                </span>
+                <div className="md:mt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                    {stepLabel} {index + 1}
+                  </p>
+                  <h3 className="mt-1 text-base font-semibold text-[var(--ink)]">{step.title}</h3>
+                  <p className="mt-1.5 text-sm text-[var(--muted)]">{step.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </StaggerGroup>
+            ))}
+          </StaggerGroup>
+        </HowItWorksTimeline>
       </div>
     </section>
   );

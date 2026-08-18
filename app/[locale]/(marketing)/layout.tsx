@@ -10,10 +10,10 @@ export default async function MarketingLayout({
 }) {
   const { locale } = await params;
   return (
-    <>
+    <div className="ws-stamp">
       <MarketingHeader locale={locale} />
       {children}
       <MarketingFooter locale={locale} />
-    </>
+    </div>
   );
 }

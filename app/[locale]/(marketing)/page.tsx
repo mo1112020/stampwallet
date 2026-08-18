@@ -9,7 +9,6 @@ import { AnimatedWalletDemo } from "@/components/marketing/animated-wallet-demo"
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { buttonVariants } from "@/components/ui/button";
-import { Logo } from "@/components/brand/logo";
 
 export default async function HomePage({
   params,
@@ -31,14 +30,14 @@ export default async function HomePage({
 
   return (
     <main>
-      <section className="relative min-h-[100dvh] overflow-hidden bg-[var(--surface)]">
-        <div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col items-center gap-10 px-6 pb-16 pt-28 md:gap-12 lg:flex-row lg:gap-14 lg:pb-20 lg:pt-28 rtl:lg:flex-row-reverse">
+      <section className="relative min-h-[100dvh] overflow-hidden bg-[var(--white)]">
+        <div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col items-center gap-12 px-6 pb-16 pt-24 md:gap-14 lg:flex-row lg:gap-16 lg:pb-20 lg:pt-28 rtl:lg:flex-row-reverse">
           <Reveal
             as="div"
             y={16}
-            className="mx-auto aspect-[283/500] w-[85vw] max-w-[380px] shrink-0 lg:mx-0 lg:aspect-auto lg:h-[500px] lg:w-[283px] lg:max-w-none"
+            className="mx-auto aspect-[283/500] w-[78vw] max-w-[340px] shrink-0 lg:mx-0 lg:aspect-auto lg:h-[460px] lg:w-[260px] lg:max-w-none"
           >
-            <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-[var(--surface-2)]">
+            <div className="relative h-full w-full overflow-hidden border-2 border-[var(--ink)] bg-[var(--white)]">
               <video
                 className="absolute inset-0 h-full w-full object-cover"
                 autoPlay
@@ -59,8 +58,10 @@ export default async function HomePage({
           </Reveal>
 
           <Reveal as="div" delay={0.1} className="relative flex w-full flex-1 flex-col justify-center lg:max-w-xl">
-            <Logo className="h-5 md:h-6" />
-            <h1 className="mt-5 max-w-[14ch] text-4xl font-bold tracking-tight text-[var(--ink)] md:text-5xl lg:text-6xl">
+            <span className="ws-stamp-in inline-flex w-fit items-center border-2 border-[var(--primary)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--primary)]">
+              {t("trustNoApp")}
+            </span>
+            <h1 className="mt-5 max-w-[14ch] text-4xl font-[900] tracking-tight text-[var(--ink)] md:text-5xl lg:text-6xl">
               {t("heroTitle")}
             </h1>
             <p className="mt-5 max-w-md text-base text-[var(--muted)] md:text-lg">{t("heroSub")}</p>
@@ -76,10 +77,7 @@ export default async function HomePage({
               className="mt-10"
               appleLabel={t("trustApple")}
               googleLabel={t("trustGoogle")}
-              capabilities={[
-                { icon: Smartphone, label: t("trustNoApp") },
-                { icon: Bell, label: t("trustUpdates") },
-              ]}
+              capabilities={[{ icon: Bell, label: t("trustUpdates") }]}
             />
           </Reveal>
         </div>
@@ -106,9 +104,9 @@ export default async function HomePage({
 
       <HowItWorks title={t("howTitle")} description={t("howSubtitle")} steps={howSteps} stepLabel={t("howStepLabel")} />
 
-      <section className="border-y border-[var(--line)] bg-[var(--surface-2)] px-6 py-24">
+      <section className="border-y-2 border-[var(--line-strong)] bg-[var(--surface-2)] px-6 py-24">
         <div className="mx-auto max-w-6xl">
-          <Reveal as="h2" className="max-w-md text-3xl font-bold tracking-tight text-[var(--ink)] md:text-4xl">
+          <Reveal as="h2" className="max-w-md text-3xl tracking-tight text-[var(--ink)] md:text-4xl">
             {t("exploreTitle")}
           </Reveal>
           <StaggerGroup className="mt-10 grid gap-4 md:grid-cols-3">

@@ -132,7 +132,7 @@ export function AnimatedWalletDemoClient({
         </div>
       </div>
 
-      <div className="relative h-full w-full overflow-hidden rounded-[38px] border-[8px] border-[#2b2b2b] bg-white shadow-xl">
+      <div className="relative h-full w-full overflow-hidden rounded-[38px] border-[8px] border-[var(--ink)] bg-white shadow-[6px_6px_0_0_var(--ink)]">
         <div className="absolute top-2.5 left-1/2 z-20 h-4 w-20 -translate-x-1/2 rounded-full bg-black" aria-hidden="true" />
         <div className="h-9" />
         <div className="px-2.5">

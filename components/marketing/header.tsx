@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { switchLocaleHref } from "@/lib/i18n-nav";
-import { Logo } from "@/components/brand/logo";
+import { LogoStamp } from "@/components/brand/logo-stamp";
 
 const links = [
   { path: "about", key: "about" as const },
@@ -64,25 +64,28 @@ export function MarketingHeader({ locale }: { locale: string }) {
         />
       )}
 
-      <div className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:pt-5">
-        <header className="mx-auto flex h-14 max-w-5xl items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)]/90 px-3 shadow-sm backdrop-blur-xl md:h-14 md:px-4">
-          <Link href={`/${locale}`} className="shrink-0 px-2">
-            <Logo className="h-[18px] md:h-5" />
+      <div className="fixed inset-x-0 top-0 z-50">
+        <header className="flex h-16 items-center gap-3 border-b-2 border-[var(--line-strong)] bg-[var(--surface)] px-4 md:h-[4.5rem] md:px-6">
+          <Link href={`/${locale}`} className="shrink-0">
+            <LogoStamp className="text-lg md:text-xl" />
           </Link>
 
-          <nav className="mx-auto hidden items-center gap-0.5 text-[13px] lg:flex">
+          <nav className="mx-auto hidden items-center gap-1 text-[13px] font-semibold lg:flex">
             {links.map((item) => (
               <Link
                 key={item.key}
                 href={hrefFor(item.path)}
                 className={cn(
-                  "rounded-full px-3 py-1.5",
+                  "relative px-3 py-2",
                   isActive(item.path)
-                    ? "bg-[var(--surface-3)] font-medium text-[var(--ink)]"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
+                    ? "text-[var(--ink)]"
+                    : "text-[var(--muted)] hover:text-[var(--ink)]"
                 )}
               >
                 {t(item.key)}
+                {isActive(item.path) && (
+                  <span className="absolute inset-x-3 -bottom-0.5 h-[3px] rounded-full bg-[var(--primary)]" aria-hidden="true" />
+                )}
               </Link>
             ))}
           </nav>
@@ -90,28 +93,25 @@ export function MarketingHeader({ locale }: { locale: string }) {
           <div className="ms-auto hidden items-center gap-1.5 md:flex">
             <Link
               href={switchLocaleHref(pathname, otherLocale, locale)}
-              className="rounded-full px-2.5 py-1.5 text-[12px] font-medium uppercase tracking-wide text-[var(--muted)] hover:text-[var(--ink)]"
+              className="rounded-none border border-[var(--line-strong)] px-2.5 py-1.5 text-[12px] font-bold uppercase tracking-wide text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
               hrefLang={otherLocale}
             >
               {otherLocale}
             </Link>
             <Link
               href={`/${locale}/login`}
-              className="rounded-full px-3 py-1.5 text-[13px] text-[var(--muted)] hover:text-[var(--ink)]"
+              className="px-3 py-1.5 text-[13px] font-semibold text-[var(--muted)] hover:text-[var(--ink)]"
             >
               {nav("login")}
             </Link>
-            <Link
-              href={`/${locale}/signup`}
-              className={buttonVariants({ size: "sm" })}
-            >
+            <Link href={`/${locale}/signup`} className={cn(buttonVariants({ size: "sm" }), "ws-stamp-in")}>
               {nav("signup")}
             </Link>
           </div>
 
           <button
             type="button"
-            className="ms-auto flex h-10 w-10 items-center justify-center rounded-full text-[var(--ink)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] touch-manipulation select-none outline-none [-webkit-tap-highlight-color:transparent] md:ms-0 lg:hidden"
+            className="ms-auto flex h-10 w-10 items-center justify-center text-[var(--ink)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] touch-manipulation select-none outline-none [-webkit-tap-highlight-color:transparent] md:ms-0 lg:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
@@ -140,24 +140,17 @@ export function MarketingHeader({ locale }: { locale: string }) {
         <div
           inert={!open}
           className={cn(
-            "mx-auto grid max-w-5xl overflow-hidden transition-[grid-template-rows,margin-top] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none lg:hidden",
-            open ? "mt-3 grid-rows-[1fr]" : "mt-0 grid-rows-[0fr]"
+            "grid overflow-hidden border-b-2 border-[var(--line-strong)] bg-[var(--surface)] transition-[grid-template-rows] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none lg:hidden",
+            open ? "grid-rows-[1fr]" : "grid-rows-[0fr] border-b-0"
           )}
         >
-          {/* A grid item's border+padding can never shrink below their own
-              sum, no matter what min-height says — so the visual chrome
-              (border/padding/rounding) lives on a CHILD of the grid item
-              instead of the item itself. When the row track collapses to
-              0fr, this outer item has no box-model floor of its own left to
-              show, and its bordered/padded child just gets clipped away by
-              overflow-hidden — a real 0px, not a persistent border sliver. */}
           <div className="overflow-hidden">
-            <div className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-3 shadow-sm">
+            <div className="p-3">
               <nav className="flex flex-col gap-0.5">
                 <Link
                   href={`/${locale}`}
                   onClick={() => setOpen(false)}
-                  className="rounded-xl px-4 py-3 text-sm text-[var(--ink)]"
+                  className="px-4 py-3 text-sm font-semibold text-[var(--ink)]"
                 >
                   {t("home")}
                 </Link>
@@ -167,8 +160,8 @@ export function MarketingHeader({ locale }: { locale: string }) {
                     href={hrefFor(item.path)}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "rounded-xl px-4 py-3 text-sm",
-                      isActive(item.path) ? "bg-[var(--surface-3)] font-medium" : "text-[var(--muted)]"
+                      "px-4 py-3 text-sm font-semibold",
+                      isActive(item.path) ? "text-[var(--primary)]" : "text-[var(--muted)]"
                     )}
                   >
                     {t(item.key)}
@@ -182,7 +175,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
                 <Link
                   href={`/${locale}/login`}
                   onClick={() => setOpen(false)}
-                  className="rounded-full px-3 py-2 text-sm text-[var(--muted)]"
+                  className="px-3 py-2 text-sm font-semibold text-[var(--muted)]"
                 >
                   {nav("login")}
                 </Link>
