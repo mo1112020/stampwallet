@@ -10,7 +10,10 @@ Source of truth: `docs/07-roadmap.md`. This file tracks status at the company-pl
 
 Confirmed integration status (2026-08):
 - Apple Wallet + Google Wallet: **working**
-- Stripe billing: **not live** -- production billing still in progress (blocks sub-phase 7 completion and, by extension, launch)
+- Sub-phase 1 (security hardening): **done** -- see `.company/departments/devops-security/audit-2026-08-19.md`
+- Stripe billing (sub-phase 7): **code-complete, blocked on operational setup only** -- a real Stripe secret key, running the catalog-seed script, and registering the webhook endpoint. All three need CEO action (Stripe account access), not more Dev work. See `.company/departments/dev/STATE.md`.
+
+**This is now the critical path to launch**: once the CEO completes the 3 Stripe setup steps above, billing is done and MVP launch-readiness is essentially unblocked.
 
 ## Phase 6 Sub-Phases (strict dependency order)
 1. Security & production-readiness hardening (unauthenticated wallet-pass-download endpoint, non-durable rate limiting, hardcoded dashboard branding)
