@@ -10,7 +10,12 @@ import type { LoyaltyProgram, Merchant, ProgramConfig, ProgramType } from "@/typ
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "anon";
-  if (!(await checkRateLimit(`enroll:${ip}`, 5_000))) {
+  // Public, unauthenticated, and does real work per request (DB writes +
+  // Apple/Google Wallet pass generation) -- this rate limiter is the only
+  // abuse guard on this endpoint, so a DB error here should block the
+  // request rather than remove that guard. Contrast with /api/scan, which
+  // is authenticated and correctness-guarded elsewhere, so it fails open.
+  if (!(await checkRateLimit(`enroll:${ip}`, 5_000, { failOpen: false }))) {
     return jsonError("Too many enrollment attempts", "rate_limited", 429);
   }
 
