@@ -5,7 +5,7 @@ import { CtaBand } from "@/components/marketing/cta-band";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { IconCard } from "@/components/marketing/icon-card";
 import { TrustBadges } from "@/components/marketing/trust-badges";
-import { WalletPreviewCard } from "@/components/marketing/wallet-preview-card";
+import { AnimatedWalletDemo } from "@/components/marketing/animated-wallet-demo";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { buttonVariants } from "@/components/ui/button";
@@ -99,7 +99,7 @@ export default async function HomePage({
             </Link>
           </Reveal>
           <Reveal as="div" delay={0.1} className="shrink-0">
-            <WalletPreviewCard platform="apple" />
+            <AnimatedWalletDemo platform="apple" />
           </Reveal>
         </div>
       </section>
