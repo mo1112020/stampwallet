@@ -130,7 +130,7 @@ function CustomerPicker({
                   type="button"
                   onClick={() => remove(c.id)}
                   aria-label={t("removeCustomer")}
-                  className="rounded-full p-0.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-[var(--ink)]"
+                  className="-me-1 rounded-full p-1.5 text-[var(--muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-[var(--ink)]"
                 >
                   <X className="h-3 w-3" />
                 </button>

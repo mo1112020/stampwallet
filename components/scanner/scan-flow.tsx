@@ -257,7 +257,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
                   type="button"
                   onClick={clearSearch}
                   aria-label={t("clearSearch")}
-                  className={`absolute end-3 top-1/2 -translate-y-1/2 opacity-60 transition-opacity hover:opacity-100`}
+                  className={`absolute end-1.5 top-1/2 -translate-y-1/2 rounded-full p-2.5 opacity-60 transition-opacity hover:opacity-100`}
                 >
                   <X className="h-4 w-4" />
                 </button>

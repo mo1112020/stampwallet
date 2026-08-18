@@ -215,7 +215,7 @@ export function LocationsContent({
               </div>
 
               <div>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <Label className="text-xs sm:text-[13px]">{hasPicked ? "" : t("previewHint")}</Label>
                   <Button type="button" variant="outline" size="sm" onClick={useMyLocation} disabled={locating}>
                     {locating ? <Loader2 className="me-1.5 h-3.5 w-3.5 animate-spin" /> : <Crosshair className="me-1.5 h-3.5 w-3.5" />}
