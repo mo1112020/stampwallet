@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, HelpCircle, Compass } from "lucide-react";
+import { Mail, HelpCircle, Compass, MessageCircle } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
@@ -16,7 +16,22 @@ export default async function SupportPage({
   const t = await getTranslations("site.support");
   const common = await getTranslations("site.common");
 
+  // Optional -- unset in an environment (e.g. a preview deploy) just hides
+  // the card rather than rendering a broken/empty contact link.
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+
   const channels = [
+    ...(whatsappNumber
+      ? [
+          {
+            icon: MessageCircle,
+            title: t("whatsappTitle"),
+            body: t("whatsappBody"),
+            href: `https://wa.me/${whatsappNumber}`,
+            label: t("whatsappCta"),
+          },
+        ]
+      : []),
     {
       icon: Mail,
       title: t("emailTitle"),
@@ -45,7 +60,11 @@ export default async function SupportPage({
       <PageHero eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
 
       <section className="px-6 py-16">
-        <StaggerGroup className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
+        <StaggerGroup
+          className={`mx-auto grid max-w-5xl gap-6 ${
+            whatsappNumber ? "sm:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"
+          }`}
+        >
           {channels.map((channel) => (
             <Reveal
               as="div"
