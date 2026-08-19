@@ -43,8 +43,9 @@ Ran a real audit (7 parallel deep-dives, actual code tracing + data-flow verific
 
 **Update, 2026-08-19: analytics opt-in bug fixed.** Went with the lower-risk option (align copy/UI with actual behavior, not invent new revenue math): removed the "Average order value" field entirely from `components/dashboard/settings/business-form.tsx` (it was captured, validated, and persisted but never read anywhere in `lib/analytics/queries.ts` -- genuinely dead data), updated `settings.business.intro`/`rewardValueHint` copy in both `en.json`/`ar.json` to correctly say **currency** is what unlocks the revenue-impact KPI and that the number itself comes from each program's reward value, and fixed the matching misleading empty-state copy on the dashboard home page (`app/[locale]/dashboard/page.tsx`, was "Set an average order value," now "Set a currency"). Left `average_order_value` in the Zod validator and `Merchant` type untouched -- harmless, backward-compatible, avoids a schema change for a UI-only fix. Verified: `npm test` (43/43), `npm run build` (clean).
 
-Not fixed, flagged for a Product/CEO decision (not pure bugs, need a call on scope):
-- **Wallet branding is effectively missing as a Settings feature** -- brand colors are set once at onboarding and have no editable home anywhere in the product afterward (the "Branding" settings page only handles the logo).
+**Update, 2026-08-19: wallet branding closed, not a gap.** Asked the CEO whether "wallet branding" should be a merchant-wide settings page or stay per-program -- answer: per-program identity is the intended design. The existing per-program color picker (`components/dashboard/program-form.tsx`) already covers this; no new settings page needed. `merchants.brand_color_primary/secondary` (set once at onboarding) is just a default seed for new programs, not a gap.
+
+Remaining, not fixed (needs real hardware, not more code):
 - Scanner PWA icons are placeholder-quality (functional, not final branded art).
 - Nothing in the wallet-credential-dependent pipeline (Scanner PWA install, wallet-native notifications, geolocation proximity) has been tested on a real device with live Apple/Google credentials -- explicitly deferred per `docs/05-wallet-integration.md`, not a regression.
 

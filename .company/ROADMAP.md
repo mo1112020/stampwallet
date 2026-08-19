@@ -21,14 +21,16 @@ Every sub-phase below was independently verified by actually reading the code an
 | 3 | Scanner -- dashboard integration | **Done** | Real zxing camera scanner, fully wired to `/api/scan`, sensible search fallback (not a paste form) |
 | 4 | Scanner -- installable PWA | **Done** | Real manifest + hand-rolled service worker + separate frontend, shared auth. Caveat: icons are placeholder-quality, never tested on a real device |
 | 5 | Analytics dashboard | **Done** | Real recharts + live Supabase data + working date filter. Opt-in copy bug fixed 2026-08-19 (see below) |
-| 6 | Settings | **6 of 8 done** | Business profile, team, business metrics, data export, account deletion, branding(logo) all real. Security is real but password-only (no 2FA/session list). **Wallet branding is effectively missing** -- brand colors are set once at onboarding with no editable home anywhere in the product |
+| 6 | Settings | **Done, per CEO product call 2026-08-19** | Business profile, team, business metrics, data export, account deletion, branding(logo) all real. Security is real but password-only (no 2FA/session list). "Wallet branding" is intentionally per-program (color picker in the program editor), not a merchant-wide setting -- confirmed as the intended design, not a gap. Merchant-level `brand_color_primary/secondary` (set once at onboarding) is just a default seed for new programs. |
 | 7 | Billing & subscriptions | **Done** | Verified end-to-end in test mode (see prior entries below) |
 | 8 | Wallet-native notifications | **Done** (fixed 2026-08-19) | Real APNs HTTP/2 push + real Google Wallet `messages` API + real cron-driven triggers (6 total: reward_unlocked, birthday, expiring_reward, inactive_customer, billing_paused, billing_restored). Found + fixed: settings page told merchants this was "coming soon" when it was actually already live |
 | 9 | Geolocation | **Done** | Real Leaflet map picker; confirmed locations actually flow into both Apple's `pass.json` and Google's `loyaltyObject.locations` on issue and update |
 
-### Still Open (needs a CEO/Product decision, not just a code fix)
-- **Wallet branding** (#6): no merchant-level color-editing UI exists post-onboarding. Needs a real settings page, not a one-liner.
+### Still Open
 - Neither Scanner PWA nor the wallet notification/geolocation pipeline has been tested on a real device with live Apple/Google credentials -- explicitly deferred per `docs/05-wallet-integration.md`, not a regression. The pipeline is built and no-ops gracefully without credentials.
+- Scanner PWA icons are placeholder-quality (functional, not final branded art).
+
+**All 9 Phase 6 sub-phases are now genuinely done.** Remaining blockers to real launch are business, not engineering: company registration (live Stripe) and real-device testing.
 
 ## Post-MVP Backlog (not started -- do not build without explicit CEO go-ahead)
 1. Gamification (badges, streaks, limited-time challenges)
