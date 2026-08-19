@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -89,6 +90,12 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           {children}
           <Toaster />
         </ThemeProvider>
+        {/* Optional -- unset in any environment (local dev, previews) just
+            skips loading GA entirely rather than sending a broken/empty
+            measurement ID. See .env.example. */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );

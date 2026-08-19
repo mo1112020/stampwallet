@@ -61,6 +61,7 @@ const EN: { eyebrow: string; title: string; description: string; sections: Secti
         "Stripe -- payment processing for merchant subscriptions.",
         "Resend -- transactional email delivery.",
         "Apple Inc. and Google LLC -- required to issue and update Apple Wallet / Google Wallet passes. Apple and Google's own privacy policies govern how they handle wallet pass data on-device.",
+        "Google Analytics -- aggregate website usage analytics (pages visited, general location, device type) for our marketing site. This is separate from the Apple/Google Wallet integration above and doesn't touch enrolled customers' wallet pass activity.",
         "Vercel -- application hosting. Our functions are pinned to the Dublin (dub1) region to keep processing close to where the data is stored.",
       ],
     },
@@ -86,7 +87,7 @@ const EN: { eyebrow: string; title: string; description: string; sections: Secti
     {
       heading: "8. Cookies",
       paragraphs: [
-        "WalletOS uses only the cookies necessary to keep you signed in (via Supabase Auth session cookies). We do not currently use third-party analytics or advertising cookies.",
+        "WalletOS uses cookies necessary to keep you signed in (via Supabase Auth session cookies). We also use Google Analytics on our marketing site to understand aggregate usage -- which pages get visited, general location, and device type -- which sets its own cookies. We do not use advertising or cross-site tracking cookies.",
       ],
     },
     {
@@ -163,6 +164,7 @@ const AR: { eyebrow: string; title: string; description: string; sections: Secti
         "Stripe -- معالجة المدفوعات لاشتراكات التجار.",
         "Resend -- إرسال البريد الإلكتروني التشغيلي.",
         "Apple Inc. و Google LLC -- ضروريان لإصدار وتحديث بطاقات Apple Wallet / Google Wallet. تحكم سياسات خصوصية Apple و Google الخاصة بهما كيفية تعاملهما مع بيانات بطاقة المحفظة على الجهاز.",
+        "Google Analytics -- تحليلات استخدام إجمالية للموقع (الصفحات المزارة، الموقع الجغرافي العام، نوع الجهاز) لموقعنا التسويقي. هذا منفصل عن تكامل Apple/Google Wallet أعلاه ولا يمس نشاط بطاقة المحفظة للعملاء المسجّلين.",
         "Vercel -- استضافة التطبيق. وظائفنا مثبّتة على منطقة دبلن (dub1) لإبقاء المعالجة قريبة من مكان تخزين البيانات.",
       ],
     },
@@ -188,7 +190,7 @@ const AR: { eyebrow: string; title: string; description: string; sections: Secti
     {
       heading: "٨. ملفات تعريف الارتباط",
       paragraphs: [
-        "يستخدم WalletOS فقط ملفات تعريف الارتباط الضرورية لإبقائك مسجّل الدخول (عبر ملفات جلسة Supabase Auth). لا نستخدم حاليًا ملفات تعريف ارتباط تحليلية أو إعلانية من جهات خارجية.",
+        "يستخدم WalletOS ملفات تعريف الارتباط الضرورية لإبقائك مسجّل الدخول (عبر ملفات جلسة Supabase Auth). نستخدم أيضًا Google Analytics في موقعنا التسويقي لفهم الاستخدام الإجمالي -- الصفحات المزارة، الموقع الجغرافي العام، ونوع الجهاز -- والذي يضع ملفات تعريف الارتباط الخاصة به. لا نستخدم ملفات تعريف ارتباط إعلانية أو للتتبع عبر المواقع.",
       ],
     },
     {
