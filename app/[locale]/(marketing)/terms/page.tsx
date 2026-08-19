@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
-import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type Section = { heading: string; paragraphs?: string[]; bullets?: string[] };
 
@@ -200,12 +199,10 @@ const SEO_DESCRIPTION_AR = "الشروط التي تحكم استخدام Wallet
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const content = locale === "ar" ? AR : EN;
-  return buildPageMetadata({
-    locale,
-    path: "terms",
+  return {
     title: content.title,
     description: locale === "ar" ? SEO_DESCRIPTION_AR : SEO_DESCRIPTION_EN,
-  });
+  };
 }
 
 export default async function TermsPage({
