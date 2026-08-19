@@ -1,15 +1,15 @@
-import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
+import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { PLAN_LIMITS, isWithinLimit } from "@/lib/billing/plans";
 import { createProgramSchema } from "@/lib/validators";
 
 export async function GET() {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const { data, error } = await auth.supabase
     .from("loyalty_programs")
     .select("*")
-    .eq("merchant_id", auth.userId)
+    .eq("merchant_id", auth.merchantId)
     .order("created_at", { ascending: false });
 
   if (error) return jsonError(error.message, "list_failed", 500);
@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const body = await request.json();
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const { count } = await auth.supabase
     .from("loyalty_programs")
     .select("*", { count: "exact", head: true })
-    .eq("merchant_id", auth.userId)
+    .eq("merchant_id", auth.merchantId)
     .eq("is_active", true);
 
   if (!isWithinLimit(count ?? 0, limits.maxActivePrograms)) {
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const { data, error } = await auth.supabase
     .from("loyalty_programs")
     .insert({
-      merchant_id: auth.userId,
+      merchant_id: auth.merchantId,
       name: parsed.data.name,
       type: parsed.data.type,
       config: parsed.data.config,

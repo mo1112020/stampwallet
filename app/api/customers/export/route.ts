@@ -1,4 +1,4 @@
-import { jsonError, requireCapability, requireMerchant } from "@/lib/api";
+import { jsonError, requireCapability } from "@/lib/api";
 
 function csvField(value: string) {
   return `"${value.replaceAll('"', '""')}"`;
@@ -6,7 +6,7 @@ function csvField(value: string) {
 
 /** Per-program export — used by /dashboard/programs/[programId]/customers. Unchanged. */
 async function exportForProgram(programId: string) {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const { data: program } = await auth.supabase
@@ -16,7 +16,7 @@ async function exportForProgram(programId: string) {
     .single();
 
   if (!program) return jsonError("Program not found", "not_found", 404);
-  if (program.merchant_id !== auth.userId) {
+  if (program.merchant_id !== auth.merchantId) {
     return jsonError("Forbidden", "forbidden", 403);
   }
 

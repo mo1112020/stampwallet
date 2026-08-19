@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireMerchant } from "@/lib/api";
+import { requireCapability } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
 
 export async function POST(request: NextRequest) {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
-  const { supabase, userId } = auth;
+  const { supabase, merchantId } = auth;
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const fileName = `${userId}/${Date.now()}.${ext}`;
+  const fileName = `${merchantId}/${Date.now()}.${ext}`;
   const bytes = await file.arrayBuffer();
 
   // Upload through the server client when available. This avoids browser-session

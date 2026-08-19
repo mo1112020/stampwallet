@@ -6,27 +6,30 @@ Source of truth: `docs/07-roadmap.md`. This file tracks status at the company-pl
 
 **MVP (Phases 0-5): shipped**, per `docs/07-roadmap.md` and `README.md`'s phase map. This covers: foundation, program creation, real Apple/Google Wallet passes, scan & reward loop, merchant dashboard + billing, and launch-readiness polish (bilingual, empty/error states, basic rate limiting).
 
-**Current stage: Phase 6 -- Production-Readiness Roadmap (approved, 9 sub-phases).** Per Ahmed (2026-08), current focus spans: sub-phase 1 (security fixes), finishing wallet integrations, finishing billing (sub-phase 7), and general MVP launch readiness -- not a single strict sub-phase in isolation. Exact per-sub-phase completion is still not itemized; check `.company/departments/dev/STATE.md` or ask before reporting any individual sub-phase as fully "done."
+**Current stage: Phase 6 -- Production-Readiness Roadmap.** All 9 sub-phases audited end-to-end 2026-08-19 (not just "files exist" checks -- actual code tracing, and for billing/notifications, live test events). Full table below. Apple Wallet + Google Wallet confirmed working; Stripe billing confirmed live end-to-end in test mode with a real signature-verified webhook delivery logged in `billing_events`.
 
-Confirmed integration status (2026-08):
-- Apple Wallet + Google Wallet: **working**
-- Sub-phase 1 (security hardening): **done** -- see `.company/departments/devops-security/audit-2026-08-19.md`
-- Stripe billing (sub-phase 7): **done.** Secret key, full price catalog, and webhook endpoint all live in Vercel production and verified working end-to-end (real test event delivered, signature-verified, and logged in the app's own `billing_events` table -- not just "configured"). See `.company/departments/dev/STATE.md` for the full trail, including a redirect gotcha (bare `walletos.online` vs `www.walletos.online`) worth remembering for any other external callback URL.
+**Remaining before real launch**: company registration (blocks switching Stripe to live mode -- see `.company/departments/legal/STATE.md`), the wallet-branding gap, the analytics opt-in copy bug, and real-device testing of the scanner PWA/wallet notifications once Apple/Google credentials are fully provisioned. See the table and "Still Open" section below.
 
-**Remaining before real launch**: company registration (blocks switching Stripe to live mode -- see `.company/departments/legal/STATE.md`), and whichever of the other Phase 6 sub-phases (2-6, 8-9) aren't yet finished -- exact status per sub-phase still needs Dev to confirm.
+## Phase 6 Sub-Phases -- Full Audit Complete (2026-08-19)
 
-## Phase 6 Sub-Phases (strict dependency order)
-1. Security & production-readiness hardening (unauthenticated wallet-pass-download endpoint, non-durable rate limiting, hardcoded dashboard branding)
-2. Staff accounts, roles & permissions (Owner/Admin/Manager/Staff, multi-tenant from day one)
-3. Scanner -- dashboard integration (real camera QR scan, replacing manual pass-ID paste)
-4. Scanner -- installable PWA, separate frontend, shared backend/auth
-5. Analytics dashboard (charts, trends, date-range filters, opt-in revenue/ROI)
-6. Settings (business profile, branding, wallet branding, team, security, business metrics, data export, account deletion)
-7. Billing & subscriptions (seat/usage limits, invoices, upgrade/downgrade)
-8. Wallet-native notification system (Apple `changeMessage`/APNs + Google Wallet `messages` -- no email/SMS/separate customer app)
-9. Geolocation (store locations, wallet-native proximity)
+Every sub-phase below was independently verified by actually reading the code and tracing data flow (not just checking files exist). Two real bugs were found and fixed same-day; details in `.company/departments/dev/STATE.md`.
 
-Wallet Apple/Google *credential* provisioning (real device testing, certs/issuer IDs) stays deferred per `docs/05-wallet-integration.md` -- the pipeline is built and no-ops gracefully without credentials.
+| # | Sub-Phase | Status | Notes |
+|---|---|---|---|
+| 1 | Security & production-readiness hardening | **Done** | See `devops-security/audit-2026-08-19.md` |
+| 2 | Staff accounts, roles & permissions | **Done** (fixed 2026-08-19) | Identity/RLS/invite-flow genuinely solid. Found + fixed: Admin/Manager could see program-management UI but every save 401'd (routes still used owner-only `requireMerchant()`) |
+| 3 | Scanner -- dashboard integration | **Done** | Real zxing camera scanner, fully wired to `/api/scan`, sensible search fallback (not a paste form) |
+| 4 | Scanner -- installable PWA | **Done** | Real manifest + hand-rolled service worker + separate frontend, shared auth. Caveat: icons are placeholder-quality, never tested on a real device |
+| 5 | Analytics dashboard | **Done, with a UX bug** | Real recharts + live Supabase data + working date filter. Found: opt-in copy tells merchants to set "average order value" (unused/dead field) when the actual gate is "currency" -- not yet fixed, see below |
+| 6 | Settings | **6 of 8 done** | Business profile, team, business metrics, data export, account deletion, branding(logo) all real. Security is real but password-only (no 2FA/session list). **Wallet branding is effectively missing** -- brand colors are set once at onboarding with no editable home anywhere in the product |
+| 7 | Billing & subscriptions | **Done** | Verified end-to-end in test mode (see prior entries below) |
+| 8 | Wallet-native notifications | **Done** (fixed 2026-08-19) | Real APNs HTTP/2 push + real Google Wallet `messages` API + real cron-driven triggers (6 total: reward_unlocked, birthday, expiring_reward, inactive_customer, billing_paused, billing_restored). Found + fixed: settings page told merchants this was "coming soon" when it was actually already live |
+| 9 | Geolocation | **Done** | Real Leaflet map picker; confirmed locations actually flow into both Apple's `pass.json` and Google's `loyaltyObject.locations` on issue and update |
+
+### Still Open (not fixed, needs a CEO/Product decision, not just a code fix)
+- **Wallet branding** (#6): no merchant-level color-editing UI exists post-onboarding. Needs a real settings page, not a one-liner.
+- **Analytics opt-in copy bug** (#5): settings form should either read `average_order_value` for something real, or stop asking for it and just say "set your currency" -- small fix, not yet applied, ask before touching copy vs. logic.
+- Neither Scanner PWA nor the wallet notification/geolocation pipeline has been tested on a real device with live Apple/Google credentials -- explicitly deferred per `docs/05-wallet-integration.md`, not a regression. The pipeline is built and no-ops gracefully without credentials.
 
 ## Post-MVP Backlog (not started -- do not build without explicit CEO go-ahead)
 1. Gamification (badges, streaks, limited-time challenges)

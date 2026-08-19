@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireMerchant } = vi.hoisted(() => ({ requireMerchant: vi.fn() }));
+const { requireCapability } = vi.hoisted(() => ({ requireCapability: vi.fn() }));
 vi.mock("@/lib/api", async () => {
   const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
-  return { ...actual, requireMerchant };
+  return { ...actual, requireCapability };
 });
 
 const { pushProgramUpdateToAllCustomers } = vi.hoisted(() => ({
@@ -72,7 +72,7 @@ describe("DELETE /api/programs/[id] — program deletion data-loss guard (P0-1)"
       existingProgram: { id: PROGRAM_ID, merchant_id: MERCHANT_ID },
       customerCount: 3,
     });
-    requireMerchant.mockResolvedValue({ supabase, merchant: {}, userId: MERCHANT_ID });
+    requireCapability.mockResolvedValue({ supabase, merchant: {}, merchantId: MERCHANT_ID });
 
     const res = await DELETE(new Request("http://x"), { params: Promise.resolve({ id: PROGRAM_ID }) });
     const json = await res.json();
@@ -92,7 +92,7 @@ describe("DELETE /api/programs/[id] — program deletion data-loss guard (P0-1)"
       existingProgram: { id: PROGRAM_ID, merchant_id: MERCHANT_ID },
       customerCount: 0,
     });
-    requireMerchant.mockResolvedValue({ supabase, merchant: {}, userId: MERCHANT_ID });
+    requireCapability.mockResolvedValue({ supabase, merchant: {}, merchantId: MERCHANT_ID });
 
     const res = await DELETE(new Request("http://x"), { params: Promise.resolve({ id: PROGRAM_ID }) });
     const json = await res.json();
@@ -106,7 +106,7 @@ describe("DELETE /api/programs/[id] — program deletion data-loss guard (P0-1)"
       existingProgram: { id: PROGRAM_ID, merchant_id: "someone-else" },
       customerCount: 0,
     });
-    requireMerchant.mockResolvedValue({ supabase, merchant: {}, userId: MERCHANT_ID });
+    requireCapability.mockResolvedValue({ supabase, merchant: {}, merchantId: MERCHANT_ID });
 
     const res = await DELETE(new Request("http://x"), { params: Promise.resolve({ id: PROGRAM_ID }) });
     expect(res.status).toBe(403);
@@ -114,7 +114,7 @@ describe("DELETE /api/programs/[id] — program deletion data-loss guard (P0-1)"
 
   it("404s cleanly for a program that doesn't exist", async () => {
     const supabase = makeSupabase({ existingProgram: null, customerCount: 0 });
-    requireMerchant.mockResolvedValue({ supabase, merchant: {}, userId: MERCHANT_ID });
+    requireCapability.mockResolvedValue({ supabase, merchant: {}, merchantId: MERCHANT_ID });
 
     const res = await DELETE(new Request("http://x"), { params: Promise.resolve({ id: PROGRAM_ID }) });
     expect(res.status).toBe(404);

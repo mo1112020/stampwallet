@@ -35,6 +35,18 @@ Checked `lib/billing/`, `app/api/billing/*`, `app/api/webhooks/stripe`, `lib/str
 
 **Billing is now fully live end-to-end in Stripe test mode**: code, catalog, production env vars, and webhook delivery all verified working.
 
+## Phase 6 Full Audit -- 2026-08-19
+Ran a real audit (7 parallel deep-dives, actual code tracing + data-flow verification, not file-existence checks) on the remaining sub-phases: staff roles, scanner dashboard, scanner PWA, analytics, settings, notifications, geolocation. Full per-sub-phase table in `.company/ROADMAP.md`. Two genuine bugs found and fixed same-day:
+
+1. **Staff couldn't actually manage programs.** Admin/Manager roles passed the page-level `manage_programs` check and could see the program editor, but every save/delete/upload hit a 401 -- `app/api/programs/route.ts`, `app/api/programs/[id]/route.ts`, `app/api/upload/route.ts`, `app/api/customers/route.ts` (`listForProgram`), and `app/api/customers/export/route.ts` (`exportForProgram`) all still used the old owner-only `requireMerchant()` instead of `requireCapability("manage_programs")`. Fixed: swapped all five to `requireCapability`, re-derived merchant scoping from `auth.merchantId` instead of `auth.userId`/`auth.userId`-as-folder-path. Updated `app/api/programs/[id]/route.test.ts`'s mocks to match. Verified: `npm test` (43/43), `npm run build` (clean).
+2. **Merchants were told wallet notifications were "coming soon" when they were actually already live.** The backend (real APNs push + Google Wallet messages, cron-driven triggers) was built weeks after the settings-page copy was written, and nobody removed the disclaimer. Fixed: `messages/en.json`/`ar.json`'s `comingSoonNote` key renamed to `activeNote` with accurate copy, `notifications-prefs-form.tsx` updated to match.
+
+Not fixed, flagged for a Product/CEO decision (not pure bugs, need a call on scope):
+- **Wallet branding is effectively missing as a Settings feature** -- brand colors are set once at onboarding and have no editable home anywhere in the product afterward (the "Branding" settings page only handles the logo).
+- **Analytics revenue-impact opt-in has a mismatched-field bug** -- the settings form asks merchants to set "average order value" to unlock the revenue KPI, but that field is dead/unused; the real gate is whether `currency` is set. Needs a decision: wire up AOV for real, or stop asking for it.
+- Scanner PWA icons are placeholder-quality (functional, not final branded art).
+- Nothing in the wallet-credential-dependent pipeline (Scanner PWA install, wallet-native notifications, geolocation proximity) has been tested on a real device with live Apple/Google credentials -- explicitly deferred per `docs/05-wallet-integration.md`, not a regression.
+
 ## Gaps
 - No CI pipeline found (`.github/workflows` absent) -- Vitest tests exist locally but aren't confirmed to run automatically on PRs
 - Per-task sprint breakdown for the current focus above isn't itemized yet -- next `/ai-ceo:dev:sprint` run should produce one

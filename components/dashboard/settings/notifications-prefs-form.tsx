@@ -68,7 +68,7 @@ export function NotificationsPrefsForm({ initialPrefs }: { initialPrefs: Notific
           </li>
         ))}
       </ul>
-      <p className="text-xs text-[var(--muted)]">{t("comingSoonNote")}</p>
+      <p className="text-xs text-[var(--muted)]">{t("activeNote")}</p>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { jsonError, jsonOk, requireCapability, requireMerchant } from "@/lib/api";
+import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { listAllCustomers as queryAllCustomers } from "@/lib/customers/queries";
 
 /** Merchant-wide customer directory (all programs). Search + optional program/birthday-month filter. */
@@ -25,7 +25,7 @@ async function listAllCustomers(request: Request) {
 
 /** Original per-program customer list, used by /dashboard/programs/[programId]/customers. Unchanged. */
 async function listForProgram(programId: string) {
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const { data: program } = await auth.supabase
@@ -35,7 +35,7 @@ async function listForProgram(programId: string) {
     .single();
 
   if (!program) return jsonError("Program not found", "not_found", 404);
-  if (program.merchant_id !== auth.userId) {
+  if (program.merchant_id !== auth.merchantId) {
     return jsonError("Forbidden", "forbidden", 403);
   }
 

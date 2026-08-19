@@ -556,7 +556,7 @@
       "loading": "Loading…",
       "saved": "Saved.",
       "saveFailed": "Could not save. Try again.",
-      "comingSoonNote": "These toggles are saved now; the automated sends themselves are coming in a later update.",
+      "activeNote": "These notifications send automatically to customers with Apple or Google Wallet passes -- no email or SMS involved.",
       "toggles": {
         "reward_unlocked": {
           "label": "Reward unlocked",

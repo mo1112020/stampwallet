@@ -1,4 +1,4 @@
-import { jsonError, jsonOk, requireMerchant } from "@/lib/api";
+import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { updateProgramSchema } from "@/lib/validators";
 import { pushProgramUpdateToAllCustomers } from "@/lib/wallet/push";
@@ -7,7 +7,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Ctx) {
   const { id } = await params;
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const { data, error } = await auth.supabase
@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: Ctx) {
     .single();
 
   if (error || !data) return jsonError("Program not found", "not_found", 404);
-  if (data.merchant_id !== auth.userId) {
+  if (data.merchant_id !== auth.merchantId) {
     return jsonError("Forbidden", "forbidden", 403);
   }
   return jsonOk(data);
@@ -25,7 +25,7 @@ export async function GET(_request: Request, { params }: Ctx) {
 
 export async function PATCH(request: Request, { params }: Ctx) {
   const { id } = await params;
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const { data: existing } = await auth.supabase
@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
     .single();
 
   if (!existing) return jsonError("Program not found", "not_found", 404);
-  if (existing.merchant_id !== auth.userId) {
+  if (existing.merchant_id !== auth.merchantId) {
     return jsonError("Forbidden", "forbidden", 403);
   }
 
@@ -74,7 +74,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
 
 export async function DELETE(_request: Request, { params }: Ctx) {
   const { id } = await params;
-  const auth = await requireMerchant();
+  const auth = await requireCapability("manage_programs");
   if ("error" in auth) return auth.error;
 
   const { data: existing } = await auth.supabase
@@ -84,7 +84,7 @@ export async function DELETE(_request: Request, { params }: Ctx) {
     .single();
 
   if (!existing) return jsonError("Program not found", "not_found", 404);
-  if (existing.merchant_id !== auth.userId) {
+  if (existing.merchant_id !== auth.merchantId) {
     return jsonError("Forbidden", "forbidden", 403);
   }
 
