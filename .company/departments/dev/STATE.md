@@ -49,6 +49,11 @@ Remaining, not fixed (needs real hardware, not more code):
 - Scanner PWA icons are placeholder-quality (functional, not final branded art).
 - Nothing in the wallet-credential-dependent pipeline (Scanner PWA install, wallet-native notifications, geolocation proximity) has been tested on a real device with live Apple/Google credentials -- explicitly deferred per `docs/05-wallet-integration.md`, not a regression.
 
+## Production Bug -- Found & Fixed (migration written, not yet applied) 2026-08-19
+CEO reported live error scanning: `insert or update on table scan_events violates foreign key constraint scan_events_scanned_by_fkey`. Root cause: `scan_events.scanned_by` (`001_initial_schema.sql`) references `public.merchants(id)`, which only worked before staff accounts existed. `005_staff_accounts.sql` fixed the RLS policies for staff scanning (its own comment predicted this exact issue) but never fixed the underlying FK -- a staff member's `auth.uid()` isn't a `merchants.id`, only an `auth.users.id`. Every scan by a non-owner staff member has been failing since staff scanning shipped.
+
+Fix written: `supabase/migrations/022_fix_scan_events_scanned_by_fkey.sql` -- re-points the FK at `auth.users(id)`. **Not yet applied to production** -- no direct database credentials available in this environment (the local Supabase CLI session is authenticated to an unrelated account, not WalletOS's project). Needs the CEO to run it manually via the Supabase Dashboard SQL Editor.
+
 ## Gaps
 - No CI pipeline found (`.github/workflows` absent) -- Vitest tests exist locally but aren't confirmed to run automatically on PRs
 - Per-task sprint breakdown for the current focus above isn't itemized yet -- next `/ai-ceo:dev:sprint` run should produce one
