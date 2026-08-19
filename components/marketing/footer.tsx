@@ -66,8 +66,16 @@ export async function MarketingFooter({ locale }: { locale: string }) {
         <div>
           <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">{t("legal")}</p>
           <ul className="mt-4 space-y-2.5 text-sm text-[var(--muted)]">
-            <li>{t("privacy")}</li>
-            <li>{t("terms")}</li>
+            <li>
+              <Link href={`/${locale}/privacy`} className="hover:text-[var(--ink)]">
+                {t("privacy")}
+              </Link>
+            </li>
+            <li>
+              <Link href={`/${locale}/terms`} className="hover:text-[var(--ink)]">
+                {t("terms")}
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
