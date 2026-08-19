@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+        env:
+          # Build-only placeholders -- real secrets live in Vercel's env vars,
+          # never in CI. Supabase/Stripe/wallet clients in this codebase are
+          # constructed lazily per-request, not at build/import time, but
+          # these are here as a safety net in case that ever changes.
+          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
+          NEXT_PUBLIC_APP_URL: "https://walletos.online"
