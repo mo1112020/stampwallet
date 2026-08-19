@@ -22,6 +22,20 @@ export type SendEmailResult =
   | { sent: false; skipped: true }
   | { sent: false; skipped: false; error: string };
 
+/** True if this address has previously bounced or complained (see
+ * app/api/webhooks/resend/route.ts, which populates email_suppressions) —
+ * checked before every send so a bad address doesn't keep getting emailed
+ * indefinitely and dragging down deliverability for everything else this
+ * app sends. */
+async function isSuppressed(admin: ReturnType<typeof createAdminClient>, email: string): Promise<boolean> {
+  const { data } = await admin
+    .from("email_suppressions")
+    .select("email")
+    .eq("email", email.toLowerCase())
+    .maybeSingle();
+  return Boolean(data);
+}
+
 /** Non-production sends never reach real inboxes unless explicitly opted
  * into via RESEND_DEV_MODE_TO (redirects everything there instead) — a
  * missing/misconfigured env var in preview/dev must never mean "silently
@@ -72,6 +86,12 @@ export async function sendTransactionalEmail(params: SendEmailParams): Promise<S
   }
 
   const eventId = row.id as string;
+
+  if (await isSuppressed(admin, params.to)) {
+    await admin.from("email_events").update({ status: "failed", error: "suppressed: previously bounced or complained" }).eq("id", eventId);
+    console.info("[email] recipient suppressed (prior bounce/complaint), skipping send", { emailType: params.emailType, eventId });
+    return { sent: false, skipped: false, error: "suppressed" };
+  }
 
   if (!isResendConfigured()) {
     await admin.from("email_events").update({ status: "failed", error: "RESEND_API_KEY not configured" }).eq("id", eventId);

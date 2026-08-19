@@ -55,18 +55,38 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const detail = event.data.bounce?.message ?? event.data.failed?.reason ?? null;
-  const { error } = await admin
+  const { data: updated, error } = await admin
     .from("email_events")
     .update({
       status,
       ...(detail ? { error: detail } : {}),
     })
-    .eq("provider_message_id", event.data.email_id);
+    .eq("provider_message_id", event.data.email_id)
+    .select("recipient_email")
+    .maybeSingle();
 
   if (error) {
     console.error("[resend-webhook] failed to update email_events", { eventType: event.type, error: error.message });
   } else {
     console.info("[resend-webhook] recorded", { eventType: event.type, status });
+  }
+
+  // Suppress the address going forward — but only for an actual bounce or
+  // spam complaint, not a generic "email.failed" (invalid syntax, etc.),
+  // and only once we know who it was actually sent to (the email_events
+  // row this webhook is correcting, not the webhook payload itself, which
+  // doesn't carry the recipient address). See lib/email/send.ts for the
+  // send-path check this feeds.
+  if ((event.type === "email.bounced" || event.type === "email.complained") && updated?.recipient_email) {
+    const reason = event.type === "email.bounced" ? "bounced" : "complained";
+    const { error: suppressError } = await admin
+      .from("email_suppressions")
+      .upsert({ email: (updated.recipient_email as string).toLowerCase(), reason }, { onConflict: "email" });
+    if (suppressError) {
+      console.error("[resend-webhook] failed to record suppression", { eventType: event.type, error: suppressError.message });
+    } else {
+      console.info("[resend-webhook] address suppressed", { reason });
+    }
   }
 
   return Response.json({});
