@@ -22,6 +22,9 @@ Dependency vulnerabilities (via `npm audit`), status as of 2026-08-19:
 - No hardcoded secrets found in tracked source
 - ~~Vitest `proxy.test.ts` module-resolution issue~~ -- **fixed** (2026-08-19). `vitest.config.ts` now inlines `next-intl` so Vitest transforms it through Vite's resolver instead of loading it natively (Node's native ESM loader couldn't complete `next-intl`'s extensionless `next/server` import). Test-config-only change; 43/43 tests now pass, `npm run build` still clean.
 
+## CI Pipeline -- Added 2026-08-19
+`.github/workflows/ci.yml` now runs `npm ci`, `npm test`, and `npm run build` on every push/PR to `main` -- the 43 tests previously only ran when manually invoked. Verified locally first by building with `.env.local` removed and only the workflow's placeholder env vars set (exit 0), confirming no real secrets are needed at build time.
+
 ## Rate Limiter Fail-Open -- Resolved 2026-08-19
 Per CEO decision (Option B): `/api/customers/enroll` now fails **closed** on rate-limiter DB errors (`lib/rate-limit.ts`'s `checkRateLimit` takes a `{ failOpen }` option, default `true`). `/api/scan` unchanged -- still fails open, correctness guarded independently by the atomic `record_scan_event` RPC. Verified via `npm test` (43/43) and `npm run build` (clean).
 
