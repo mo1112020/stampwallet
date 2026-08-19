@@ -218,7 +218,7 @@ export default async function DashboardHome({
               <Card className="flex flex-col justify-between p-5">
                 <p className="text-sm text-[var(--muted)]">Revenue impact</p>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Set an average order value in{" "}
+                  Set a currency in{" "}
                   <Link href={`/${locale}/dashboard/settings/business`} className="font-medium text-[var(--primary)] hover:underline">
                     Settings
                   </Link>{" "}

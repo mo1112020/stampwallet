@@ -20,15 +20,14 @@ Every sub-phase below was independently verified by actually reading the code an
 | 2 | Staff accounts, roles & permissions | **Done** (fixed 2026-08-19) | Identity/RLS/invite-flow genuinely solid. Found + fixed: Admin/Manager could see program-management UI but every save 401'd (routes still used owner-only `requireMerchant()`) |
 | 3 | Scanner -- dashboard integration | **Done** | Real zxing camera scanner, fully wired to `/api/scan`, sensible search fallback (not a paste form) |
 | 4 | Scanner -- installable PWA | **Done** | Real manifest + hand-rolled service worker + separate frontend, shared auth. Caveat: icons are placeholder-quality, never tested on a real device |
-| 5 | Analytics dashboard | **Done, with a UX bug** | Real recharts + live Supabase data + working date filter. Found: opt-in copy tells merchants to set "average order value" (unused/dead field) when the actual gate is "currency" -- not yet fixed, see below |
+| 5 | Analytics dashboard | **Done** | Real recharts + live Supabase data + working date filter. Opt-in copy bug fixed 2026-08-19 (see below) |
 | 6 | Settings | **6 of 8 done** | Business profile, team, business metrics, data export, account deletion, branding(logo) all real. Security is real but password-only (no 2FA/session list). **Wallet branding is effectively missing** -- brand colors are set once at onboarding with no editable home anywhere in the product |
 | 7 | Billing & subscriptions | **Done** | Verified end-to-end in test mode (see prior entries below) |
 | 8 | Wallet-native notifications | **Done** (fixed 2026-08-19) | Real APNs HTTP/2 push + real Google Wallet `messages` API + real cron-driven triggers (6 total: reward_unlocked, birthday, expiring_reward, inactive_customer, billing_paused, billing_restored). Found + fixed: settings page told merchants this was "coming soon" when it was actually already live |
 | 9 | Geolocation | **Done** | Real Leaflet map picker; confirmed locations actually flow into both Apple's `pass.json` and Google's `loyaltyObject.locations` on issue and update |
 
-### Still Open (not fixed, needs a CEO/Product decision, not just a code fix)
+### Still Open (needs a CEO/Product decision, not just a code fix)
 - **Wallet branding** (#6): no merchant-level color-editing UI exists post-onboarding. Needs a real settings page, not a one-liner.
-- **Analytics opt-in copy bug** (#5): settings form should either read `average_order_value` for something real, or stop asking for it and just say "set your currency" -- small fix, not yet applied, ask before touching copy vs. logic.
 - Neither Scanner PWA nor the wallet notification/geolocation pipeline has been tested on a real device with live Apple/Google credentials -- explicitly deferred per `docs/05-wallet-integration.md`, not a regression. The pipeline is built and no-ops gracefully without credentials.
 
 ## Post-MVP Backlog (not started -- do not build without explicit CEO go-ahead)

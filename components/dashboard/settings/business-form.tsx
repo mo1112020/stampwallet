@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Label, Select } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
 import type { Merchant } from "@/types";
 
@@ -12,7 +12,6 @@ const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "EGP", "PKR"];
 export function BusinessForm({ merchant }: { merchant: Merchant }) {
   const t = useTranslations("settings.business");
   const [currency, setCurrency] = useState(merchant.currency ?? "");
-  const [aov, setAov] = useState(merchant.average_order_value != null ? String(merchant.average_order_value) : "");
   const [saving, setSaving] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -24,7 +23,6 @@ export function BusinessForm({ merchant }: { merchant: Merchant }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           currency: currency || null,
-          average_order_value: aov ? Number(aov) : null,
         }),
       });
       if (res.ok) {
@@ -52,18 +50,6 @@ export function BusinessForm({ merchant }: { merchant: Merchant }) {
             </option>
           ))}
         </Select>
-      </div>
-      <div>
-        <Label htmlFor="aov">{t("averageOrderValue")}</Label>
-        <Input
-          id="aov"
-          type="number"
-          min={0}
-          step="0.01"
-          value={aov}
-          onChange={(e) => setAov(e.target.value)}
-          placeholder={t("optional")}
-        />
       </div>
       <p className="text-xs text-[var(--muted)]">{t("rewardValueHint")}</p>
       <Button type="submit" disabled={saving}>
