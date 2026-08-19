@@ -17,7 +17,10 @@ vi.mock("@/lib/supabase/admin", () => ({
   })),
 }));
 
-import { pushWalletUpdate } from "./push";
+const { resolveSegmentTargets } = vi.hoisted(() => ({ resolveSegmentTargets: vi.fn() }));
+vi.mock("@/lib/notifications/segments", () => ({ resolveSegmentTargets }));
+
+import { pushWalletUpdate, pushProgramUpdateToAllCustomers } from "./push";
 import type { LoyaltyProgram, Merchant } from "@/types";
 
 const program = { id: "program-1" } as LoyaltyProgram;
@@ -86,5 +89,46 @@ describe("pushWalletUpdate — free-plan notification cap gating (post-billing-e
       progress: { stamps_collected: 1 },
     });
     expect(pushApplePassUpdate).toHaveBeenCalled();
+  });
+});
+
+describe("pushProgramUpdateToAllCustomers — batched fan-out (P1: notification fan-out)", () => {
+  function target(id: string) {
+    return {
+      customerProgressId: id,
+      passId: `pass-${id}`,
+      googleObjectId: null,
+      program,
+      merchant: merchant(),
+      progress: { stamps_collected: 1 },
+      enrolledAt: "2026-01-01T00:00:00Z",
+    };
+  }
+
+  it("pushes every target and reports zero failures on the happy path", async () => {
+    const targets = Array.from({ length: 25 }, (_, i) => target(`cp-${i}`));
+    resolveSegmentTargets.mockResolvedValue(targets);
+
+    const result = await pushProgramUpdateToAllCustomers("merchant-1", "program-1");
+
+    expect(pushApplePassUpdate).toHaveBeenCalledTimes(25);
+    expect(result.succeeded).toBe(25);
+    expect(result.failed).toBe(0);
+  });
+
+  it("keeps pushing the rest of the list when one target's push fails", async () => {
+    const targets = Array.from({ length: 5 }, (_, i) => target(`cp-${i}`));
+    resolveSegmentTargets.mockResolvedValue(targets);
+    pushApplePassUpdate.mockImplementation(async () => {
+      throw new Error("APNs down");
+    });
+
+    const result = await pushProgramUpdateToAllCustomers("merchant-1", "program-1");
+
+    // Every target was still attempted (batching isolates failures — one
+    // bad push doesn't stop its batch-mates or abort the broadcast), the
+    // failure just gets counted instead of silently vanishing.
+    expect(pushApplePassUpdate).toHaveBeenCalledTimes(5);
+    expect(result.failed).toBe(5);
   });
 });

@@ -1,6 +1,11 @@
 import { jsonError, jsonOk } from "@/lib/api";
 import { evaluateEmailEngagementTriggers } from "@/lib/email/triggers";
 
+// Bounded by merchant count, not customer count, so far less exposed than
+// the wallet-push crons — set for consistency/headroom, not because this
+// one has been observed running long.
+export const maxDuration = 60;
+
 /**
  * Runs daily via Vercel Cron (see vercel.json) — the onboarding/
  * re-engagement email sequence: verification reminders, "create your first

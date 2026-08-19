@@ -1,6 +1,11 @@
 import { jsonError, jsonOk } from "@/lib/api";
 import { sweepExpiredBillingGrace } from "@/lib/billing/enforcement";
 
+// Bounded by how many merchants are actively past their grace period at
+// once, not overall customer count — set for consistency/headroom, not
+// because this one has been observed running long.
+export const maxDuration = 60;
+
 /**
  * Runs daily via Vercel Cron (see vercel.json) — finds every merchant whose
  * post-cancellation grace period (see lib/billing/enforcement.ts,

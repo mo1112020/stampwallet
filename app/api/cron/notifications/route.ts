@@ -4,6 +4,14 @@ import { sendCampaignNow } from "@/lib/notifications/campaigns";
 import { evaluateAutomatedTriggers } from "@/lib/notifications/triggers";
 import { refreshExpiringPasses } from "@/lib/wallet/expirationRefresh";
 
+// Three wallet-push fan-outs run back to back below, each now batched
+// (lib/concurrency.ts) rather than one-target-at-a-time, but a merchant
+// base with enough customers can still take a while in total. 60s is the
+// ceiling every Vercel plan tier supports without extra configuration —
+// raise it if the account is on a plan that allows more and this route
+// starts actually hitting it.
+export const maxDuration = 60;
+
 /**
  * Runs daily via Vercel Cron (see vercel.json). Three jobs:
  * 1. Send any "scheduled" campaigns whose time has come.
@@ -49,5 +57,6 @@ export async function GET(request: Request) {
     scheduled_campaigns_sent: campaignsSent,
     automated_triggers: triggerResult,
     expiring_passes_refreshed: expirationResult.refreshed,
+    expiring_passes_failed: expirationResult.failed,
   });
 }

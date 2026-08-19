@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pushWalletUpdate } from "@/lib/wallet/push";
 import { resolveSegmentTargets, type NotificationTarget } from "@/lib/notifications/segments";
+import { processInBatches } from "@/lib/concurrency";
 import type { NotificationTrigger } from "@/types";
 
 /**
@@ -215,7 +216,12 @@ export async function sendCampaignNow(campaignId: string) {
       );
     }
 
-    for (const target of targets) {
+    // Batched (20 at a time — see lib/concurrency.ts), not one-at-a-time: a
+    // large campaign used to push to every recipient serially, which risked
+    // running out the request's time budget partway through a big send and
+    // leaving the remainder stuck on "queued" forever with no error and no
+    // record that they'd been abandoned mid-run.
+    const batchResult = await processInBatches(targets, async (target) => {
       try {
         await withTimeout(
           // A manual/scheduled campaign never carries fresh progress — always
@@ -241,7 +247,17 @@ export async function sendCampaignNow(campaignId: string) {
           },
           { onConflict: "campaign_id,customer_progress_id" }
         );
+        // Re-thrown so processInBatches' own succeeded/failed accounting
+        // (logged below) reflects reality — the notification_sends row
+        // above is the per-recipient record, this is the run-level summary.
+        throw err;
       }
+    });
+
+    if (batchResult.failed > 0) {
+      console.error(
+        `[notifications] campaign ${campaignId}: ${batchResult.failed}/${targets.length} deliveries failed`
+      );
     }
 
     await admin.from("notification_campaigns").update({ status: "sent" }).eq("id", campaignId);

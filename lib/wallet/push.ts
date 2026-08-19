@@ -3,6 +3,7 @@ import { pushApplePassUpdate } from "@/lib/wallet/apple";
 import { pushGooglePassUpdate } from "@/lib/wallet/google";
 import { resolveSegmentTargets } from "@/lib/notifications/segments";
 import { isWithinFreePlanNotificationCap } from "@/lib/billing/notificationCap";
+import { processInBatches } from "@/lib/concurrency";
 import type { LoyaltyProgram, Merchant, Progress } from "@/types";
 
 export type WalletPushResult = {
@@ -127,28 +128,38 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 export async function pushProgramUpdateToAllCustomers(merchantId: string, programId: string) {
   const targets = await resolveSegmentTargets(merchantId, { scope: "program", program_id: programId });
 
-  for (const target of targets) {
-    try {
-      await withTimeout(
-        pushWalletUpdate({
-          passId: target.passId,
-          googleObjectId: target.googleObjectId,
-          program: target.program,
-          merchant: target.merchant,
-          progress: target.progress,
-          enrolledAt: target.enrolledAt,
-        }),
-        // Google's side of this push is much heavier than Apple's (fetch
-        // background image, render + upload a fresh hero image, then the
-        // Google API call) — 25s was tight enough that it read as "Android
-        // always fails" when in fact it was routinely timing out, not
-        // erroring. Apple's push (a couple of APNs calls) finishes in a
-        // fraction of this regardless.
-        45000,
-        `program update push to ${target.customerProgressId}`
-      );
-    } catch (err) {
-      console.error("[wallet:push] program update push failed for", target.customerProgressId, err);
-    }
+  // Batched (20 at a time — see lib/concurrency.ts), not one-at-a-time: a
+  // popular program's full customer list used to push serially, which for a
+  // large program risked running out the request's time budget partway
+  // through and leaving the rest silently un-pushed, with no record that
+  // they'd been skipped.
+  const result = await processInBatches(targets, async (target) => {
+    await withTimeout(
+      pushWalletUpdate({
+        passId: target.passId,
+        googleObjectId: target.googleObjectId,
+        program: target.program,
+        merchant: target.merchant,
+        progress: target.progress,
+        enrolledAt: target.enrolledAt,
+      }),
+      // Google's side of this push is much heavier than Apple's (fetch
+      // background image, render + upload a fresh hero image, then the
+      // Google API call) — 25s was tight enough that it read as "Android
+      // always fails" when in fact it was routinely timing out, not
+      // erroring. Apple's push (a couple of APNs calls) finishes in a
+      // fraction of this regardless.
+      45000,
+      `program update push to ${target.customerProgressId}`
+    );
+  });
+
+  if (result.failed > 0) {
+    console.error(
+      `[wallet:push] program update broadcast for ${programId}: ${result.failed}/${targets.length} pushes failed`,
+      result.errors.map((e) => (e.error instanceof Error ? e.error.message : e.error))
+    );
   }
+
+  return result;
 }
