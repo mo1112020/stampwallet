@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "site.featuresPrograms" });
+  return buildPageMetadata({ locale, path: "features/programs", title: t("title"), description: t("description") });
+}
 
 export default async function FeaturesProgramsPage({
   params,

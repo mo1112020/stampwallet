@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Bell, Layers, QrCode, ScanLine, Smartphone, Store, Tag, UserPlus, Wallet } from "lucide-react";
 import { CtaBand } from "@/components/marketing/cta-band";
@@ -9,6 +10,13 @@ import { AnimatedWalletDemo } from "@/components/marketing/animated-wallet-demo"
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
 import { buttonVariants } from "@/components/ui/button";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return buildPageMetadata({ locale, path: "", title: t("title"), description: t("tagline") });
+}
 
 export default async function HomePage({
   params,

@@ -1,0 +1,26 @@
+# WalletOS
+> Digital loyalty cards for small and medium businesses — customers add a stamp, points, or steps loyalty card straight to Apple Wallet or Google Wallet, no app to download. Bilingual Arabic and English, built MENA/GCC first.
+
+## Product
+- Homepage -> https://www.walletos.online/en: What WalletOS is and how it works
+- Features -> https://www.walletos.online/en/features: Full feature list
+- Wallet integration -> https://www.walletos.online/en/features/wallet: Apple Wallet / Google Wallet details
+- Loyalty programs -> https://www.walletos.online/en/features/programs: Stamp, points, and steps program types
+- Live updates -> https://www.walletos.online/en/features/updates: How wallet passes refresh after a scan
+- Analytics -> https://www.walletos.online/en/features/analytics: Scan and redemption reporting
+- Pricing -> https://www.walletos.online/en/pricing: Free, Starter, and Pro plans
+- Industries -> https://www.walletos.online/en/industries: Who it's built for (cafés, salons, gyms, restaurants, and more)
+- Infrastructure -> https://www.walletos.online/en/infrastructure: How pass issuing and live updates work
+- About -> https://www.walletos.online/en/about: Company mission and values
+- FAQ -> https://www.walletos.online/en/faq: Common questions, answered
+- Support -> https://www.walletos.online/en/support: How to reach us
+
+## Key facts
+- No app download required — cards live natively in Apple Wallet and Google Wallet
+- Signup to a live enrollment QR code in under two minutes
+- Three loyalty program types: stamp cards, points, and multi-stage steps
+- Bilingual Arabic/English, MENA/GCC-first
+- Free plan available (1 program, up to 100 customers); paid plans start at Starter
+
+## Also available in Arabic
+Every page above has an Arabic equivalent at the same path under /ar/ instead of /en/, e.g. https://www.walletos.online/ar/pricing

@@ -4,8 +4,48 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "https://walletos.online";
+}
+
+/** Sitewide Organization + WebSite structured data — previously zero JSON-LD
+ * existed anywhere on the site. Locale-agnostic (name/url/logo don't change
+ * per language), so it lives here rather than per-page. Rendered as a plain
+ * <script> tag per Next.js's own recommended pattern for JSON-LD in the App
+ * Router (the Metadata API itself has no structured-data field). */
+function organizationJsonLd() {
+  const base = appUrl();
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${base}/#organization`,
+        name: "WalletOS",
+        url: base,
+        logo: `${base}/brand/logo-horizontal-light.png`,
+        description: "Loyalty cards customers actually use — in Apple and Google Wallet.",
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${base}/#website`,
+        name: "WalletOS",
+        url: base,
+        publisher: { "@id": `${base}/#organization` },
+      },
+    ],
+  };
+}
+
 export const metadata: Metadata = {
-  title: "WalletOS",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://walletos.online"),
+  title: {
+    default: "WalletOS",
+    // Every marketing page sets its own full title via generateMetadata
+    // (lib/seo/metadata.ts) — this template only applies when a page
+    // doesn't override it.
+    template: "%s | WalletOS",
+  },
   description: "Loyalty cards customers actually use — in Apple and Google Wallet.",
 };
 
@@ -27,6 +67,10 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <body className={`antialiased ${cairo.variable}`} suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
         {/* prettier-ignore */}
         <div
           style={{ display: "contents" }}

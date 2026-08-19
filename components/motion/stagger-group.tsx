@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils";
 type StaggerGroupProps = {
   children: React.ReactNode;
   className?: string;
+  /** Element tag to render as. Defaults to div — "ol"/"ul" for groups whose
+   * children are semantically a list (e.g. li's), matching Reveal's same
+   * polymorphic `as` pattern. */
+  as?: "div" | "ol" | "ul";
   /** CSS selector (relative to the group) for the items to stagger — defaults to direct children via `:scope > *`. */
   itemSelector?: string;
   stagger?: number;
@@ -25,11 +29,12 @@ const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 export function StaggerGroup({
   children,
   className,
+  as = "div",
   itemSelector = ":scope > *",
   stagger = 0.08,
   y = 18,
 }: StaggerGroupProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
 
   // Sets the pre-reveal hidden state synchronously, before the browser's
@@ -78,9 +83,10 @@ export function StaggerGroup({
     return () => observer.disconnect();
   }, [reduced, itemSelector]);
 
+  const Comp = as;
   return (
-    <div ref={ref} className={cn(className)}>
+    <Comp ref={ref as never} className={cn(className)}>
       {children}
-    </div>
+    </Comp>
   );
 }

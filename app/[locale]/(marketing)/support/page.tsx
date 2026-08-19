@@ -1,10 +1,18 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Mail, HelpCircle, Compass, MessageCircle } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/marketing/cta-band";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "site.support" });
+  return buildPageMetadata({ locale, path: "support", title: t("title"), description: t("description") });
+}
 
 export default async function SupportPage({
   params,

@@ -31,18 +31,24 @@ export function HowItWorks({
         </Reveal>
 
         <HowItWorksTimeline>
-          <StaggerGroup className="relative mt-14 grid gap-8 md:grid-cols-5 md:gap-4">
+          {/* A real ordered list — this genuinely is a sequence (scan → join
+              → wallet → earn → reward), not just a grid of cards that
+              happens to have numbers on it. */}
+          <StaggerGroup as="ol" className="relative mt-14 grid gap-8 md:grid-cols-5 md:gap-4">
             {/* Connecting ledger rule — desktop only, sits behind the stamp
                 boxes. Rendered fully drawn by default; the timeline collapses
-                and redraws it once scrolled into view. */}
-            <div
+                and redraws it once scrolled into view. An <li>, not a <div>,
+                since <ol>'s only valid children are list items — it's
+                absolutely positioned and aria-hidden either way, so this
+                doesn't change layout or how it's announced. */}
+            <li
               data-connector-line
-              className="pointer-events-none absolute inset-x-0 top-6 hidden h-0.5 origin-left bg-[repeating-linear-gradient(90deg,var(--line-strong)_0_10px,transparent_10px_18px)] md:block rtl:origin-right"
+              className="pointer-events-none absolute inset-x-0 top-6 hidden h-0.5 origin-left list-none bg-[repeating-linear-gradient(90deg,var(--line-strong)_0_10px,transparent_10px_18px)] md:block rtl:origin-right"
               aria-hidden="true"
             />
 
             {steps.map((step, index) => (
-              <div key={step.title} className="relative flex gap-4 md:flex-col md:gap-0 md:text-center">
+              <li key={step.title} className="relative flex gap-4 md:flex-col md:gap-0 md:text-center">
                 <span
                   data-step-icon
                   className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center border-2 border-[var(--line-strong)] bg-[var(--surface)] text-[var(--primary)] md:mx-auto"
@@ -56,7 +62,7 @@ export function HowItWorks({
                   <h3 className="mt-1 text-base font-semibold text-[var(--ink)]">{step.title}</h3>
                   <p className="mt-1.5 text-sm text-[var(--muted)]">{step.description}</p>
                 </div>
-              </div>
+              </li>
             ))}
           </StaggerGroup>
         </HowItWorksTimeline>

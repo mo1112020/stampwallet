@@ -201,7 +201,20 @@
       "proPrice": "$79/mo",
       "proDesc": "Higher limits for growing multi-program businesses",
       "proCta": "Get started",
-      "note": "Prices shown in USD. Quarterly and yearly billing save you money, pick a cycle above. Sign up free, upgrade anytime from your dashboard."
+      "note": "Prices shown in USD. Quarterly and yearly billing save you money, pick a cycle above. Sign up free, upgrade anytime from your dashboard.",
+      "compareTitle": "Compare all plans",
+      "compare": {
+        "plan": "Plan",
+        "programs": "Active programs",
+        "customers": "Customers",
+        "seats": "Team seats",
+        "locations": "Locations",
+        "branding": "Custom branding",
+        "expiration": "Card expiration",
+        "unlimited": "Unlimited",
+        "yes": "Yes",
+        "no": "—"
+      }
     },
     "faqPage": {
       "eyebrow": "FAQ",

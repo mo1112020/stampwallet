@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CheckCircle2, Smartphone, Zap } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
@@ -5,6 +6,13 @@ import { CtaBand } from "@/components/marketing/cta-band";
 import { IconCard } from "@/components/marketing/icon-card";
 import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup } from "@/components/motion/stagger-group";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "site.about" });
+  return buildPageMetadata({ locale, path: "about", title: t("title"), description: t("description") });
+}
 
 export default async function AboutPage({
   params,
