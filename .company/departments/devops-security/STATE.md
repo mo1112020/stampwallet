@@ -37,7 +37,7 @@ Previously: "Incident History: none recorded, greenfield" -- the `scan_events` F
 
 Verified for real: added a temporary route that throws, ran the actual production build (`next start`), confirmed in Sentry's debug log that the error was captured and the flush completed successfully, then removed the test route.
 
-DSN is live in Vercel production. **Not yet done**: `SENTRY_AUTH_TOKEN`/`SENTRY_ORG`/`SENTRY_PROJECT` are unset, so production stack traces will show minified code instead of real source until source maps are wired up -- optional follow-up, `next.config.mjs` is already set up to pick these up the moment they're provided (Settings > Auth Tokens in Sentry, scopes: project:releases + org:read).
+**Fully done as of 2026-08-20.** `SENTRY_AUTH_TOKEN`/`SENTRY_ORG=walletos`/`SENTRY_PROJECT=javascript-nextjs` all set in Vercel production. Confirmed source map upload actually works on the real Vercel build (`Uploaded files to Sentry`, per-chunk source map report), not just locally -- production stack traces will show real source, not minified code.
 
 ## Incident History
 None recorded yet in `.company/` -- but Sentry is now live, so the next real error will actually surface instead of relying on someone noticing.
