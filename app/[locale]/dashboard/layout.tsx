@@ -5,6 +5,7 @@ import { getSessionOrNull } from "@/lib/api";
 import { getAuthUser } from "@/lib/supabase/server";
 
 import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { DashboardViewportHeightFix } from "@/components/dashboard/viewport-height-fix";
 
 export default async function DashboardLayout({
   children,
@@ -36,7 +37,16 @@ export default async function DashboardLayout({
     // shell (topbar included) visibly shift out of place. dvh tracks the
     // real visible viewport instead. Same unit the marketing hero already
     // uses for the same reason.
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[var(--background)]">
+    <div
+      className="flex h-[100dvh] flex-col overflow-hidden bg-[var(--background)]"
+      style={{ height: "var(--app-dvh, 100dvh)" }}
+    >
+      {/* Tracks window.visualViewport so the shell's height stays correct on
+       * iOS Safari, where the on-screen keyboard shrinks the visible area
+       * without shrinking the CSS layout viewport dvh is computed from (see
+       * the component for why). */}
+      <DashboardViewportHeightFix />
+
       {/* Fixed top bar */}
       <DashboardTopbar
         locale={locale}
