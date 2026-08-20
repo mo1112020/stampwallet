@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
@@ -48,6 +48,22 @@ export const metadata: Metadata = {
     template: "%s | WalletOS",
   },
   description: "Loyalty cards customers actually use — in Apple and Google Wallet.",
+};
+
+// interactiveWidget: "resizes-content" — without this, opening the on-screen
+// keyboard only shrinks the *visual* viewport (default "resizes-visual");
+// the layout viewport that `dvh` units are computed from stays the same
+// height. That mismatch is what was dragging the dashboard's fixed 100dvh
+// shell (topbar + bottom nav, see app/[locale]/dashboard/layout.tsx) out of
+// place on scroll or keyboard focus: the document became taller than what
+// was actually visible and the browser started scrolling it as a whole to
+// keep the focused input in view. Resizing the layout viewport itself keeps
+// dvh in sync with the real visible area, so no document-level scroll is
+// ever triggered.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 // Genuinely bilingual (Arabic + Latin, matched weights in one family) rather
