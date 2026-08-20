@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { locales, isRtl, type AppLocale } from "@/i18n/config";
+import { CookieConsent } from "@/components/consent/cookie-consent";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -25,6 +26,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider messages={messages}>
       <div lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"} className="min-h-screen">
         {children}
+        <CookieConsent />
       </div>
     </NextIntlClientProvider>
   );

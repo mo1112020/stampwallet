@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
+import Script from "next/script";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -84,6 +85,17 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <body className={`antialiased ${cairo.variable}`} suppressHydrationWarning>
+        {/* Google Consent Mode v2 default -- must run before GoogleAnalytics
+            below initializes, so GA never writes analytics cookies until a
+            visitor actually accepts (components/consent/cookie-consent.tsx
+            flips this to "granted" on Accept, and re-applies it on every
+            page load once a prior "granted" choice is in localStorage).
+            beforeInteractive is required (and only valid) in the root
+            layout -- it's what guarantees this runs ahead of GA's own
+            afterInteractive script regardless of DOM order. */}
+        <Script id="consent-default" strategy="beforeInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});`}
+        </Script>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
