@@ -32,5 +32,12 @@ Per CEO decision (Option B): `/api/customers/enroll` now fails **closed** on rat
 - Apple Wallet certs + Google Wallet issuer credentials: **provisioned and working**
 - Stripe live keys: **not provisioned yet** -- production billing still in progress, currently a launch blocker
 
+## Error Monitoring -- Sentry Wired 2026-08-20
+Previously: "Incident History: none recorded, greenfield" -- the `scan_events` FK bug was only found because the CEO happened to test it, not because anything caught it. Fixed: `@sentry/nextjs` installed across all three runtimes (client/server/edge), errors + tracing baseline (Sentry's own recommended first-install default, deliberately not over-instrumented with session replay/logging/profiling yet). App Router `global-error.tsx` added.
+
+Verified for real: added a temporary route that throws, ran the actual production build (`next start`), confirmed in Sentry's debug log that the error was captured and the flush completed successfully, then removed the test route.
+
+DSN is live in Vercel production. **Not yet done**: `SENTRY_AUTH_TOKEN`/`SENTRY_ORG`/`SENTRY_PROJECT` are unset, so production stack traces will show minified code instead of real source until source maps are wired up -- optional follow-up, `next.config.mjs` is already set up to pick these up the moment they're provided (Settings > Auth Tokens in Sentry, scopes: project:releases + org:read).
+
 ## Incident History
-None recorded yet -- greenfield department state.
+None recorded yet in `.company/` -- but Sentry is now live, so the next real error will actually surface instead of relying on someone noticing.
