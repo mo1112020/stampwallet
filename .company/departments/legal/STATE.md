@@ -13,9 +13,12 @@
 **No company legally registered yet.** This is why Stripe billing stays in test mode for now -- live Stripe payments require business verification (legal entity, banking, tax ID), which isn't possible without registration. Not a blocker to pre-launch dev work, but is the actual gate on ever taking real payments, not just a Stripe setting. Worth deciding jurisdiction/entity type sooner rather than later given the MENA/GCC target market + EU-hosted data (Supabase eu-west-1).
 
 ## Privacy Policy & Terms of Service -- Drafted and Published 2026-08-19
-Bilingual (en/ar) drafts live at `/privacy` and `/terms`, linked from the footer (which previously had the labels but no actual links -- a real gap, now fixed). Grounded in the actual codebase's data flows: Supabase (EU/Ireland hosting), Stripe billing, Resend email, Apple/Google Wallet data sharing, no customer login/account, cascading delete on account deletion, no third-party analytics cookies currently in use. The ToS's governing-law/jurisdiction section is explicitly left as a placeholder pending company registration rather than guessed.
+Bilingual (en/ar) drafts live at `/privacy` and `/terms`, linked from the footer (which previously had the labels but no actual links -- a real gap, now fixed). Grounded in the actual codebase's data flows: Supabase (EU/Ireland hosting), Stripe billing, Resend email, Apple/Google Wallet data sharing, no customer login/account, cascading delete on account deletion. The ToS's governing-law/jurisdiction section is explicitly left as a placeholder pending company registration rather than guessed.
 
 **These are drafts, not lawyer-reviewed.** Treat as a starting point that closes the "nothing published at all" gap, not as final legal sign-off -- have an actual lawyer review before scaling past a handful of merchants, and definitely before company registration locks in a jurisdiction (the ToS placeholder will need real content then).
+
+## Cookie Consent -- Closed 2026-08-20
+GA4 went live 2026-08-19 writing analytics cookies with zero consent mechanism -- a real compliance gap the moment it shipped, not hypothetical, given the Privacy Policy's own GDPR-flavored claims. Fixed same window: `components/consent/cookie-consent.tsx` (bilingual Accept/Decline banner) wired to Google Consent Mode v2 (`app/layout.tsx` defaults `analytics_storage`/`ad_storage` to denied before GA initializes; the banner flips it to granted on Accept, persisted in localStorage). Privacy Policy's cookies section (§8) and data-sharing section (§4) updated to disclose GA as a processor. Verified live in production, both locales.
 
 ## Gaps -- Ask Ahmed
 - Target jurisdiction/entity type for registration, and rough timeline
