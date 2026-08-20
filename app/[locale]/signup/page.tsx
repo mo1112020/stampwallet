@@ -13,6 +13,7 @@ import {
 } from "@/components/auth/auth-ui";
 import { Input, Label } from "@/components/ui/input";
 import { mapAuthErrorKey } from "@/lib/auth/error-messages";
+import { checkAuthRateLimit } from "@/lib/auth/rate-limit-check";
 
 export default function SignupPage() {
   const t = useTranslations("auth");
@@ -37,6 +38,11 @@ export default function SignupPage() {
     }
 
     setLoading("email");
+    if (!(await checkAuthRateLimit("signup"))) {
+      setLoading(null);
+      setError(t("rateLimited"));
+      return;
+    }
     const businessName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const supabase = createClient();
     const { data, error: err } = await supabase.auth.signUp({

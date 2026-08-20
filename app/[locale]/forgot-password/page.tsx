@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { AuthLocaleSelect } from "@/components/auth/auth-ui";
 import { Input, Label } from "@/components/ui/input";
+import { checkAuthRateLimit } from "@/lib/auth/rate-limit-check";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth");
@@ -16,10 +17,21 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    // Rate-limited before the real resetPasswordForEmail call — the only
+    // error case worth surfacing here, since a real send failure below is
+    // deliberately swallowed (see the comment there) to avoid revealing
+    // whether an email is registered.
+    if (!(await checkAuthRateLimit("password_reset"))) {
+      setLoading(false);
+      setError(t("rateLimited"));
+      return;
+    }
     const supabase = createClient();
     // Errors here are deliberately not surfaced — the confirmation message
     // is identical whether or not the email exists, so this can't be used
@@ -59,6 +71,7 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
+            {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
             <button
               type="submit"
               disabled={loading}

@@ -15,6 +15,7 @@ import {
 } from "@/components/auth/auth-ui";
 import { Input, Label } from "@/components/ui/input";
 import { mapAuthErrorKey } from "@/lib/auth/error-messages";
+import { checkAuthRateLimit } from "@/lib/auth/rate-limit-check";
 
 function LoginContent() {
   const t = useTranslations("auth");
@@ -36,6 +37,11 @@ function LoginContent() {
     e.preventDefault();
     setLoading("email");
     setError(null);
+    if (!(await checkAuthRateLimit("login"))) {
+      setLoading(null);
+      setError(t("rateLimited"));
+      return;
+    }
     const supabase = createClient();
     const { error: err } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(null);
