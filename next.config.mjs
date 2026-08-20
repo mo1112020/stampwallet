@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const projectRoot = dirname(fileURLToPath(import.meta.url));
@@ -78,4 +79,20 @@ const nextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Source map upload -- inert until SENTRY_AUTH_TOKEN/SENTRY_ORG/
+  // SENTRY_PROJECT are set (build-time secret, deliberately deferred until
+  // basic error capture is confirmed working; see instrumentation-client.ts).
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Suppress non-CI output -- keeps local `next build` logs from being
+  // dominated by Sentry's own upload chatter.
+  silent: !process.env.CI,
+
+  // Turbopack is this project's build tool (see the turbopack block above);
+  // webpack.treeshake.* options only work under webpack and would silently
+  // no-op (or per Sentry's own docs, can break the build) here -- omitted.
+});
