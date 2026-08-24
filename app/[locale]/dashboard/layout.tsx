@@ -6,6 +6,7 @@ import { getAuthUser } from "@/lib/supabase/server";
 
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { DashboardViewportHeightFix } from "@/components/dashboard/viewport-height-fix";
+import { ScrollResetOnNavigate } from "@/components/dashboard/scroll-reset-on-navigate";
 
 export default async function DashboardLayout({
   children,
@@ -38,14 +39,25 @@ export default async function DashboardLayout({
     // real visible viewport instead. Same unit the marketing hero already
     // uses for the same reason.
     <div
-      className="flex h-[100dvh] flex-col overflow-hidden bg-[var(--background)]"
+      className="flex h-[100dvh] flex-col overflow-hidden bg-[var(--background)] motion-safe:transition-[height] motion-safe:duration-150 motion-safe:ease-out"
       style={{ height: "var(--app-dvh, 100dvh)" }}
     >
       {/* Tracks window.visualViewport so the shell's height stays correct on
        * iOS Safari, where the on-screen keyboard shrinks the visible area
        * without shrinking the CSS layout viewport dvh is computed from (see
-       * the component for why). */}
+       * the component for why). The height transition above (motion-safe,
+       * so prefers-reduced-motion still gets an instant snap) exists because
+       * --app-dvh updates from a JS event handler, never perfectly in sync
+       * with the frame the browser's own chrome (keyboard/address bar)
+       * animates on — a late correction settles instead of visibly popping. */}
       <DashboardViewportHeightFix />
+
+      {/* Must commit before the layout-router nested inside <main> below —
+       * see the component for why (it prevents Next's own built-in
+       * scroll-and-focus restoration from fighting this shell on every
+       * navigation, which is what was nudging the bottom nav on route
+       * changes). */}
+      <ScrollResetOnNavigate />
 
       {/* Fixed top bar */}
       <DashboardTopbar

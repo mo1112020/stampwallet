@@ -20,12 +20,25 @@ export function DialogContent({
       <DialogPrimitive.Overlay
         data-radix-overlay
         className="fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]"
+        style={{ height: "var(--app-dvh, 100dvh)" }}
       />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Sized off the dashboard shell's own `--app-dvh` (falls back to
+       * 100dvh outside the dashboard, e.g. marketing/auth dialogs) instead of
+       * a raw `fixed inset-0`/100%: on iOS Safari the layout viewport (what
+       * `inset-0`/vh/dvh alone resolve against) doesn't shrink when the
+       * on-screen keyboard opens, so a dialog with an autofocused input
+       * (e.g. the command palette) could get vertically centered against the
+       * *pre-keyboard* height and end up with its input below the fold of
+       * the actually-visible area. Capping height + scrolling overflow here
+       * keeps it reachable instead. */}
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+        style={{ height: "var(--app-dvh, 100dvh)" }}
+      >
         <DialogPrimitive.Content
           data-radix-content
           className={cn(
-            "relative w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-xl focus:outline-none",
+            "relative my-auto max-h-full w-full max-w-md overflow-y-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-xl focus:outline-none",
             className
           )}
           {...props}
