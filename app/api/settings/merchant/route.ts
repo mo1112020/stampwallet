@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { updateMerchantSettingsSchema } from "@/lib/validators";
 import { pushProgramUpdateToAllCustomers } from "@/lib/wallet/push";
@@ -41,9 +42,19 @@ export async function PATCH(request: Request) {
       .select("id")
       .eq("merchant_id", auth.merchantId)
       .eq("is_active", true);
+    // after() (not a bare un-awaited call) — see notifications/campaigns/route.ts's
+    // identical fix. A plain fire-and-forget call here is worse than just slow:
+    // on a serverless platform the function can be frozen the instant `jsonOk`
+    // below is sent, before this broadcast's network I/O (push token lookups,
+    // Apple APNs pushes, Google Wallet class/object PATCHes) ever runs — so a
+    // merchant saving a new logo/name/colors could see "Saved" while zero
+    // already-installed passes ever actually got pushed. after() keeps the
+    // invocation alive until every one of these settles.
     for (const program of programs ?? []) {
-      pushProgramUpdateToAllCustomers(auth.merchantId, program.id).catch((err) =>
-        console.error("[wallet:push] merchant branding broadcast failed for program", program.id, err)
+      after(() =>
+        pushProgramUpdateToAllCustomers(auth.merchantId, program.id).catch((err) =>
+          console.error("[wallet:push] merchant branding broadcast failed for program", program.id, err)
+        )
       );
     }
   }

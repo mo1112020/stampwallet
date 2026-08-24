@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { jsonError, jsonOk, requireCapability } from "@/lib/api";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { updateProgramSchema } from "@/lib/validators";
@@ -62,11 +63,20 @@ export async function PATCH(request: Request, { params }: Ctx) {
 
   if (error) return jsonError(error.message, "update_failed", 500);
 
-  // Fire-and-forget (same pattern as the manual campaign-send route below
-  // it in this file's sibling): don't make the merchant wait on a
-  // potentially-large fan-out of wallet pushes just to save their edits.
-  pushProgramUpdateToAllCustomers(existing.merchant_id, id).catch((err) =>
-    console.error("[wallet:push] program update broadcast failed for", id, err)
+  // after() (not a bare fire-and-forget call — that comment used to be
+  // accurate here, back when notifications/campaigns/route.ts's manual send
+  // did the same bare thing, but that route was since fixed to use after()
+  // after it was found leaving campaigns permanently stuck on "sending" —
+  // see its comment. This call site had the identical bug: a serverless
+  // instance can be frozen the moment `jsonOk` below is sent, before this
+  // broadcast's push-token lookups / Apple APNs pushes / Google Wallet
+  // PATCHes ever ran, silently dropping the whole update on already-issued
+  // passes. after() keeps the merchant from waiting on the fan-out while
+  // still guaranteeing it actually runs to completion.
+  after(() =>
+    pushProgramUpdateToAllCustomers(existing.merchant_id, id).catch((err) =>
+      console.error("[wallet:push] program update broadcast failed for", id, err)
+    )
   );
 
   return jsonOk(data);
