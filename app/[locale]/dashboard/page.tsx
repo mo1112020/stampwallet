@@ -19,10 +19,10 @@ const CAMPAIGN_STATUS_VARIANT: Record<string, "success" | "primary" | "default" 
   canceled: "warning",
 };
 
-function Delta({ current, previous }: { current: number; previous: number }) {
+function Delta({ current, previous, t }: { current: number; previous: number; t: Awaited<ReturnType<typeof getTranslations>> }) {
   if (previous === 0 && current === 0) return null;
   const diff = current - previous;
-  if (diff === 0) return <span className="text-xs font-medium text-[var(--muted)]">No change</span>;
+  if (diff === 0) return <span className="text-xs font-medium text-[var(--muted)]">{t("noChange")}</span>;
   const up = diff > 0;
   return (
     <span
@@ -32,7 +32,7 @@ function Delta({ current, previous }: { current: number; previous: number }) {
       )}
     >
       {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-      {Math.abs(diff).toLocaleString()} vs prior 30d
+      {t("vsPrior30d", { diff: Math.abs(diff).toLocaleString() })}
     </span>
   );
 }
@@ -73,6 +73,7 @@ export default async function DashboardHome({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
+  const tNav = await getTranslations("nav");
 
   const session = await getSessionOrNull();
   if (!session) redirect(`/${locale}/login`);
@@ -128,11 +129,11 @@ export default async function DashboardHome({
             </span>
           </h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Plan: <span className="font-medium capitalize text-[var(--ink)]">{merchant.plan}</span>
+            {t("planLabel")}: <span className="font-medium capitalize text-[var(--ink)]">{merchant.plan}</span>
             {hasPrograms && overview.totalScans > 0 && (
               <>
                 {" · "}
-                {redemptionRate(overview)}% of scans convert to a reward
+                {t("conversionRate", { pct: redemptionRate(overview) })}
               </>
             )}
           </p>
@@ -148,18 +149,18 @@ export default async function DashboardHome({
             href={`/${locale}/dashboard/scan`}
             className="inline-flex h-10 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--ink)] transition-[background-color,transform] duration-150 hover:bg-[var(--surface-2)] active:scale-[0.98]"
           >
-            <QrCode className="h-4 w-4" /> Scan
+            <QrCode className="h-4 w-4" /> {t("scan")}
           </Link>
           <Link
             href={`/${locale}/dashboard/analytics`}
             className="inline-flex h-10 items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-semibold text-[var(--ink)] transition-[background-color,transform] duration-150 hover:bg-[var(--surface-2)] active:scale-[0.98]"
           >
-            <BarChart3 className="h-4 w-4" /> Analytics
+            <BarChart3 className="h-4 w-4" /> {tNav("analytics")}
           </Link>
           <Link
             href={`/${locale}/dashboard/settings`}
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] transition-[background-color,transform] duration-150 hover:bg-[var(--surface-2)] active:scale-[0.98]"
-            aria-label="Settings"
+            aria-label={tNav("settings")}
           >
             <Settings2 className="h-4 w-4" />
           </Link>
@@ -170,11 +171,11 @@ export default async function DashboardHome({
         <>
           {/* Command-center KPI row */}
           <StaggerGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile label="Active programs" value={`${activeProgramCount} / ${programs!.length}`} />
+            <StatTile label={t("statActivePrograms")} value={`${activeProgramCount} / ${programs!.length}`} />
             <StatTile
-              label="Wallet installs"
+              label={t("statWalletInstalls")}
               value={overview.totalCards.toLocaleString()}
-              delta={<Delta current={overview.totalCards} previous={previousOverview.totalCards} />}
+              delta={<Delta current={overview.totalCards} previous={previousOverview.totalCards} t={t} />}
               extra={
                 <span className="flex items-center gap-1.5 opacity-80">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -185,48 +186,50 @@ export default async function DashboardHome({
               }
             />
             <StatTile
-              label="Recent scans (30d)"
+              label={t("statRecentScans")}
               value={overview.totalScans.toLocaleString()}
-              delta={<Delta current={overview.totalScans} previous={previousOverview.totalScans} />}
+              delta={<Delta current={overview.totalScans} previous={previousOverview.totalScans} t={t} />}
             />
             <StatTile
-              label="Redemption rate"
+              label={t("statRedemptionRate")}
               value={`${redemptionRate(overview)}%`}
-              delta={<Delta current={overview.rewardsRedeemed} previous={previousOverview.rewardsRedeemed} />}
+              delta={<Delta current={overview.rewardsRedeemed} previous={previousOverview.rewardsRedeemed} t={t} />}
             />
             <StatTile
-              label="Customers"
+              label={t("statCustomers")}
               value={overview.totalCustomers.toLocaleString()}
-              delta={<Delta current={overview.totalCustomers} previous={previousOverview.totalCustomers} />}
+              delta={<Delta current={overview.totalCustomers} previous={previousOverview.totalCustomers} t={t} />}
             />
             <StatTile
-              label="Active customers"
+              label={t("statActiveCustomers")}
               value={overview.activeCustomers.toLocaleString()}
-              delta={<Delta current={overview.activeCustomers} previous={previousOverview.activeCustomers} />}
+              delta={<Delta current={overview.activeCustomers} previous={previousOverview.activeCustomers} t={t} />}
             />
             {overview.revenueImpact !== null ? (
               <StatTile
-                label="Revenue impact"
+                label={t("statRevenueImpact")}
                 value={new Intl.NumberFormat(undefined, {
                   style: "currency",
                   currency: overview.currency ?? "USD",
                   maximumFractionDigits: 0,
                 }).format(overview.revenueImpact)}
-                delta={<Delta current={overview.revenueImpact} previous={previousOverview.revenueImpact ?? 0} />}
+                delta={<Delta current={overview.revenueImpact} previous={previousOverview.revenueImpact ?? 0} t={t} />}
               />
             ) : (
               <Card className="flex flex-col justify-between p-5">
-                <p className="text-sm text-[var(--muted)]">Revenue impact</p>
+                <p className="text-sm text-[var(--muted)]">{t("statRevenueImpact")}</p>
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  Set a currency in{" "}
-                  <Link href={`/${locale}/dashboard/settings/business`} className="font-medium text-[var(--primary)] hover:underline">
-                    Settings
-                  </Link>{" "}
-                  to see this.
+                  {t.rich("revenueImpactHint", {
+                    link: (chunks) => (
+                      <Link href={`/${locale}/dashboard/settings/business`} className="font-medium text-[var(--primary)] hover:underline">
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
                 </p>
               </Card>
             )}
-            <StatTile label="Repeat visits (30d)" value={overview.repeatVisits.toLocaleString()} />
+            <StatTile label={t("statRepeatVisits")} value={overview.repeatVisits.toLocaleString()} />
           </StaggerGroup>
 
           {/* Activity + notifications */}
@@ -236,13 +239,13 @@ export default async function DashboardHome({
             </div>
             <Card className="p-5">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-[var(--ink)]">Recent notifications</p>
+                <p className="text-sm font-semibold text-[var(--ink)]">{t("recentNotifications")}</p>
                 <Link href={`/${locale}/dashboard/notifications`} className="text-xs font-medium text-[var(--primary)] hover:underline">
-                  View all
+                  {t("viewAll")}
                 </Link>
               </div>
               {!campaigns?.length ? (
-                <p className="mt-3 text-sm text-[var(--muted)]">No campaigns sent yet.</p>
+                <p className="mt-3 text-sm text-[var(--muted)]">{t("noCampaignsSentYet")}</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {campaigns.map((c) => (
@@ -261,9 +264,9 @@ export default async function DashboardHome({
           {/* Program list — condensed, links out to the full Programs page for management */}
           <section className="mt-10">
             <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-xl font-semibold tracking-tight text-[var(--ink)]">Your programs</h2>
+              <h2 className="text-xl font-semibold tracking-tight text-[var(--ink)]">{t("yourPrograms")}</h2>
               <Link href={`/${locale}/dashboard/programs`} className="text-sm font-semibold text-[var(--primary)] hover:underline">
-                Manage all →
+                {t("manageAll")} →
               </Link>
             </div>
             <Card className="divide-y divide-[var(--line)] p-0">
@@ -281,10 +284,10 @@ export default async function DashboardHome({
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-[var(--ink)]">{program.name}</p>
-                      <p className="text-xs capitalize text-[var(--muted)]">{program.type} program</p>
+                      <p className="text-xs capitalize text-[var(--muted)]">{t("programTypeLabel", { type: program.type })}</p>
                     </div>
                     <Badge variant={program.is_active ? "success" : "default"}>
-                      {program.is_active ? "Active" : "Inactive"}
+                      {program.is_active ? t("active") : t("inactive")}
                     </Badge>
                   </Link>
                 );
@@ -295,7 +298,7 @@ export default async function DashboardHome({
       ) : (
         <div className="mt-4 flex flex-col items-center justify-center rounded-3xl bg-[var(--surface)] p-12 text-center shadow-sm ring-1 ring-black/5 dark:ring-white/10">
           <EmptyPhoneMockup locale={locale} />
-          <h3 className="mt-6 text-lg font-semibold text-[var(--ink)]">No programs yet</h3>
+          <h3 className="mt-6 text-lg font-semibold text-[var(--ink)]">{t("noProgramsYetTitle")}</h3>
           <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">{t("emptyPrograms")}</p>
         </div>
       )}

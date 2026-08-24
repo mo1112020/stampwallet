@@ -41,6 +41,22 @@ export function DashboardViewportHeightFix() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    // `overflow: hidden` on body stops touch-drag scrolling but NOT iOS
+    // Safari's own focus-triggered auto-scroll — confirmed on-device: tapping
+    // an input mid-form still scrolls the whole document (not just `main`),
+    // shoving the topbar off the top of the screen and leaving dead space
+    // above the keyboard, even though `main` itself never moved. Since this
+    // shell is designed so the document never legitimately needs to scroll
+    // (all scrolling happens inside `main`), snapping any nonzero
+    // window scroll straight back to 0 is a safe, generic backstop rather
+    // than a fix for one specific input/page.
+    const resetDocumentScroll = () => {
+      if (window.scrollX !== 0 || window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener("scroll", resetDocumentScroll, { passive: true });
+
     return () => {
       if (vv) {
         vv.removeEventListener("resize", set);
@@ -48,6 +64,7 @@ export function DashboardViewportHeightFix() {
       } else {
         window.removeEventListener("resize", set);
       }
+      window.removeEventListener("scroll", resetDocumentScroll);
       root.style.removeProperty("--app-dvh");
       document.body.style.overflow = previousOverflow;
     };
