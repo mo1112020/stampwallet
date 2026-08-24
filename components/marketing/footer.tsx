@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LogoStamp } from "@/components/brand/logo-stamp";
+import { FooterCtaLink } from "@/components/marketing/footer-cta-link";
 
 export async function MarketingFooter({ locale }: { locale: string }) {
   const t = await getTranslations("site.footer");
   const nav = await getTranslations("site.nav");
+  const rootNav = await getTranslations("nav");
 
   return (
     <footer className="border-t-2 border-[var(--line-strong)] bg-[var(--surface)] text-[var(--ink)]">
@@ -57,9 +59,7 @@ export async function MarketingFooter({ locale }: { locale: string }) {
               </Link>
             </li>
             <li>
-              <Link href={`/${locale}/signup`} className="hover:text-[var(--ink)]">
-                {t("start")}
-              </Link>
+              <FooterCtaLink locale={locale} startLabel={t("start")} dashboardLabel={rootNav("dashboard")} />
             </li>
           </ul>
         </div>

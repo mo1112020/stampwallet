@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { switchLocaleHref } from "@/lib/i18n-nav";
 import { LogoStamp } from "@/components/brand/logo-stamp";
+import { useIsAuthenticated } from "@/lib/supabase/use-is-authenticated";
 
 const links = [
   { path: "about", key: "about" as const },
@@ -25,6 +26,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
   const nav = useTranslations("nav");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const isAuthenticated = useIsAuthenticated();
   const otherLocale = locale === "ar" ? "en" : "ar";
 
   function hrefFor(path: string) {
@@ -59,7 +61,7 @@ export function MarketingHeader({ locale }: { locale: string }) {
         <button
           type="button"
           className="fixed inset-0 z-40 bg-black/10 lg:hidden"
-          aria-label="Close menu"
+          aria-label={t("closeMenu")}
           onClick={() => setOpen(false)}
         />
       )}
@@ -98,15 +100,26 @@ export function MarketingHeader({ locale }: { locale: string }) {
             >
               {otherLocale}
             </Link>
-            <Link
-              href={`/${locale}/login`}
-              className="px-3 py-1.5 text-[13px] font-semibold text-[var(--muted)] hover:text-[var(--ink)]"
-            >
-              {nav("login")}
-            </Link>
-            <Link href={`/${locale}/signup`} className={cn(buttonVariants({ size: "sm" }), "ws-stamp-in")}>
-              {nav("signup")}
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                href={`/${locale}/dashboard`}
+                className={cn(buttonVariants({ size: "sm" }), "ws-stamp-in")}
+              >
+                {nav("dashboard")}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href={`/${locale}/login`}
+                  className="px-3 py-1.5 text-[13px] font-semibold text-[var(--muted)] hover:text-[var(--ink)]"
+                >
+                  {nav("login")}
+                </Link>
+                <Link href={`/${locale}/signup`} className={cn(buttonVariants({ size: "sm" }), "ws-stamp-in")}>
+                  {nav("signup")}
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -172,20 +185,32 @@ export function MarketingHeader({ locale }: { locale: string }) {
                 <LanguageSwitcher locale={locale} onNavigate={() => setOpen(false)} />
               </div>
               <div className="mt-1 flex items-center gap-2 border-t border-[var(--line)] pt-3">
-                <Link
-                  href={`/${locale}/login`}
-                  onClick={() => setOpen(false)}
-                  className="px-3 py-2 text-sm font-semibold text-[var(--muted)]"
-                >
-                  {nav("login")}
-                </Link>
-                <Link
-                  href={`/${locale}/signup`}
-                  onClick={() => setOpen(false)}
-                  className={cn(buttonVariants({ size: "sm" }), "ms-auto")}
-                >
-                  {nav("signup")}
-                </Link>
+                {isAuthenticated ? (
+                  <Link
+                    href={`/${locale}/dashboard`}
+                    onClick={() => setOpen(false)}
+                    className={cn(buttonVariants({ size: "sm" }), "ms-auto")}
+                  >
+                    {nav("dashboard")}
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href={`/${locale}/login`}
+                      onClick={() => setOpen(false)}
+                      className="px-3 py-2 text-sm font-semibold text-[var(--muted)]"
+                    >
+                      {nav("login")}
+                    </Link>
+                    <Link
+                      href={`/${locale}/signup`}
+                      onClick={() => setOpen(false)}
+                      className={cn(buttonVariants({ size: "sm" }), "ms-auto")}
+                    >
+                      {nav("signup")}
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
