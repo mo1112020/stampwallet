@@ -54,7 +54,9 @@ export function EmailPrefsForm({ initialPrefs }: { initialPrefs: EmailPrefs }) {
                 aria-checked={checked}
                 onClick={() => save({ ...prefs, [key]: !checked })}
                 disabled={saving}
-                className={`h-6 w-11 shrink-0 rounded-full transition-colors active:scale-95 disabled:opacity-50 ${
+                // See notifications-prefs-form.tsx — same 24px-tall track,
+                // same invisible tap-area extension.
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors after:absolute after:-inset-y-3 after:inset-x-0 after:content-[''] active:scale-95 disabled:opacity-50 ${
                   checked ? "bg-[var(--primary)]" : "bg-[var(--line-strong)]"
                 }`}
               >

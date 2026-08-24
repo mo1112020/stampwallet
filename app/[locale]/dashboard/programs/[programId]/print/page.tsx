@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSessionOrNull } from "@/lib/api";
 import { roleHasCapability } from "@/lib/auth/permissions";
 import { PrintStudio } from "@/components/dashboard/print/print-studio";
@@ -13,6 +13,7 @@ export default async function ProgramPrintPage({
 }) {
   const { locale, programId } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("programs");
 
   const session = await getSessionOrNull();
   if (!session) redirect(`/${locale}/login`);
@@ -38,14 +39,14 @@ export default async function ProgramPrintPage({
         <ArrowLeft className="h-4 w-4" />
         {program.name}
       </Link>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--ink)]">Print & marketing materials</h1>
+      <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--ink)]">{t("printTitle")}</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Posters, table cards, stickers, and social assets for {program.name} — generated from your branding, in English or Arabic.
+        {t("printDescription", { program: program.name })}
       </p>
 
       <div className="mt-8">
         <PrintStudio
-          businessName={merchant?.business_name ?? "Your business"}
+          businessName={merchant?.business_name ?? t("businessFallback")}
           logoUrl={merchant?.logo_url}
           programName={program.name}
           programId={program.id}

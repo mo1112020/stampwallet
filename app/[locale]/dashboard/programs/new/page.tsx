@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ProgramForm } from "@/components/dashboard/program-form";
 import { getSessionOrNull } from "@/lib/api";
 import { roleHasCapability } from "@/lib/auth/permissions";
@@ -14,6 +14,7 @@ export default async function NewProgramPage({
   const { locale } = await params;
   const { name, primaryColor, secondaryColor, iconName, backgroundImage } = await searchParams;
   setRequestLocale(locale);
+  const t = await getTranslations("programs");
 
   const session = await getSessionOrNull();
   if (!session) redirect(`/${locale}/login`);
@@ -24,7 +25,7 @@ export default async function NewProgramPage({
   return (
     <div>
       <h1 className="mb-8 text-3xl font-bold tracking-tight text-[var(--ink)]">
-        Create program
+        {t("createTitle")}
       </h1>
       <ProgramForm
         mode="create"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { readableTextColor } from "@/lib/print/color";
 
 type Props = {
@@ -20,6 +21,7 @@ type Props = {
  * join page.
  */
 export function JoinPagePhonePreview({ businessName, programName, description, logoUrl, backgroundColor, buttonColor, style }: Props) {
+  const t = useTranslations("joinPreview");
   const editorial = style === "editorial";
   const textColor = readableTextColor(backgroundColor);
   const onDark = textColor === "#ffffff";
@@ -63,12 +65,12 @@ export function JoinPagePhonePreview({ businessName, programName, description, l
             </p>
           </div>
           <div className="mt-4 rounded-xl bg-white p-3 shadow-sm">
-            <p className="text-[11px] font-bold text-[#1c1c1c]">Join the program</p>
+            <p className="text-[11px] font-bold text-[#1c1c1c]">{t("joinTheProgram")}</p>
             <div className="mt-3 h-7 rounded-full bg-gray-100" />
             <div className="mt-2 h-7 rounded-full bg-gray-100" />
             <div className="mt-2 h-7 rounded-full bg-gray-100" />
             <div className="mt-3 h-8 rounded-full text-center text-[9px] font-bold leading-8 text-white" style={{ backgroundColor: buttonColor }}>
-              Join & get your pass
+              {t("joinButton")}
             </div>
           </div>
         </div>

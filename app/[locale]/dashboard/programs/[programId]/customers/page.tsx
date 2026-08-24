@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Download, Users } from "lucide-react";
 import { getSessionOrNull } from "@/lib/api";
 import { roleHasCapability } from "@/lib/auth/permissions";
@@ -15,6 +15,7 @@ export default async function ProgramCustomersPage({
 }) {
   const { locale, programId } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("programs");
 
   const session = await getSessionOrNull();
   if (!session) redirect(`/${locale}/login`);
@@ -40,21 +41,21 @@ export default async function ProgramCustomersPage({
     <div>
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
-          {program?.name ? `${program.name} — Customers` : "Customers"}
+          {program?.name ? t("customersTitle", { name: program.name }) : t("customersTitleFallback")}
         </h1>
         <Link
           href={`/api/customers/export?program_id=${programId}`}
           className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)]"
         >
           <Download className="h-4 w-4" />
-          Export CSV
+          {t("exportCsv")}
         </Link>
       </div>
 
       {customers.length === 0 ? (
         <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] p-12 text-center">
           <Users className="h-8 w-8 text-[var(--muted)]" strokeWidth={1.5} />
-          <p className="text-[var(--muted)]">No customers enrolled yet.</p>
+          <p className="text-[var(--muted)]">{t("noCustomersEnrolled")}</p>
         </div>
       ) : (
         <StaggerGroup className="mt-8 divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
@@ -67,7 +68,7 @@ export default async function ProgramCustomersPage({
             return (
               <div key={row.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-[var(--ink)]">{customer?.name || "Anonymous"}</p>
+                  <p className="truncate font-medium text-[var(--ink)]">{customer?.name || t("anonymous")}</p>
                   <p className="truncate text-sm text-[var(--muted)]">
                     {customer?.email || customer?.phone || row.pass_id}
                   </p>

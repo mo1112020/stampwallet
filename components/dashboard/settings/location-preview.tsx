@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export function LocationPushPreview({
   message,
   businessName,
@@ -11,6 +13,7 @@ export function LocationPushPreview({
   logoUrl?: string | null;
   active: boolean;
 }) {
+  const t = useTranslations("settings.locations");
   return (
     <div className="flex flex-col items-center gap-3">
       <span
@@ -20,7 +23,7 @@ export function LocationPushPreview({
         }
       >
         <span className={`h-2 w-2 rounded-full ${active ? "bg-[var(--success)]" : "bg-[var(--muted)]"}`} />
-        {active ? "Active" : "Inactive"}
+        {active ? t("active") : t("inactive")}
       </span>
 
       <div className="relative h-[420px] w-[210px] shrink-0 overflow-hidden rounded-[36px] border-[8px] border-[#2b2b2b] bg-[#e5e5e7] shadow-xl">
@@ -42,8 +45,8 @@ export function LocationPushPreview({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-[11px] font-semibold text-black">{businessName || "Your business"}</span>
-                <span className="shrink-0 text-[10px] text-black/50">now</span>
+                <span className="truncate text-[11px] font-semibold text-black">{businessName || t("pushPreviewBusinessFallback")}</span>
+                <span className="shrink-0 text-[10px] text-black/50">{t("pushPreviewNow")}</span>
               </div>
               <p className="mt-0.5 line-clamp-3 text-[11px] leading-snug text-black/80">{message}</p>
             </div>

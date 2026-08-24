@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
@@ -97,7 +98,7 @@ export function PhoneMockup({
   stampsRequired = 10,
   stampsCollected = 0,
   actionHref,
-  actionText = "Open",
+  actionText,
   isTemplate = false,
   isActive,
   programType = "stamp",
@@ -108,6 +109,8 @@ export function PhoneMockup({
   secondaryAction,
   barcodeStyle = "qr",
 }: PhoneMockupProps) {
+  const t = useTranslations("phoneMockup");
+  const td = useTranslations("dashboard");
   const Icon = getIconComponent(iconName);
   const reduced = useReducedMotion();
   const isFlipCard = flipped !== undefined;
@@ -161,7 +164,7 @@ export function PhoneMockup({
           isActive ? "bg-[var(--success-soft)] text-[var(--success)]" : "bg-[var(--danger-soft)] text-[var(--danger)]"
         )}>
           <div className={cn("h-2 w-2 rounded-full", isActive ? "bg-[var(--success)]" : "bg-[var(--danger)]")} />
-          {isActive ? "Active" : "Inactive"}
+          {isActive ? td("active") : td("inactive")}
         </div>
       )}
 
@@ -215,7 +218,7 @@ export function PhoneMockup({
                     <Icon className="h-3.5 w-3.5" />
                   </div>
                 )}
-                <p className="truncate text-sm font-bold">{businessName || name || "Business"}</p>
+                <p className="truncate text-sm font-bold">{businessName || name || t("businessFallback")}</p>
               </div>
 
               {/* Top image area — no text drawn on it, matching the real
@@ -385,23 +388,23 @@ export function PhoneMockup({
                   real card, just reflowed for the narrower preview. */}
               <div className="grid grid-cols-2 gap-x-3 gap-y-2 px-3 pt-3 pb-1 text-[9px]">
                 <div className="min-w-0">
-                  <p className="opacity-60 uppercase tracking-wide">Reward</p>
-                  <p className="truncate text-[11px] font-bold">{programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}</p>
+                  <p className="opacity-60 uppercase tracking-wide">{t("reward")}</p>
+                  <p className="truncate text-[11px] font-bold">{programType === "steps" ? (stages[0]?.label ?? t("reward")) : (rewardDescription ?? t("freeItemFallback"))}</p>
                 </div>
                 <div className="min-w-0 text-end">
-                  <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? "points to reward" : programType === "steps" ? "next milestone" : "stamps to reward"}</p>
-                  <p className="truncate text-[11px] font-bold">{programType === "points" ? `${pointsTarget - demoPoints} left` : programType === "steps" ? (stages[1]?.label ?? "Complete") : `${Math.max(0, stampsRequired - stampsCollected)} left`}</p>
+                  <p className="opacity-60 uppercase tracking-wide">{programType === "points" ? t("pointsToReward") : programType === "steps" ? t("nextMilestone") : t("stampsToReward")}</p>
+                  <p className="truncate text-[11px] font-bold">{programType === "points" ? t("left", { count: pointsTarget - demoPoints }) : programType === "steps" ? (stages[1]?.label ?? t("complete")) : t("left", { count: Math.max(0, stampsRequired - stampsCollected) })}</p>
                 </div>
                 {expirationPreview && (
                   <div className="col-span-2 min-w-0 border-t border-white/15 pt-2">
-                    <p className="opacity-60 uppercase tracking-wide">Expires</p>
+                    <p className="opacity-60 uppercase tracking-wide">{t("expires")}</p>
                     <p className="truncate text-[11px] font-bold">{formatDaysRemaining(expirationPreview)}</p>
                     {/* Always the full configured window, as if a member
                         joined today — a real member's card counts down from
                         THEIR join date, so it legitimately shows fewer days
                         the longer they've been enrolled. Without this note
                         that reads as a mismatch against a real card. */}
-                    <p className="mt-0.5 text-[7px] opacity-50">For a member joining today</p>
+                    <p className="mt-0.5 text-[7px] opacity-50">{t("expiresNote")}</p>
                   </div>
                 )}
               </div>
@@ -435,24 +438,24 @@ export function PhoneMockup({
                 style={{ backgroundColor: primaryColor }}
               >
                 <div className="px-4 py-4">
-                  <p className="text-[10px] uppercase tracking-[0.2em] opacity-75">{name || "Program name"}</p>
-                  <h4 className="mt-1.5 text-xs font-bold">Card details</h4>
+                  <p className="text-[10px] uppercase tracking-[0.2em] opacity-75">{name || t("programNameFallback")}</p>
+                  <h4 className="mt-1.5 text-xs font-bold">{t("cardDetails")}</h4>
                   <div className="mt-3 space-y-3 text-[10px] leading-relaxed">
                     <div>
-                      <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">Reward</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">{t("reward")}</p>
                       <p className="mt-0.5 font-medium">
-                        {programType === "steps" ? (stages[0]?.label ?? "Reward") : (rewardDescription ?? "Free item")}
+                        {programType === "steps" ? (stages[0]?.label ?? t("reward")) : (rewardDescription ?? t("freeItemFallback"))}
                       </p>
                     </div>
                     {cardDetails?.description && (
                       <div>
-                        <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">About</p>
+                        <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">{t("about")}</p>
                         <p className="mt-0.5 whitespace-pre-line opacity-90">{cardDetails.description}</p>
                       </div>
                     )}
                     {cardDetails?.terms && (
                       <div>
-                        <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">Terms</p>
+                        <p className="text-[9px] font-semibold uppercase tracking-wide opacity-60">{t("terms")}</p>
                         <p className="mt-0.5 whitespace-pre-line opacity-80">{cardDetails.terms}</p>
                       </div>
                     )}
@@ -462,7 +465,7 @@ export function PhoneMockup({
                       </p>
                     )}
                     {!cardDetails?.description && !cardDetails?.terms && !cardDetails?.website && (
-                      <p className="opacity-70">Add a welcome message, terms, or a link so members know what to expect.</p>
+                      <p className="opacity-70">{t("addDetailsHint")}</p>
                     )}
                   </div>
                 </div>
@@ -475,7 +478,7 @@ export function PhoneMockup({
 
       {/* Label & action */}
       {!previewOnly && <div className="w-[235px]">
-        <h3 className="text-center text-sm font-semibold text-[var(--ink)] truncate">{name || "Untitled"}</h3>
+        <h3 className="text-center text-sm font-semibold text-[var(--ink)] truncate">{name || t("untitled")}</h3>
         <div className="mt-2 flex items-center gap-1.5">
           {actionHref && (
             <Link
@@ -487,7 +490,7 @@ export function PhoneMockup({
                   : "border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-2)]"
               )}
             >
-              {actionText}
+              {actionText ?? t("open")}
             </Link>
           )}
           {secondaryAction && (
@@ -509,6 +512,7 @@ export function PhoneMockup({
 }
 
 export function EmptyPhoneMockup({ locale }: { locale: string }) {
+  const t = useTranslations("phoneMockup");
   return (
     <div className="flex flex-col items-center gap-3">
       <Link
@@ -518,22 +522,22 @@ export function EmptyPhoneMockup({ locale }: { locale: string }) {
         <div className="absolute top-3 left-1/2 h-5 w-24 -translate-x-1/2 rounded-full bg-[var(--surface-3)]" />
         <div className="flex flex-col items-center gap-2 text-[var(--muted)]">
           <LucideIcons.Plus className="h-12 w-12" strokeWidth={1.5} />
-          <span className="text-sm font-medium">New card</span>
+          <span className="text-sm font-medium">{t("newCard")}</span>
         </div>
       </Link>
       <div className="w-[235px] space-y-2">
-        <h3 className="text-center text-sm font-semibold text-[var(--ink)]">Create card</h3>
+        <h3 className="text-center text-sm font-semibold text-[var(--ink)]">{t("createCard")}</h3>
         <Link
           href={`/${locale}/dashboard/templates`}
           className="block w-full rounded-xl bg-[var(--ink)] px-4 py-2 text-center text-sm font-semibold text-[var(--surface)] hover:opacity-90 active:scale-95"
         >
-          Browse templates
+          {t("browseTemplates")}
         </Link>
         <Link
           href={`/${locale}/dashboard/programs/new`}
           className="block w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] hover:bg-[var(--surface-2)] active:scale-95"
         >
-          From scratch
+          {t("fromScratch")}
         </Link>
       </div>
     </div>

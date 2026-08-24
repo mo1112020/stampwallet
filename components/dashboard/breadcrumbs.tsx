@@ -50,7 +50,7 @@ export function Breadcrumbs({ locale }: { locale: string }) {
   if (crumbs.length <= 1) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-[13px] lg:flex">
+    <nav aria-label={t("ariaLabel")} className="hidden items-center gap-1.5 text-[13px] lg:flex">
       {crumbs.map((crumb, i) => {
         const isLast = i === crumbs.length - 1;
         return (

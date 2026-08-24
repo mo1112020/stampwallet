@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -47,6 +48,7 @@ export function LocationMap({
   onPick?: (lat: number, lng: number) => void;
   interactive?: boolean;
 }) {
+  const t = useTranslations("settings.locations");
   return (
     <div className="relative h-64 w-full overflow-hidden rounded-2xl border border-[var(--line)]">
       <MapContainer
@@ -81,7 +83,7 @@ export function LocationMap({
       </MapContainer>
       {interactive && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2.5 text-center text-xs font-medium text-white">
-          Tap the map (or drag the pin) to set the location
+          {t("mapPickHint")}
         </div>
       )}
     </div>

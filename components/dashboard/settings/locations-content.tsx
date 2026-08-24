@@ -330,8 +330,13 @@ export function LocationsContent({
                     onClick={() => toggleActive(loc)}
                     role="switch"
                     aria-checked={loc.is_active}
+                    // The visible track is only 24px tall (h-6) — well under
+                    // the ~44px minimum touch target — so the invisible
+                    // ::after extends the actual tap area vertically without
+                    // changing how the switch looks (same pattern as the
+                    // email/notification prefs toggles).
                     className={cn(
-                      "h-6 w-11 shrink-0 rounded-full transition-colors active:scale-95 [transition-property:background-color,transform] duration-150",
+                      "relative h-6 w-11 shrink-0 rounded-full transition-colors after:absolute after:-inset-y-3 after:inset-x-0 after:content-[''] active:scale-95 [transition-property:background-color,transform] duration-150",
                       loc.is_active ? "bg-[var(--success)]" : "bg-[var(--surface-3)]"
                     )}
                   >

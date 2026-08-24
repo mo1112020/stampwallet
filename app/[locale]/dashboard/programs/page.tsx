@@ -15,6 +15,7 @@ export default async function ProgramsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
+  const tp = await getTranslations("programs");
 
   const session = await getSessionOrNull();
   if (!session) redirect(`/${locale}/login`);
@@ -22,7 +23,7 @@ export default async function ProgramsPage({
   if (!roleHasCapability(session.role, "manage_programs")) {
     return (
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">Programs</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{tp("title")}</h1>
         <p className="mt-4 text-sm text-[var(--muted)]">{t("noAccess")}</p>
       </div>
     );
@@ -39,7 +40,7 @@ export default async function ProgramsPage({
     <div className="mx-auto max-w-6xl">
       {/* Header */}
       <div className="mb-10 flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">Programs</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--ink)]">{tp("title")}</h1>
         <Link
           href={`/${locale}/dashboard/templates`}
           className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 active:scale-95"
@@ -73,7 +74,7 @@ export default async function ProgramsPage({
               stampsCollected={0}
               isActive={p.is_active}
               actionHref={`/${locale}/dashboard/programs/${p.id}`}
-              actionText="Manage"
+              actionText={tp("manage")}
             />
           );
         })}
@@ -85,12 +86,12 @@ export default async function ProgramsPage({
       {/* Empty state */}
       {!(programs ?? []).length && (
         <div className="mt-16 flex flex-col items-center text-center">
-          <p className="text-[var(--muted)]">No programs yet. Start by browsing templates.</p>
+          <p className="text-[var(--muted)]">{tp("emptyTitle")}</p>
           <Link
             href={`/${locale}/dashboard/templates`}
             className="mt-4 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white"
           >
-            Browse Templates
+            {tp("browseTemplates")}
           </Link>
         </div>
       )}

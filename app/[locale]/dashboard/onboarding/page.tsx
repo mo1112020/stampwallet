@@ -8,6 +8,7 @@ import { Input, Label } from "@/components/ui/input";
 
 export default function OnboardingPage() {
   const t = useTranslations("onboarding");
+  const tAuth = useTranslations("auth");
   const params = useParams();
   const locale = params.locale as string;
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function OnboardingPage() {
       </h1>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <div>
-          <Label htmlFor="name">Business name</Label>
+          <Label htmlFor="name">{tAuth("businessName")}</Label>
           <Input id="name" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
         </div>
         <div>

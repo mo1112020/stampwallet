@@ -55,7 +55,11 @@ export function NotificationsPrefsForm({ initialPrefs }: { initialPrefs: Notific
               aria-checked={Boolean(prefs[key])}
               onClick={() => save({ ...prefs, [key]: !prefs[key] })}
               disabled={saving}
-              className={`h-6 w-11 shrink-0 rounded-full transition-colors active:scale-95 disabled:opacity-50 ${
+              // The visible track is only 24px tall (h-6) — well under the
+              // ~44px minimum touch target — so the invisible ::after
+              // extends the actual tap area vertically without changing how
+              // the switch looks.
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors after:absolute after:-inset-y-3 after:inset-x-0 after:content-[''] active:scale-95 disabled:opacity-50 ${
                 prefs[key] ? "bg-[var(--primary)]" : "bg-[var(--line-strong)]"
               }`}
             >

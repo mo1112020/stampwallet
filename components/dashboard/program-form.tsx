@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { PhoneMockup } from "@/components/dashboard/phone-mockup";
@@ -20,32 +21,32 @@ import { Lock, ChevronDown, ChevronUp, ImageUp, Loader2 } from "lucide-react";
 // with the exact same fragility — "bakery" here pointed at the identical
 // now-deleted Unsplash photo the templates gallery's bakery entry did.
 const PRESET_IMAGES = [
-  { id: "none", label: "None", url: undefined },
-  { id: "coffee",     label: "Coffee",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/cafe.jpg" },
-  { id: "bakery",     label: "Bakery",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bakery.jpg" },
-  { id: "pizza",      label: "Pizza",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/pizza.jpg" },
-  { id: "restaurant", label: "Restaurant",  url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/restaurant.jpg" },
-  { id: "bbq",        label: "BBQ",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barbecue.jpg" },
-  { id: "salon",      label: "Salon",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/salon.jpg" },
-  { id: "barber",     label: "Barber",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barber.jpg" },
-  { id: "gym",        label: "Gym",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gym.jpg" },
-  { id: "bike",       label: "Bike",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bike.jpg" },
-  { id: "gaming",     label: "Gaming",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gaming.jpg" },
-  { id: "spa",        label: "Spa",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/spa.jpg" },
-  { id: "bookstore",  label: "Bookstore",   url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bookstore.jpg" },
-  { id: "music",      label: "Music",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/music.jpg" },
-  { id: "fashion",    label: "Fashion",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/fashion.jpg" },
-  { id: "petshop",    label: "Pets",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/petshop.jpg" },
-  { id: "art",        label: "Art",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/art.jpg" },
-  { id: "bar",        label: "Bar",         url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bar.jpg" },
-  { id: "nail-salon", label: "Nail Salon",  url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/nail-salon.jpg" },
-  { id: "yoga",       label: "Yoga",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/yoga.jpg" },
-  { id: "car-wash",   label: "Car Wash",    url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/car-wash.jpg" },
-  { id: "ice-cream",  label: "Ice Cream",   url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/ice-cream.jpg" },
-  { id: "sushi",      label: "Sushi",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/sushi.jpg" },
-  { id: "florist",    label: "Florist",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/florist.jpg" },
-  { id: "tattoo",     label: "Tattoo",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/tattoo.jpg" },
-  { id: "jewelry",    label: "Jewelry",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/jewelry.jpg" },
+  { id: "none", url: undefined },
+  { id: "coffee",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/cafe.jpg" },
+  { id: "bakery",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bakery.jpg" },
+  { id: "pizza",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/pizza.jpg" },
+  { id: "restaurant", url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/restaurant.jpg" },
+  { id: "bbq",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barbecue.jpg" },
+  { id: "salon",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/salon.jpg" },
+  { id: "barber",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/barber.jpg" },
+  { id: "gym",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gym.jpg" },
+  { id: "bike",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bike.jpg" },
+  { id: "gaming",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/gaming.jpg" },
+  { id: "spa",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/spa.jpg" },
+  { id: "bookstore",  url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bookstore.jpg" },
+  { id: "music",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/music.jpg" },
+  { id: "fashion",    url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/fashion.jpg" },
+  { id: "petshop",    url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/petshop.jpg" },
+  { id: "art",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/art.jpg" },
+  { id: "bar",        url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/bar.jpg" },
+  { id: "nail-salon", url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/nail-salon.jpg" },
+  { id: "yoga",       url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/yoga.jpg" },
+  { id: "car-wash",   url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/car-wash.jpg" },
+  { id: "ice-cream",  url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/ice-cream.jpg" },
+  { id: "sushi",      url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/sushi.jpg" },
+  { id: "florist",    url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/florist.jpg" },
+  { id: "tattoo",     url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/tattoo.jpg" },
+  { id: "jewelry",    url: "https://www.walletos.online/storage/v1/object/public/card-backgrounds/templates/jewelry.jpg" },
 ];
 
 // Organized icon categories — icons themselves are OpenMoji color SVGs
@@ -54,31 +55,26 @@ const PRESET_IMAGES = [
 // not Lucide components, so only the name is needed here.
 const ICON_CATEGORIES = [
   {
-    label: "Food & Drink",
+    key: "iconCategoryFood",
     icons: ["Coffee", "CoffeeBean", "Tea", "Pizza", "Croissant", "Utensils", "Beer", "Wine", "Apple", "Soup", "IceCream", "Sandwich", "Fish"],
   },
   {
-    label: "Sports & Fitness",
+    key: "iconCategorySports",
     icons: ["Dumbbell", "Bike", "Gamepad2", "CircleDot", "Flame", "Zap"],
   },
   {
-    label: "Retail & Services",
+    key: "iconCategoryRetail",
     icons: ["ShoppingBag", "Scissors", "Shirt", "Ticket", "Gift", "Car", "Droplets", "Gem"],
   },
   {
-    label: "Culture & Lifestyle",
+    key: "iconCategoryCulture",
     icons: ["Music", "BookOpen", "Paintbrush", "Camera", "Flower2", "Leaf", "Writing"],
   },
   {
-    label: "Other",
+    key: "iconCategoryOther",
     icons: ["Star", "Heart", "Smile", "Dog", "Globe", "Home", "Sun", "Moon", "Sparkles"],
   },
-];
-
-const BARCODE_STYLE_OPTIONS: { value: BarcodeStyle; label: string; description: string }[] = [
-  { value: "qr", label: "Standard QR", description: "Classic square QR code" },
-  { value: "pdf417", label: "PDF417", description: "Stacked 2D barcode" },
-];
+] as const;
 
 /** Matches what the generated wallet cards actually render — Google's
  * heroImage shows up to 4 milestones and Apple's strip up to 3 (see
@@ -101,14 +97,14 @@ const defaultConfigs: Record<ProgramType, ProgramConfig> = {
 
 // Both create and edit walk the same six steps — editing a program should feel identical
 // to creating one, just pre-filled.
-const STEPS = ["Basic information", "Branding", "Rewards", "Wallet setup", "Card appearance", "Review & save"] as const;
+const STEP_KEYS = ["basic", "branding", "rewards", "wallet", "card", "review"] as const;
 const STEP_BASIC = 0;
 const STEP_BRANDING = 1;
 const STEP_REWARDS = 2;
 const STEP_WALLET = 3;
 const STEP_CARD = 4;
 const STEP_REVIEW = 5;
-const LAST_STEP = STEPS.length - 1;
+const LAST_STEP = STEP_KEYS.length - 1;
 
 function ReviewRow({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
@@ -142,7 +138,7 @@ export function ProgramForm({
   mode,
   initial,
   initialName = "",
-  businessName = "Your business",
+  businessName: businessNameProp,
   businessLogo,
   primaryColor: initPrimaryColor = "#3E0856",
   secondaryColor: initSecondaryColor = "#FAAE62",
@@ -150,10 +146,12 @@ export function ProgramForm({
   initialBackgroundImage,
   merchantPlan = "free",
 }: Props) {
+  const t = useTranslations("programForm");
   const canUseCardExpiration = PLAN_LIMITS[merchantPlan].cardExpiration;
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
+  const businessName = businessNameProp || t("businessFallback");
 
 
   const [name, setName] = useState(initial?.name ?? initialName);
@@ -268,7 +266,7 @@ export function ProgramForm({
 
   function goToNextStep() {
     if (step === STEP_BASIC && !name.trim()) {
-      setError("Give your program a name before continuing.");
+      setError(t("nameRequiredError"));
       return;
     }
     setError(null);
@@ -291,7 +289,7 @@ export function ProgramForm({
     const result = await response.json();
     setUploadingBackground(false);
     if (!response.ok) {
-      setUploadError(result.error ?? "Could not upload that image.");
+      setUploadError(result.error ?? t("errors.uploadImageFailed"));
       return;
     }
     setBackground(result.url);
@@ -306,7 +304,7 @@ export function ProgramForm({
     const result = await response.json();
     setUploadingLogo(false);
     if (!response.ok) {
-      setUploadError(result.error ?? "Could not upload that logo.");
+      setUploadError(result.error ?? t("errors.uploadLogoFailed"));
       return;
     }
     updateEnrollment({ logo_url: result.url });
@@ -344,7 +342,7 @@ export function ProgramForm({
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error?.message ?? "Failed");
+        setError(json.error?.message ?? t("errors.saveFailed"));
         return;
       }
 
@@ -357,7 +355,7 @@ export function ProgramForm({
       );
       router.refresh();
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(t("errors.networkError"));
     } finally {
       setLoading(false);
     }
@@ -365,7 +363,7 @@ export function ProgramForm({
 
   async function deleteProgram() {
     if (!initial) return;
-    if (!window.confirm(`Delete “${name}”? This permanently removes the program and its member progress.`)) return;
+    if (!window.confirm(t("errors.deleteConfirm", { name }))) return;
     setLoading(true);
     setError(null);
     try {
@@ -377,23 +375,29 @@ export function ProgramForm({
         // wallet pass already on their phone). Point the merchant at the
         // "Active" toggle above instead — same PATCH the normal save uses,
         // fully reversible, and it preserves everything.
-        setError(json.error?.message ?? "Couldn't delete this program.");
+        setError(json.error?.message ?? t("errors.deleteFailed"));
         return;
       }
       router.push(`/${locale}/dashboard/programs`);
       router.refresh();
     } catch {
-      setError("Couldn't reach the server. Check your connection and try again.");
+      setError(t("errors.networkError"));
     } finally {
       setLoading(false);
     }
   }
 
+  const STEPS = STEP_KEYS.map((key) => t(`steps.${key}`));
+  const BARCODE_STYLE_OPTIONS: { value: BarcodeStyle; label: string; description: string }[] = [
+    { value: "qr", label: t("branding.barcodeQrLabel"), description: t("branding.barcodeQrDesc") },
+    { value: "pdf417", label: t("branding.barcodePdfLabel"), description: t("branding.barcodePdfDesc") },
+  ];
+
   return (
     <div className="flex flex-col lg:flex-row lg:items-start gap-10">
       <form onSubmit={onSubmit} className="flex flex-1 flex-col gap-8 pb-10">
 
-        <nav aria-label="Program steps" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <nav aria-label={t("stepsAriaLabel")} className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {STEPS.map((label, index) => (
             <button
               key={label}
@@ -417,40 +421,40 @@ export function ProgramForm({
 
         {/* Step 1 — Basic information */}
         <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_BASIC && "hidden")}>
-          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Basic information</h2>
-          <p className="mb-5 text-sm text-[var(--muted)]">Name the program and choose how members earn rewards.</p>
+          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">{t("basic.heading")}</h2>
+          <p className="mb-5 text-sm text-[var(--muted)]">{t("basic.subtitle")}</p>
           <div className="space-y-6">
             <div>
-              <Label htmlFor="name" className="text-[var(--muted)]">Program name</Label>
+              <Label htmlFor="name" className="text-[var(--muted)]">{t("basic.nameLabel")}</Label>
               <Input
                 id="name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="mt-1.5 text-lg"
-                placeholder="e.g. VIP Club"
+                placeholder={t("basic.namePlaceholder")}
               />
             </div>
 
             {mode === "create" && (
               <div>
-                <Label className="text-[var(--muted)]">Program Type</Label>
+                <Label className="text-[var(--muted)]">{t("basic.typeLabel")}</Label>
                 <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  {(["stamp", "points", "steps"] as ProgramType[]).map((t) => (
+                  {(["stamp", "points", "steps"] as ProgramType[]).map((pt) => (
                     <button
-                      key={t}
+                      key={pt}
                       type="button"
-                      aria-pressed={type === t}
-                      onClick={() => switchType(t)}
+                      aria-pressed={type === pt}
+                      onClick={() => switchType(pt)}
                       className={`rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-all ${
-                        type === t
+                        type === pt
                           ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] shadow-sm"
                           : "border-[var(--line)] text-[var(--muted)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"
                       }`}
                     >
-                      <span className="block capitalize">{t}</span>
+                      <span className="block">{pt === "stamp" ? t("basic.typeStamp") : pt === "points" ? t("basic.typePoints") : t("basic.typeSteps")}</span>
                       <span className="mt-0.5 block text-xs font-normal opacity-75">
-                        {t === "stamp" ? "Collect visits" : t === "points" ? "Earn a balance" : "Unlock milestones"}
+                        {pt === "stamp" ? t("basic.typeStampDesc") : pt === "points" ? t("basic.typePointsDesc") : t("basic.typeStepsDesc")}
                       </span>
                     </button>
                   ))}
@@ -466,7 +470,7 @@ export function ProgramForm({
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="h-5 w-5 rounded border-[var(--line-strong)] text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
-                Program is active
+                {t("basic.activeCheckbox")}
               </label>
             )}
           </div>
@@ -474,12 +478,12 @@ export function ProgramForm({
 
         {/* Step 2 — Branding */}
         <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_BRANDING && "hidden")}>
-          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Branding</h2>
-          <p className="mb-5 text-sm text-[var(--muted)]">Set the card's colors and background image.</p>
+          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">{t("branding.heading")}</h2>
+          <p className="mb-5 text-sm text-[var(--muted)]">{t("branding.subtitle")}</p>
 
           <div className="mb-6 flex flex-wrap items-center gap-6 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
             <div className="flex-1">
-              <Label htmlFor="primaryColor" className="text-[var(--muted)]">Card Color</Label>
+              <Label htmlFor="primaryColor" className="text-[var(--muted)]">{t("branding.cardColor")}</Label>
               <div className="mt-1.5 flex items-center gap-3">
                 <div className="relative h-10 w-14 overflow-hidden rounded-lg border border-[var(--line)] shadow-sm">
                   <input
@@ -495,7 +499,7 @@ export function ProgramForm({
             </div>
             
             <div className="flex-1">
-              <Label htmlFor="secondaryColor" className="text-[var(--muted)]">Accent Color</Label>
+              <Label htmlFor="secondaryColor" className="text-[var(--muted)]">{t("branding.accentColor")}</Label>
               <div className="mt-1.5 flex items-center gap-3">
                 <div className="relative h-10 w-14 overflow-hidden rounded-lg border border-[var(--line)] shadow-sm">
                   <input
@@ -513,18 +517,18 @@ export function ProgramForm({
 
           {/* Background image selection */}
           <div>
-            <Label className="text-[var(--muted)]">Background Image</Label>
+            <Label className="text-[var(--muted)]">{t("branding.backgroundImage")}</Label>
             <p className="mt-1 mb-4 text-sm text-[var(--muted)]">
-              Choose a photo for your card background. Once picked, drag the photo in the live preview on the right to choose which part of it shows.
+              {t("branding.backgroundImageHint")}
             </p>
-            
+
             <div className="flex flex-wrap items-center gap-4">
               <div className="relative h-20 w-32 shrink-0 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-3)] shadow-sm flex items-center justify-center">
                 {backgroundImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={backgroundImage} alt="Background" className="h-full w-full object-cover" />
+                  <img src={backgroundImage} alt={t("branding.backgroundImage")} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-xs font-medium text-[var(--muted)]">None</span>
+                  <span className="text-xs font-medium text-[var(--muted)]">{t("branding.none")}</span>
                 )}
                 {uploadingBackground && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
@@ -533,16 +537,16 @@ export function ProgramForm({
                 )}
               </div>
               <Button type="button" variant="outline" onClick={() => setShowAllPhotos(true)}>
-                Choose a photo
+                {t("branding.choosePhoto")}
               </Button>
             </div>
           </div>
 
           {/* Barcode style selection */}
           <div className="mt-6">
-            <Label className="text-[var(--muted)]">Barcode Style</Label>
+            <Label className="text-[var(--muted)]">{t("branding.barcodeStyle")}</Label>
             <p className="mt-1 mb-4 text-sm text-[var(--muted)]">
-              Used for the scannable code on the wallet card and staff scanning. Printed materials and flyers always use a standard QR code regardless of this setting.
+              {t("branding.barcodeStyleHint")}
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {BARCODE_STYLE_OPTIONS.map((opt) => (
@@ -569,7 +573,7 @@ export function ProgramForm({
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 animate-in fade-in duration-200">
               <div className="relative flex max-h-[85vh] w-full max-w-4xl flex-col rounded-2xl bg-[var(--surface)] shadow-2xl">
                 <div className="flex items-center justify-between border-b p-5">
-                  <h3 className="text-lg font-semibold text-[var(--ink)]">Choose a photo</h3>
+                  <h3 className="text-lg font-semibold text-[var(--ink)]">{t("branding.photoModalTitle")}</h3>
                   <button type="button" onClick={() => setShowAllPhotos(false)} className="rounded-full p-2 text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)] transition-colors">
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -581,6 +585,7 @@ export function ProgramForm({
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {PRESET_IMAGES.map((img) => {
                       const selected = backgroundImage === img.url;
+                      const label = img.id === "none" ? t("branding.none") : t(`branding.presets.${img.id}`);
                       return (
                         <button
                           key={img.id}
@@ -598,15 +603,15 @@ export function ProgramForm({
                           {img.url ? (
                             <div className="aspect-video w-full">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={img.url} alt={img.label} className="h-full w-full object-cover" />
+                              <img src={img.url} alt={label} className="h-full w-full object-cover" />
                             </div>
                           ) : (
                             <div className="flex aspect-video w-full items-center justify-center bg-[var(--surface-3)] text-sm font-medium text-[var(--muted)]">
-                              None
+                              {t("branding.none")}
                             </div>
                           )}
                           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 p-2">
-                            <span className="text-[10px] font-semibold text-white tracking-wide uppercase">{img.label}</span>
+                            <span className="text-[10px] font-semibold text-white tracking-wide uppercase">{label}</span>
                           </div>
                           {selected && (
                             <div className="absolute inset-0 flex items-center justify-center bg-[var(--primary)]/20">
@@ -645,11 +650,11 @@ export function ProgramForm({
                       ) : (
                         <ImageUp className="mr-2 h-4 w-4" />
                       )}
-                      {uploadingBackground ? "Uploading…" : "Upload your own"}
+                      {uploadingBackground ? t("branding.uploading") : t("branding.uploadOwn")}
                     </Button>
                     {uploadError && <span className="text-sm text-[var(--danger)]">{uploadError}</span>}
                   </div>
-                  <Button type="button" onClick={() => setShowAllPhotos(false)}>Done</Button>
+                  <Button type="button" onClick={() => setShowAllPhotos(false)}>{t("branding.done")}</Button>
                 </div>
               </div>
             </div>
@@ -658,33 +663,33 @@ export function ProgramForm({
 
         {/* Step 5 — Card appearance (the pass's "back" — this is what the live preview flips to) */}
         <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_CARD && "hidden")}>
-          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Card appearance</h2>
-          <p className="mb-5 text-sm text-[var(--muted)]">These appear when a member opens “More details” on their pass — the back of the card in the preview.</p>
+          <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">{t("card.heading")}</h2>
+          <p className="mb-5 text-sm text-[var(--muted)]">{t("card.subtitle")}</p>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="cardDescription" className="text-[var(--muted)]">Welcome message</Label>
+              <Label htmlFor="cardDescription" className="text-[var(--muted)]">{t("card.welcomeMessage")}</Label>
               <Textarea
                 id="cardDescription"
                 rows={3}
                 value={(config as any).details?.description ?? ""}
                 onChange={(event) => setConfig((prev) => ({ ...(prev as any), details: { ...(prev as any).details, description: event.target.value } } as ProgramConfig))}
-                placeholder="Tell members what they can expect from this program."
+                placeholder={t("card.welcomeMessagePlaceholder")}
                 className="min-h-[84px]"
               />
             </div>
             <div>
-              <Label htmlFor="cardTerms" className="text-[var(--muted)]">Terms and conditions</Label>
+              <Label htmlFor="cardTerms" className="text-[var(--muted)]">{t("card.termsLabel")}</Label>
               <Textarea
                 id="cardTerms"
                 rows={3}
                 value={(config as any).details?.terms ?? ""}
                 onChange={(event) => setConfig((prev) => ({ ...(prev as any), details: { ...(prev as any).details, terms: event.target.value } } as ProgramConfig))}
-                placeholder="For example: one reward per visit, cannot be combined with other offers."
+                placeholder={t("card.termsPlaceholder")}
                 className="min-h-[84px]"
               />
             </div>
             <div>
-              <Label htmlFor="cardWebsite" className="text-[var(--muted)]">Website or contact link</Label>
+              <Label htmlFor="cardWebsite" className="text-[var(--muted)]">{t("card.websiteLabel")}</Label>
               <Input
                 id="cardWebsite"
                 type="url"
@@ -698,17 +703,17 @@ export function ProgramForm({
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="expirationEnabled" className="text-[var(--ink)]">Card expiration</Label>
+                    <Label htmlFor="expirationEnabled" className="text-[var(--ink)]">{t("card.expirationLabel")}</Label>
                     {!canUseCardExpiration && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-[var(--surface-3)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-                        <Lock className="h-2.5 w-2.5" /> Paid plan
+                        <Lock className="h-2.5 w-2.5" /> {t("card.paidPlanBadge")}
                       </span>
                     )}
                   </div>
                   <p className="mt-1 text-sm text-[var(--muted)]">
                     {canUseCardExpiration
-                      ? `Members see the card as expiring ${expiration.days} day${expiration.days === 1 ? "" : "s"} after they join — the wallet pass shows the remaining time and updates as it counts down.`
-                      : "Upgrade to a paid plan to make cards expire a set number of days after a customer joins."}
+                      ? t("card.expirationEnabledHint", { days: expiration.days })
+                      : t("card.expirationDisabledHint")}
                   </p>
                 </div>
                 <label className="flex shrink-0 items-center">
@@ -724,7 +729,7 @@ export function ProgramForm({
               </div>
               {expiration.enabled && canUseCardExpiration && (
                 <div className="mt-4 max-w-[180px]">
-                  <Label htmlFor="expirationDays" className="text-[var(--muted)]">Expires after (days)</Label>
+                  <Label htmlFor="expirationDays" className="text-[var(--muted)]">{t("card.expirationDaysLabel")}</Label>
                   <Input
                     id="expirationDays"
                     type="number"
@@ -747,21 +752,21 @@ export function ProgramForm({
         >
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-[var(--ink)]">Wallet setup</h2>
-              <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">This is the public join page people see before adding your loyalty pass to their wallet. It starts with your business details.</p>
+              <h2 className="text-lg font-semibold text-[var(--ink)]">{t("wallet.heading")}</h2>
+              <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">{t("wallet.subtitle")}</p>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => updateEnrollment({ business_name: "", program_name: "", description: "", logo_url: "" })}>
-              Use business defaults
+              {t("wallet.useDefaults")}
             </Button>
           </div>
 
           <div className="mb-7">
-            <Label className="text-[var(--muted)]">Choose a style</Label>
+            <Label className="text-[var(--muted)]">{t("wallet.chooseStyle")}</Label>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">
               {([
-                ["classic", "Classic", "Clear, familiar and focused"],
-                ["editorial", "Editorial", "Warm welcome with a strong story"],
-                ["spotlight", "Spotlight", "Bold color and a compact sign-up"],
+                ["classic", t("wallet.styleClassic"), t("wallet.styleClassicDesc")],
+                ["editorial", t("wallet.styleEditorial"), t("wallet.styleEditorialDesc")],
+                ["spotlight", t("wallet.styleSpotlight"), t("wallet.styleSpotlightDesc")],
               ] as [EnrollmentPageStyle, string, string][]).map(([style, title, detail]) => (
                 <button key={style} type="button" onClick={() => updateEnrollment({ style })} aria-pressed={(enrollment.style ?? "classic") === style} className={`rounded-xl border p-4 text-left transition-colors ${((enrollment.style ?? "classic") === style) ? "border-[var(--primary)] bg-[var(--primary-soft)]" : "border-[var(--line)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-2)]"}`}>
                   <span className="block text-sm font-semibold text-[var(--ink)]">{title}</span>
@@ -773,14 +778,14 @@ export function ProgramForm({
 
           <div className="mb-7 grid gap-4 rounded-xl bg-[var(--surface-2)] p-4 sm:grid-cols-2">
             <div>
-              <Label htmlFor="joinBackgroundColor" className="text-[var(--muted)]">Page background</Label>
+              <Label htmlFor="joinBackgroundColor" className="text-[var(--muted)]">{t("wallet.pageBackground")}</Label>
               <div className="mt-1.5 flex items-center gap-3">
                 <input id="joinBackgroundColor" type="color" value={enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")} onChange={(event) => updateEnrollment({ background_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1" />
                 <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{enrollment.background_color ?? (enrollment.style === "spotlight" ? primaryColor : "#F6F6F6")}</span>
               </div>
             </div>
             <div>
-              <Label htmlFor="joinButtonColor" className="text-[var(--muted)]">Join button color</Label>
+              <Label htmlFor="joinButtonColor" className="text-[var(--muted)]">{t("wallet.joinButtonColor")}</Label>
               <div className="mt-1.5 flex items-center gap-3">
                 <input id="joinButtonColor" type="color" value={enrollment.button_color ?? primaryColor} onChange={(event) => updateEnrollment({ button_color: event.target.value })} className="h-10 w-12 cursor-pointer rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1" />
                 <span className="font-mono text-sm font-medium uppercase text-[var(--ink)]">{enrollment.button_color ?? primaryColor}</span>
@@ -790,30 +795,30 @@ export function ProgramForm({
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <Label htmlFor="joinBusinessName" className="text-[var(--muted)]">Business name</Label>
+              <Label htmlFor="joinBusinessName" className="text-[var(--muted)]">{t("wallet.businessNameLabel")}</Label>
               <Input id="joinBusinessName" value={enrollment.business_name ?? ""} onChange={(event) => updateEnrollment({ business_name: event.target.value })} placeholder={businessName} />
-              <p className="mt-1.5 text-xs text-[var(--muted)]">Leave blank to use your business name.</p>
+              <p className="mt-1.5 text-xs text-[var(--muted)]">{t("wallet.businessNameHint")}</p>
             </div>
             <div>
-              <Label htmlFor="joinProgramName" className="text-[var(--muted)]">Program name</Label>
-              <Input id="joinProgramName" value={enrollment.program_name ?? ""} onChange={(event) => updateEnrollment({ program_name: event.target.value })} placeholder={name || "Your loyalty program"} />
-              <p className="mt-1.5 text-xs text-[var(--muted)]">Leave blank to use the program name above.</p>
+              <Label htmlFor="joinProgramName" className="text-[var(--muted)]">{t("wallet.programNameLabel")}</Label>
+              <Input id="joinProgramName" value={enrollment.program_name ?? ""} onChange={(event) => updateEnrollment({ program_name: event.target.value })} placeholder={name || t("wallet.programNameFallback")} />
+              <p className="mt-1.5 text-xs text-[var(--muted)]">{t("wallet.programNameHint")}</p>
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="joinLogo" className="text-[var(--muted)]">Logo URL</Label>
+              <Label htmlFor="joinLogo" className="text-[var(--muted)]">{t("wallet.logoUrlLabel")}</Label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input id="joinLogo" type="url" value={enrollment.logo_url ?? ""} onChange={(event) => updateEnrollment({ logo_url: event.target.value })} placeholder={businessLogo ?? "https://example.com/logo.png"} />
                 <input ref={logoUploadInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) uploadJoinLogo(file); event.currentTarget.value = ""; }} />
                 <Button type="button" variant="outline" onClick={() => logoUploadInputRef.current?.click()} disabled={uploadingLogo}>
                   {uploadingLogo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageUp className="mr-2 h-4 w-4" />}
-                  {uploadingLogo ? "Uploading…" : "Upload logo"}
+                  {uploadingLogo ? t("branding.uploading") : t("wallet.uploadLogo")}
                 </Button>
               </div>
-              <p className="mt-1.5 text-xs text-[var(--muted)]">Upload a logo, paste a URL, or leave blank to use your business logo.</p>
+              <p className="mt-1.5 text-xs text-[var(--muted)]">{t("wallet.logoHint")}</p>
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="joinDescription" className="text-[var(--muted)]">Welcome message</Label>
-              <Textarea id="joinDescription" value={enrollment.description ?? ""} onChange={(event) => updateEnrollment({ description: event.target.value })} placeholder="Join today, collect rewards, and keep your pass in your phone wallet." className="min-h-[100px]" />
+              <Label htmlFor="joinDescription" className="text-[var(--muted)]">{t("wallet.welcomeMessageLabel")}</Label>
+              <Textarea id="joinDescription" value={enrollment.description ?? ""} onChange={(event) => updateEnrollment({ description: event.target.value })} placeholder={t("wallet.welcomeMessagePlaceholder")} className="min-h-[100px]" />
             </div>
           </div>
 
@@ -823,9 +828,9 @@ export function ProgramForm({
       <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_REWARDS && "hidden")}>
         <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Rewards</h2>
         <p className="mb-5 text-sm text-[var(--muted)]">
-          {type === "stamp" && "Decide how many visits unlock the reward."}
-          {type === "points" && "Set the balance members need before they can claim their reward."}
-          {type === "steps" && "Add the milestones members unlock in order."}
+          {type === "stamp" && t("rewards.descStamp")}
+          {type === "points" && t("rewards.descPoints")}
+          {type === "steps" && t("rewards.descSteps")}
         </p>
 
         {/* Stamp-specific fields */}
@@ -833,7 +838,7 @@ export function ProgramForm({
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <Label className="text-[var(--muted)]">Stamps Required for Reward (1–25)</Label>
+                <Label className="text-[var(--muted)]">{t("rewards.stampsRequiredLabel")}</Label>
                 <Input
                   type="number"
                   min={1}
@@ -851,18 +856,18 @@ export function ProgramForm({
                 />
               </div>
               <div>
-                <Label className="text-[var(--muted)]">Reward Description</Label>
+                <Label className="text-[var(--muted)]">{t("rewards.rewardDescriptionLabel")}</Label>
                 <Input
                   value={(config as any).reward_description}
                   onChange={(e) =>
                     setConfig({ ...(config as any), reward_description: e.target.value } as ProgramConfig)
                   }
                   className="mt-1.5"
-                  placeholder="e.g. Free Coffee"
+                  placeholder={t("rewards.rewardDescriptionPlaceholderStamp")}
                 />
               </div>
               <div>
-                <Label className="text-[var(--muted)]">Pre-stamped cards (0–{stampsRequired})</Label>
+                <Label className="text-[var(--muted)]">{t("rewards.preStampedLabel", { max: stampsRequired })}</Label>
                 <Input
                   type="number"
                   min={0}
@@ -874,18 +879,18 @@ export function ProgramForm({
                   }}
                   className="mt-1.5"
                 />
-                <p className="mt-1.5 text-xs text-[var(--muted)]">New members receive their wallet card already collected up to this many stamps.</p>
+                <p className="mt-1.5 text-xs text-[var(--muted)]">{t("rewards.preStampedHint")}</p>
               </div>
             </div>
 
             {/* Icon picker - categorized */}
             <div>
-              <Label className="text-[var(--muted)]">Stamp Icon</Label>
-              <p className="mt-1 text-sm text-[var(--muted)]">Choose an icon for each completed visit.</p>
+              <Label className="text-[var(--muted)]">{t("rewards.stampIconLabel")}</Label>
+              <p className="mt-1 text-sm text-[var(--muted)]">{t("rewards.stampIconHint")}</p>
               <div className="mt-3 space-y-5">
                 {(showAllIcons ? ICON_CATEGORIES : ICON_CATEGORIES.slice(0, 1)).map((cat) => (
-                  <div key={cat.label}>
-                    <p className="mb-1 text-xs font-medium text-[var(--muted)] uppercase tracking-wide">{cat.label}</p>
+                  <div key={cat.key}>
+                    <p className="mb-1 text-xs font-medium text-[var(--muted)] uppercase tracking-wide">{t(`rewards.${cat.key}`)}</p>
                     <div className="flex flex-wrap gap-2">
                       {(showAllIcons ? cat.icons : cat.icons.slice(0, 6)).map((iconName) => (
                         <button
@@ -917,7 +922,7 @@ export function ProgramForm({
               </div>
               <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={() => setShowAllIcons((visible) => !visible)}>
                 {showAllIcons ? <ChevronUp className="mr-1 h-4 w-4" /> : <ChevronDown className="mr-1 h-4 w-4" />}
-                {showAllIcons ? "Show fewer icons" : "Browse all icons"}
+                {showAllIcons ? t("rewards.showFewerIcons") : t("rewards.browseAllIcons")}
               </Button>
             </div>
           </div>
@@ -928,7 +933,7 @@ export function ProgramForm({
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <Label className="text-[var(--muted)]">Points Per Reward</Label>
+                <Label className="text-[var(--muted)]">{t("rewards.pointsPerRewardLabel")}</Label>
                 <Input
                   type="number"
                   min={1}
@@ -940,26 +945,26 @@ export function ProgramForm({
                 />
               </div>
               <div>
-                <Label className="text-[var(--muted)]">Points Label (e.g. pts, stars)</Label>
+                <Label className="text-[var(--muted)]">{t("rewards.pointsLabelLabel")}</Label>
                 <Input
                   value={(config as any).points_label}
                   onChange={(e) =>
                     setConfig({ ...(config as any), points_label: e.target.value } as ProgramConfig)
                   }
                   className="mt-1.5"
-                  placeholder="pts"
+                  placeholder={t("review.pointsLabelFallback")}
                 />
               </div>
             </div>
             <div>
-              <Label className="text-[var(--muted)]">Reward Description</Label>
+              <Label className="text-[var(--muted)]">{t("rewards.rewardDescriptionLabel")}</Label>
               <Input
                 value={(config as any).reward_description}
                 onChange={(e) =>
                   setConfig({ ...(config as any), reward_description: e.target.value } as ProgramConfig)
                 }
                 className="mt-1.5"
-                placeholder="e.g. $10 Off"
+                placeholder={t("rewards.rewardDescriptionPlaceholderPoints")}
               />
             </div>
           </div>
@@ -968,7 +973,7 @@ export function ProgramForm({
         {/* Steps fields */}
         {type === "steps" && (
           <div className="space-y-5">
-            <Label className="text-[var(--muted)]">Stages</Label>
+            <Label className="text-[var(--muted)]">{t("rewards.stagesLabel")}</Label>
             <div className="rounded-xl border border-[var(--line)] p-4 bg-[var(--surface-2)]">
               <div className="space-y-3">
                 {(config as StepsConfig).stages.map((stage, idx) => (
@@ -980,7 +985,7 @@ export function ProgramForm({
                         stages[idx] = { ...stage, label: e.target.value };
                         setConfig({ stages });
                       }}
-                      placeholder="Stage name"
+                      placeholder={t("rewards.stageNamePlaceholder")}
                     />
                     <Input
                       type="number"
@@ -990,7 +995,7 @@ export function ProgramForm({
                         stages[idx] = { ...stage, threshold: Number(e.target.value) };
                         setConfig({ stages });
                       }}
-                      placeholder="Threshold"
+                      placeholder={t("rewards.thresholdPlaceholder")}
                     />
                     <Button
                       type="button"
@@ -1002,7 +1007,7 @@ export function ProgramForm({
                         setConfig({ stages });
                       }}
                     >
-                      <span className="sr-only">Remove</span>
+                      <span className="sr-only">{t("rewards.removeStage")}</span>
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -1027,18 +1032,18 @@ export function ProgramForm({
                     ...current,
                     {
                       key: `stage_${Date.now()}`,
-                      label: "New stage",
+                      label: t("rewards.newStageLabel"),
                       threshold: (current.at(-1)?.threshold ?? 0) + 5,
                     },
                   ];
                   setConfig({ stages });
                 }}
               >
-                + Add Stage
+                {t("rewards.addStage")}
               </Button>
               {(config as StepsConfig).stages.length >= MAX_STAGES && (
                 <p className="mt-2 text-center text-xs text-[var(--muted)]">
-                  Up to {MAX_STAGES} stages — that&apos;s what fits on the wallet card.
+                  {t("rewards.maxStagesHint", { max: MAX_STAGES })}
                 </p>
               )}
             </div>
@@ -1048,25 +1053,29 @@ export function ProgramForm({
 
       {/* Step 6 — Review & save */}
       <div className={cn("rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm", step !== STEP_REVIEW && "hidden")}>
-        <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">Review & save</h2>
+        <h2 className="mb-1 text-lg font-semibold text-[var(--ink)]">{t("review.heading")}</h2>
         <p className="mb-5 text-sm text-[var(--muted)]">
-          Double-check the details below, then {mode === "create" ? "create" : "save"} your program.
+          {mode === "create" ? t("review.subtitleCreate") : t("review.subtitleSave")}
         </p>
         <dl className="grid gap-3 sm:grid-cols-2">
-          <ReviewRow label="Program name" value={name || "Untitled"} />
-          <ReviewRow label="Type" value={type} className="capitalize" />
+          <ReviewRow label={t("review.programName")} value={name || t("review.untitled")} />
+          <ReviewRow label={t("review.type")} value={type} className="capitalize" />
           <ReviewRow
-            label="Reward rule"
+            label={t("review.rewardRule")}
             value={
               type === "stamp"
-                ? `${stampsRequired} stamps → ${(config as any).reward_description || "reward"}`
+                ? t("review.stampsRule", { count: stampsRequired, reward: (config as any).reward_description || t("review.rewardFallback") })
                 : type === "points"
-                  ? `${(config as any).points_per_reward} ${(config as any).points_label || "pts"} → ${(config as any).reward_description || "reward"}`
-                  : `${(config as StepsConfig).stages.length} stages`
+                  ? t("review.pointsRule", {
+                      points: (config as any).points_per_reward,
+                      label: (config as any).points_label || t("review.pointsLabelFallback"),
+                      reward: (config as any).reward_description || t("review.rewardFallback"),
+                    })
+                  : t("review.stepsRule", { count: (config as StepsConfig).stages.length })
             }
           />
           <ReviewRow
-            label="Colors"
+            label={t("review.colors")}
             value={
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-4 w-4 rounded-full border border-[var(--line)]" style={{ background: primaryColor }} />
@@ -1074,20 +1083,20 @@ export function ProgramForm({
               </span>
             }
           />
-          <ReviewRow label="Background image" value={backgroundImage ? "Custom photo" : "None"} />
+          <ReviewRow label={t("review.backgroundImage")} value={backgroundImage ? t("review.customPhoto") : t("review.none")} />
           {type === "stamp" && ((config as any).initial_stamps ?? 0) > 0 && (
-            <ReviewRow label="Pre-stamped cards" value={`New members start with ${(config as any).initial_stamps} stamp${(config as any).initial_stamps === 1 ? "" : "s"}`} />
+            <ReviewRow label={t("review.preStampedCards")} value={t("review.preStampedCardsValue", { count: (config as any).initial_stamps })} />
           )}
-          <ReviewRow label="Join page style" value={enrollment.style ?? "classic"} className="capitalize" />
+          <ReviewRow label={t("review.joinPageStyle")} value={enrollment.style ?? "classic"} className="capitalize" />
           <ReviewRow
-            label="Card details"
+            label={t("review.cardDetails")}
             value={
               (config as any).details?.description || (config as any).details?.terms || (config as any).details?.website
-                ? "Added"
-                : "Not set"
+                ? t("review.added")
+                : t("review.notSet")
             }
           />
-          {mode === "edit" && <ReviewRow label="Status" value={isActive ? "Active" : "Inactive"} />}
+          {mode === "edit" && <ReviewRow label={t("review.status")} value={isActive ? t("review.active") : t("review.inactive")} />}
         </dl>
       </div>
 
@@ -1100,21 +1109,21 @@ export function ProgramForm({
       <div className="flex flex-col gap-3 border-t border-[var(--line)] pt-4 sm:flex-row">
         {step > 0 && (
           <Button type="button" variant="outline" onClick={() => setStep((current) => current - 1)}>
-            Back
+            {t("actions.back")}
           </Button>
         )}
         {step < LAST_STEP ? (
           <Button type="button" className="w-full sm:w-auto h-11 px-8 text-base font-semibold" onClick={goToNextStep}>
-            Continue
+            {t("actions.continue")}
           </Button>
         ) : (
           <Button type="submit" className="w-full sm:w-auto h-11 px-8 text-base font-semibold" disabled={loading}>
-            {loading ? "Saving…" : mode === "create" ? "Create program" : "Save changes"}
+            {loading ? t("actions.saving") : mode === "create" ? t("actions.createProgram") : t("actions.saveChanges")}
           </Button>
         )}
         {mode === "edit" && (
           <Button type="button" variant="danger" className="w-full sm:w-auto h-11 px-6 font-medium" disabled={loading} onClick={deleteProgram}>
-            Delete program
+            {t("actions.deleteProgram")}
           </Button>
         )}
       </div>
@@ -1123,11 +1132,11 @@ export function ProgramForm({
       {/* Live Phone Mockup Preview */}
       <div className="flex flex-col items-center gap-4 lg:sticky lg:top-8 w-full max-w-[280px] mx-auto lg:mx-0 shrink-0 mb-8 lg:mb-0">
         <div className="flex items-center justify-between w-full">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Live preview</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">{t("preview.liveLabel")}</p>
         </div>
         <div className="flex w-full rounded-lg bg-[var(--surface-2)] p-1 text-xs font-semibold">
-          <button type="button" onClick={() => setPreviewMode("join")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "join" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Join page</button>
-          <button type="button" onClick={() => setPreviewMode("card")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "card" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>Wallet card</button>
+          <button type="button" onClick={() => setPreviewMode("join")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "join" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>{t("preview.joinPage")}</button>
+          <button type="button" onClick={() => setPreviewMode("card")} className={`flex-1 rounded-md px-2 py-1.5 transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none ${previewMode === "card" ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm" : "text-[var(--muted)]"}`}>{t("preview.walletCard")}</button>
         </div>
         
         <div className="relative h-[532px] w-full overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] p-4 shadow-sm">

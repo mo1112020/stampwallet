@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Download } from "lucide-react";
 import { PhoneMockup, type PhoneMockupProps } from "@/components/dashboard/phone-mockup";
 import { A4Poster } from "@/components/dashboard/print/templates";
@@ -29,6 +30,7 @@ export function ProgramCard({
   businessName: string;
   logoUrl?: string | null;
 }) {
+  const t = useTranslations("programs");
   const [posterData, setPosterData] = useState<PrintTemplateData | null>(null);
   const [downloading, setDownloading] = useState(false);
   const posterRef = useRef<HTMLDivElement>(null);
@@ -72,7 +74,7 @@ export function ProgramCard({
         secondaryColor={secondaryColor}
         businessName={businessName}
         logoUrl={logoUrl}
-        secondaryAction={{ icon: Download, label: "Download A4 poster", onClick: downloadPoster, loading: downloading }}
+        secondaryAction={{ icon: Download, label: t("downloadPoster"), onClick: downloadPoster, loading: downloading }}
       />
       {posterData && (
         <div style={{ position: "fixed", left: -9999, top: 0, pointerEvents: "none" }} aria-hidden="true">

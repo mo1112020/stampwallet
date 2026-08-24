@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { locales, localeLabel, switchLocaleHref } from "@/lib/i18n-nav";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ export function LanguageSwitcher({
   triggerClassName?: string;
   onNavigate?: () => void;
 }) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const [state, setState] = useState<"closed" | "open" | "closing">("closed");
   const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -112,7 +114,7 @@ export function LanguageSwitcher({
             style={{ position: "fixed", top: coords.top, left: coords.left, width: coords.width }}
             className="dropdown-panel pointer-events-auto z-[100] origin-top rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl"
           >
-            <nav aria-label="Language" className="flex flex-col gap-0.5">
+            <nav aria-label={t("languageLabel")} className="flex flex-col gap-0.5">
               {locales.map((code) => {
                 const active = code === locale;
                 return (
