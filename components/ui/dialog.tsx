@@ -20,25 +20,32 @@ export function DialogContent({
       <DialogPrimitive.Overlay
         data-radix-overlay
         className="fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]"
-        style={{ height: "var(--app-dvh, 100dvh)" }}
       />
-      {/* Sized off the dashboard shell's own `--app-dvh` (falls back to
-       * 100dvh outside the dashboard, e.g. marketing/auth dialogs) instead of
-       * a raw `fixed inset-0`/100%: on iOS Safari the layout viewport (what
-       * `inset-0`/vh/dvh alone resolve against) doesn't shrink when the
-       * on-screen keyboard opens, so a dialog with an autofocused input
-       * (e.g. the command palette) could get vertically centered against the
-       * *pre-keyboard* height and end up with its input below the fold of
-       * the actually-visible area. Capping height + scrolling overflow here
-       * keeps it reachable instead. */}
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
-        style={{ height: "var(--app-dvh, 100dvh)" }}
-      >
+      {/* `fixed inset-0`, not a height sized off any viewport unit: a fixed
+       * box with top and bottom both set fills the real viewport by itself
+       * (see app/[locale]/dashboard/layout.tsx for the full reasoning — this
+       * is the same trick, applied here too). That alone doesn't solve
+       * keyboard-safety for an autofocused input though: on iOS Safari the
+       * layout viewport this box fills doesn't shrink for the keyboard, so
+       * if this box were vertically *centered*, the center point drifts away
+       * from the middle of what's actually visible once the keyboard is up,
+       * and a centered dialog's input can end up below the fold. Anchoring
+       * to the top instead of centering sidesteps that with no viewport
+       * math at all: an autofocused input near the top of dialog content
+       * (e.g. the command palette's search box) simply stays above where a
+       * keyboard would ever cover, on any device, keyboard open or not.
+       * Centered on `sm:` and up, where there's no on-screen keyboard to
+       * begin with. Individual dialogs (e.g. the command palette, which
+       * already positions itself with its own `mt-[20vh] self-start`) can
+       * still add their own top offset via `className` — this only changes
+       * the *default* so callers that don't opt into anything specific
+       * (e.g. the print preview dialog) get top alignment instead of
+       * centering on mobile. */}
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
         <DialogPrimitive.Content
           data-radix-content
           className={cn(
-            "relative my-auto max-h-full w-full max-w-md overflow-y-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-xl focus:outline-none",
+            "relative max-h-[80vh] w-full max-w-md overflow-y-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-xl focus:outline-none sm:max-h-[85vh]",
             className
           )}
           {...props}

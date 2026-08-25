@@ -10,21 +10,18 @@ import { usePathname } from "next/navigation";
  * remount). Scroll down on a long page (e.g. Customers), tap a bottom-nav
  * link, and the next page silently opened mid-scroll instead of at the top.
  *
- * That also explains the "bottom nav nudges up on every navigation" report:
- * Next's own built-in scroll-and-focus restoration
- * (node_modules/next/dist/client/components/layout-router.js,
- * handlePotentialScroll) runs on *every* route change and, whenever it finds
- * the newly-mounted page's root node scrolled out of view — guaranteed here
- * since nothing reset `main`'s scrollTop — calls `domNode.scrollIntoView()`.
- * Because this shell locks document/body scrolling (see
- * viewport-height-fix.tsx), the browser resolves that `scrollIntoView()`
- * against the nearest real scrollable ancestor, which is `main` itself: a
- * native, framework-driven scroll adjustment firing on every navigation,
- * completely outside this shell's own `--app-dvh`/visualViewport system.
- * That's exactly the kind of native scroll activity that can nudge a mobile
- * browser's chrome (address bar) and produce a late `visualViewport`
- * resize/scroll event — which is what actually moves the bottom nav, a frame
- * after the page has already painted.
+ * That also explains a "bottom nav nudges up on every navigation" report seen
+ * with an earlier version of this shell: Next's own built-in
+ * scroll-and-focus restoration (node_modules/next/dist/client/components/
+ * layout-router.js, handlePotentialScroll) runs on *every* route change and,
+ * whenever it finds the newly-mounted page's root node scrolled out of view
+ * — guaranteed here since nothing reset `main`'s scrollTop — calls
+ * `domNode.scrollIntoView()`. `main` is the only element in this shell that
+ * can scroll at all (the shell itself is `fixed inset-0`, out of document
+ * flow — see app/[locale]/dashboard/layout.tsx — so <body> has no scrollable
+ * content of its own), so the browser resolves that `scrollIntoView()`
+ * against `main`: a native, framework-driven scroll adjustment firing on
+ * every navigation, independent of anything this component does.
  *
  * Resetting `main` to the top ourselves, synchronously, before Next's handler
  * gets a chance to evaluate the new page's position, fixes both: pages open

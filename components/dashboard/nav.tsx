@@ -122,14 +122,11 @@ export function DashboardNav({ locale }: { locale: string }) {
 }
 
 /** Mobile — bottom tab bar: primary destinations + a "More" overflow for the
- * rest. Deliberately NOT `position: fixed` — iOS/Android compute a fixed
- * element's position against their own (laggy, animates-independently)
- * notion of the viewport, which drifts out of sync with the app shell's
- * `100dvh` sizing as the browser's address bar shows/hides (the same class
- * of bug the dvh comment on the layout's root div already documents for the
- * topbar). Since that shell is already exactly viewport-height and never
- * scrolls, this only needs to be a normal flex child of it to stay pinned —
- * no viewport math of its own required. */
+ * rest. Deliberately NOT `position: fixed` of its own — the dashboard shell
+ * around it (app/[locale]/dashboard/layout.tsx) is itself `fixed inset-0`
+ * and never scrolls, so a plain flex child stays pinned to its bottom edge
+ * with no viewport math required here. See that layout file for how the
+ * keyboard interacts with this bar on iOS vs. Android. */
 export function DashboardMobileNav({ locale }: { locale: string }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
