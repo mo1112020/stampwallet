@@ -560,7 +560,9 @@
       "uploadLogo": "Upload logo",
       "logoHint": "Upload a logo, paste a URL, or leave blank to use your business logo.",
       "welcomeMessageLabel": "Welcome message",
-      "welcomeMessagePlaceholder": "Join today, collect rewards, and keep your pass in your phone wallet."
+      "welcomeMessagePlaceholder": "Join today, collect rewards, and keep your pass in your phone wallet.",
+      "collectBirthdayLabel": "Collect birthday",
+      "collectBirthdayHint": "Ask new members for their birthday when they join, so you can target birthday offers and reminders."
     },
     "rewards": {
       "heading": "Rewards",
@@ -673,6 +675,17 @@
     "searching": "Searching…",
     "noResults": "No matching customers",
     "inactiveProgram": "Inactive",
+    "cameraError": {
+      "title": "Camera access is off",
+      "body": "Turn on camera access for this app, then try again. This is a one-time device setting — it isn't tied to your account.",
+      "iosStep1": "Open the Settings app",
+      "iosStep2": "Go to Safari → Camera",
+      "iosStep3": "Set it to \"Allow\"",
+      "androidStep1": "Open your phone's Settings",
+      "androidStep2": "Go to Apps → your browser → Permissions",
+      "androidStep3": "Turn on Camera",
+      "tryAgain": "Try again"
+    },
     "install": {
       "title": "Install the Scanner",
       "body": "Add WalletOS Scanner to your home screen for a fast, full-screen scanning experience — no browser bar, opens straight to the camera.",

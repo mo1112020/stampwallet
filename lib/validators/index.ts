@@ -26,6 +26,7 @@ const cardAppearanceSchema = z.object({
     description: z.string().max(500).optional(),
     background_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
     button_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    collect_birthday: z.boolean().optional(),
   }).optional(),
   reward_value: z.number().min(0).optional(),
   expiration: z
@@ -99,7 +100,17 @@ export const updateProgramSchema = z.object({
 export const enrollSchema = z.object({
   program_id: z.string().uuid(),
   name: z.string().min(1).max(100).optional(),
-  phone: z.string().min(3).max(30).optional(),
+  // The join page (app/[locale]/pass/new/page.tsx) now pairs a country-code
+  // select with the number field and always submits a real E.164 number
+  // (+<dial code><national digits>, no spaces/punctuation) — see
+  // lib/phone/country-codes.ts. Enforcing that shape here (rather than the
+  // old min(3)/max(30) freeform check) is safe for existing rows: this
+  // schema only validates *new* enroll submissions, it never re-validates
+  // customers.phone already stored from before this existed.
+  phone: z
+    .string()
+    .regex(/^\+[1-9]\d{6,14}$/, "Enter a valid phone number")
+    .optional(),
   email: z.string().email().optional(),
   // Which wallet button the join page actually showed the visitor (it only
   // ever shows one, based on client-side iOS detection) — lets the server
@@ -109,6 +120,22 @@ export const enrollSchema = z.object({
   // regardless of platform, so every customer showed the Google Wallet icon
   // in the dashboard even if they only ever installed the Apple pass.
   platform: z.enum(["apple", "google"]).optional(),
+  // Only ever sent (and rendered) when the program's
+  // config.enrollment_page.collect_birthday is on — see
+  // EnrollmentPageConfig in types/index.ts. Bounded to a sane human lifespan
+  // so it can't be used to write garbage into customers.birthday, which
+  // already feeds the "birthday_month" notification segment (see
+  // lib/notifications/segments.ts).
+  birthday: z
+    .string()
+    .date()
+    .refine((value) => new Date(`${value}T00:00:00Z`).getTime() <= Date.now(), {
+      message: "Birthday cannot be in the future",
+    })
+    .refine((value) => new Date(`${value}T00:00:00Z`).getTime() >= Date.now() - 130 * 365.25 * 24 * 60 * 60 * 1000, {
+      message: "Enter a valid birthday",
+    })
+    .optional(),
 });
 
 export const scanSchema = z.object({

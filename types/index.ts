@@ -18,6 +18,13 @@ export type EnrollmentPageConfig = {
   description?: string;
   background_color?: string;
   button_color?: string;
+  /** When true, the public join page (app/[locale]/pass/new/page.tsx) asks the
+   * customer for their birthday and stores it on customers.birthday, which
+   * already powers the "birthday_month" notification segment (see
+   * lib/notifications/segments.ts) — this is what actually feeds that
+   * targeting, not just the merchant's own birthday-campaign toggle
+   * (Merchant.notification_prefs.birthday). Defaults to off/undefined. */
+  collect_birthday?: boolean;
 };
 
 export type CardExpirationConfig = {

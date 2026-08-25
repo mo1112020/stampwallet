@@ -822,6 +822,24 @@ export function ProgramForm({
             </div>
           </div>
 
+          <div className="mt-6 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Label htmlFor="collectBirthday" className="text-[var(--ink)]">{t("wallet.collectBirthdayLabel")}</Label>
+                <p className="mt-1 text-sm text-[var(--muted)]">{t("wallet.collectBirthdayHint")}</p>
+              </div>
+              <label className="flex shrink-0 items-center">
+                <input
+                  id="collectBirthday"
+                  type="checkbox"
+                  checked={Boolean(enrollment.collect_birthday)}
+                  onChange={(event) => updateEnrollment({ collect_birthday: event.target.checked })}
+                  className="h-5 w-5 rounded border-[var(--line-strong)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                />
+              </label>
+            </div>
+          </div>
+
         </section>
 
         {/* Step 3 — Rewards */}

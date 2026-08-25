@@ -4,8 +4,9 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
 import { readableTextColor } from "@/lib/print/color";
+import { COUNTRY_DIAL_CODES, countryByIso2, detectDefaultCountryIso2, flagEmoji } from "@/lib/phone/country-codes";
 import type { EnrollmentPageConfig, EnrollmentPageStyle } from "@/types";
 
 type JoinPageData = {
@@ -39,8 +40,13 @@ function EnrollForm() {
   const [program, setProgram] = useState<JoinPageData | null>(null);
   const [loadingPage, setLoadingPage] = useState(Boolean(programId));
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  // The submitted `phone` is always assembled from these two at submit time
+  // (see onSubmit) as a real E.164 number — "+<dial code><digits>", no
+  // spaces — matching enrollSchema's phone regex in lib/validators/index.ts.
+  const [countryIso2, setCountryIso2] = useState(() => detectDefaultCountryIso2());
+  const [nationalNumber, setNationalNumber] = useState("");
   const [email, setEmail] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [passId, setPassId] = useState<string | null>(null);
   const [appleUrl, setAppleUrl] = useState<string | null>(null);
@@ -107,10 +113,21 @@ function EnrollForm() {
     };
   }, [programId]);
 
+  const collectBirthday = Boolean(program?.config.enrollment_page?.collect_birthday);
+
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!name.trim() || !phone.trim() || !email.trim() || !acceptedTerms) {
+    // National number as typed may have spaces/dashes for readability — only
+    // the digits matter for the actual E.164 value that gets stored/searched.
+    const digits = nationalNumber.replace(/\D/g, "");
+    const dialCode = countryByIso2(countryIso2)?.dialCode ?? "1";
+    const phone = digits ? `+${dialCode}${digits}` : "";
+    if (!name.trim() || digits.length < 4 || !email.trim() || !acceptedTerms) {
       setError("Please complete your details and accept the terms.");
+      return;
+    }
+    if (collectBirthday && !birthday) {
+      setError("Please add your birthday.");
       return;
     }
     setLoading(true);
@@ -121,9 +138,10 @@ function EnrollForm() {
       body: JSON.stringify({
         program_id: programId,
         name: name.trim(),
-        phone: phone.trim(),
+        phone,
         email: email.trim(),
         platform: isIOS ? "apple" : "google",
+        ...(collectBirthday && birthday ? { birthday } : {}),
       }),
     });
     const json = await response.json();
@@ -266,14 +284,35 @@ function EnrollForm() {
             </div>
             <div>
               <Label htmlFor="phone">Phone number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="+1 555 000 0000"
-                required
-              />
+              <div className="flex gap-2">
+                <Select
+                  id="countryCode"
+                  aria-label="Country code"
+                  value={countryIso2}
+                  onChange={(event) => setCountryIso2(event.target.value)}
+                  className="w-[120px] shrink-0 px-2"
+                >
+                  {COUNTRY_DIAL_CODES.map((country) => (
+                    <option key={country.iso2} value={country.iso2}>
+                      {flagEmoji(country.iso2)} +{country.dialCode}
+                    </option>
+                  ))}
+                </Select>
+                <Input
+                  id="phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={nationalNumber}
+                  onChange={(event) => setNationalNumber(event.target.value)}
+                  placeholder="555 000 0000"
+                  // Loose cap on raw (possibly space/dash-formatted) input —
+                  // the real limit enforced at submit is the E.164 digit
+                  // count (see onSubmit + enrollSchema's phone regex).
+                  maxLength={20}
+                  className="flex-1"
+                  required
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="email">Email address</Label>
@@ -286,6 +325,19 @@ function EnrollForm() {
                 required
               />
             </div>
+            {collectBirthday && (
+              <div>
+                <Label htmlFor="birthday">Birthday</Label>
+                <Input
+                  id="birthday"
+                  type="date"
+                  value={birthday}
+                  onChange={(event) => setBirthday(event.target.value)}
+                  max={new Date().toISOString().slice(0, 10)}
+                  required
+                />
+              </div>
+            )}
           </div>
           <label className="mt-5 flex items-start gap-3 text-sm text-[var(--muted)]">
             <input

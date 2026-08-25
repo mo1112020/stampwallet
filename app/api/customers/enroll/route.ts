@@ -68,6 +68,12 @@ export async function POST(request: Request) {
     p_phone: parsed.data.phone ?? null,
     p_email: parsed.data.email ?? null,
     p_progress: progress,
+    // Only ever set when the program's config.enrollment_page.collect_birthday
+    // is on (see EnrollmentPageConfig, types/index.ts) -- enroll_customer()
+    // (supabase/migrations/024_enroll_customer_birthday.sql) leaves an
+    // existing customer's birthday untouched when this is null, so a
+    // re-enrollment on a program that doesn't collect it never wipes it out.
+    p_birthday: parsed.data.birthday ?? null,
   });
 
   const cp = enrollRows?.[0];
