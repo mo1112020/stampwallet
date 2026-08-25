@@ -37,6 +37,12 @@ export async function pushWalletUpdate(params: {
    * whenever the device fetches the pass regardless, not as part of this
    * call. */
   skipHeroImageRefresh?: boolean;
+  /** See lib/wallet/google.ts's pushGooglePassUpdate — true only when this
+   * push is actually broadcasting a branding/program edit (pushProgramUpdateToAllCustomers
+   * below). Left false/unset for a plain scan, notification, or expiration
+   * refresh, none of which touch merchant/program-level fields, so there's
+   * nothing on the shared Google loyaltyClass to refresh. */
+  refreshClass?: boolean;
 }): Promise<{ apple: WalletPushResult; google: WalletPushResult }> {
   let pushTokens: string[] = [];
   try {
@@ -80,7 +86,8 @@ export async function pushWalletUpdate(params: {
       params.progress,
       params.notification,
       params.enrolledAt,
-      params.skipHeroImageRefresh
+      params.skipHeroImageRefresh,
+      params.refreshClass
     ),
   ]);
 
@@ -142,6 +149,10 @@ export async function pushProgramUpdateToAllCustomers(merchantId: string, progra
         merchant: target.merchant,
         progress: target.progress,
         enrolledAt: target.enrolledAt,
+        // This IS the branding/program-edit broadcast — the one case where
+        // the shared Google loyaltyClass (logo, issuer name, website) needs
+        // refreshing. See google.ts's pushGooglePassUpdate refreshClass doc.
+        refreshClass: true,
       }),
       // Google's side of this push is much heavier than Apple's (fetch
       // background image, render + upload a fresh hero image, then the

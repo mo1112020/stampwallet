@@ -5,10 +5,24 @@ import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
 // gateway — there is no sandbox distinction for Wallet pass updates.
 const APNS_HOST = "https://api.push.apple.com";
 
+export type ApplePushResult = {
+  ok: boolean;
+  status?: number;
+  error?: string;
+  /** APNs' machine-readable failure reason, parsed from the JSON error body
+   * (e.g. { "reason": "BadDeviceToken" }) per Apple's documented error
+   * responses (developer.apple.com/documentation/usernotifications/handling-notification-responses-from-apns).
+   * Undefined on success, on a transport-level failure with no HTTP
+   * response at all (timeout, TLS/connection error), or if the body isn't
+   * the expected JSON shape — callers must not assume a permanent failure
+   * just because this is unset. */
+  reason?: string;
+};
+
 export async function sendApplePush(
   pushToken: string,
   topic: string
-): Promise<{ ok: boolean; status?: number; error?: string }> {
+): Promise<ApplePushResult> {
   let certs;
   try {
     certs = loadAppleCertificates();
@@ -18,7 +32,7 @@ export async function sendApplePush(
 
   return new Promise((resolve) => {
     let settled = false;
-    const settle = (result: { ok: boolean; status?: number; error?: string }) => {
+    const settle = (result: ApplePushResult) => {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
@@ -69,7 +83,23 @@ export async function sendApplePush(
     });
     req.on("end", () => {
       client.close();
-      settle({ ok: status === 200, status, error: status !== 200 ? body : undefined });
+      if (status === 200) {
+        settle({ ok: true, status });
+        return;
+      }
+      // Apple's failure body is JSON: { "reason": "BadDeviceToken" } (or
+      // "Unregistered" alongside a 410, among others) — malformed/empty
+      // bodies (a proxy error page, a truncated response) just leave
+      // `reason` unset rather than throwing, so callers still get the raw
+      // status/body for logging.
+      let reason: string | undefined;
+      try {
+        const parsed = JSON.parse(body) as { reason?: string };
+        reason = parsed.reason;
+      } catch {
+        // Not JSON — leave reason unset.
+      }
+      settle({ ok: false, status, error: body, reason });
     });
     req.on("error", (err) => settle({ ok: false, error: err.message }));
 

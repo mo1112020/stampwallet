@@ -336,7 +336,41 @@ export async function pushGooglePassUpdate(
    * definitely unchanged from what's already on the card (a notification
    * with no accompanying scan). Skips the image render+upload below
    * entirely rather than regenerating an identical image. */
-  skipHeroImageRefresh?: boolean
+  skipHeroImageRefresh?: boolean,
+  /** True only for the branding/program-edit broadcast (see
+   * pushProgramUpdateToAllCustomers) — every OTHER caller (a scan, a
+   * notification-campaign send, the expiration cron) leaves this false so
+   * the loyaltyClass PATCH below is skipped entirely.
+   *
+   * This used to run unconditionally on every single push of any kind,
+   * which means the shared loyaltyClass (one row per PROGRAM, not per
+   * customer) had its reviewStatus forced back to UNDER_REVIEW on every
+   * scan and every notification send for every enrolled customer — for an
+   * active program that's dozens/hundreds of times a day. Per Google's own
+   * Wallet Objects API field docs, resending UNDER_REVIEW on a PATCH to an
+   * already-approved class IS required (confirmed by the real 400 the
+   * comment below documents) and Google's platform is supposed to
+   * auto-flip it back to APPROVED — but re-arming that on essentially
+   * every request, forever, for an actively-used program never gives it a
+   * chance to sit in APPROVED for any length of time, which lines up
+   * exactly with "the class-level logo push happens but customers never
+   * see it" while object-level fields (progress, notification messages —
+   * which live on loyaltyObject, not loyaltyClass, and aren't touched by
+   * this flag) update fine. Only firing this when branding/program content
+   * has actually changed lets the class settle into APPROVED between real
+   * edits instead of being perpetually re-triggered.
+   *
+   * Left the reviewStatus VALUE itself untouched (still "UNDER_REVIEW",
+   * not e.g. "APPROVED") — the previous fix's 400 error is real evidence
+   * that Google rejects a PATCH from an approved class without it, and
+   * flipping it the other way on a guess risks a hard regression (push
+   * failures) that's worse than a stale logo. If the logo is STILL not
+   * reaching devices after this change, the next step is checking this
+   * program's class directly in Google Wallet Business Console to see
+   * whether it's stuck in UNDER_REVIEW (would mean Google's review here
+   * isn't the fast/automated kind for this account and needs a manual nudge
+   * from Google) rather than guessing further from this side. */
+  refreshClass?: boolean
 ) {
   if (!isGoogleWalletConfigured()) {
     console.info("[wallet:google] stub patch", passId, googleObjectId);
@@ -391,32 +425,36 @@ export async function pushGooglePassUpdate(
     // and awaited together (Promise.all further down) so both requests run
     // concurrently, but this function still can't return (and risk a
     // serverless freeze cutting it off mid-flight) until both have actually
-    // settled.
-    const classRefresh = client
-      .request({
-        url: `${WALLET_API}/loyaltyClass/${buildClassId(program.id)}`,
-        method: "PATCH",
-        data: {
-          issuerName: merchant.business_name || "WalletOS",
-          programName: program.name,
-          programLogo: { sourceUri: { uri: merchant.logo_url || `${appUrl()}/brand/icon-only.png` } },
-          ...(linksModuleData ? { linksModuleData } : {}),
-          // Required on every class write, not just the initial create in
-          // generateGoogleWalletLink — omitting it here is what a live test
-          // caught as a hard 400 ("Invalid review status 'APPROVED'. Use
-          // 'UNDER_REVIEW' instead.") against a class Google had already
-          // approved: Google won't accept a PATCH that leaves reviewStatus
-          // implicit once a class has moved past UNDER_REVIEW.
-          reviewStatus: "UNDER_REVIEW",
-        },
-      })
-      .catch((err) => {
-        // Non-fatal — the per-customer object PATCH below (progress, the
-        // notification banner itself) is what actually matters for this
-        // push; a stale class-level logo/name is a lesser miss, not worth
-        // failing the whole update over.
-        console.error("[wallet:google] class refresh failed", program.id, err);
-      });
+    // settled. Gated by `refreshClass` (see param doc above) — only actually
+    // sent for the branding/program-edit broadcast, a no-op Promise for
+    // every routine scan/notification push.
+    const classRefresh = !refreshClass
+      ? Promise.resolve()
+      : client
+          .request({
+            url: `${WALLET_API}/loyaltyClass/${buildClassId(program.id)}`,
+            method: "PATCH",
+            data: {
+              issuerName: merchant.business_name || "WalletOS",
+              programName: program.name,
+              programLogo: { sourceUri: { uri: merchant.logo_url || `${appUrl()}/brand/icon-only.png` } },
+              ...(linksModuleData ? { linksModuleData } : {}),
+              // Required on every class write, not just the initial create in
+              // generateGoogleWalletLink — omitting it here is what a live test
+              // caught as a hard 400 ("Invalid review status 'APPROVED'. Use
+              // 'UNDER_REVIEW' instead.") against a class Google had already
+              // approved: Google won't accept a PATCH that leaves reviewStatus
+              // implicit once a class has moved past UNDER_REVIEW.
+              reviewStatus: "UNDER_REVIEW",
+            },
+          })
+          .catch((err) => {
+            // Non-fatal — the per-customer object PATCH below (progress, the
+            // notification banner itself) is what actually matters for this
+            // push; a stale class-level logo/name is a lesser miss, not worth
+            // failing the whole update over.
+            console.error("[wallet:google] class refresh failed", program.id, err);
+          });
 
     await Promise.all([
       classRefresh,

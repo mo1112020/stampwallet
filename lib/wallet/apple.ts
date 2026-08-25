@@ -2,6 +2,7 @@ import { PKPass } from "passkit-generator";
 import type { CardAppearance, LoyaltyProgram, Merchant, PointsConfig, PointsProgress, Progress, StampConfig, StampProgress, StepsConfig, StepsProgress } from "@/types";
 import { renderPassFields } from "@/lib/wallet/renderPassFields";
 import { loadAppleCertificates } from "@/lib/wallet/appleCerts";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ICON_PNG, ICON_2X_PNG, ICON_3X_PNG, LOGO_PNG, LOGO_2X_PNG } from "@/lib/wallet/assets";
 import { getActiveStoreLocations } from "@/lib/wallet/locations";
 import { resolveBrandColors } from "@/lib/wallet/colors";
@@ -290,6 +291,25 @@ export async function generateApplePass(params: {
   }
 }
 
+// APNs failure reasons that mean this specific token will NEVER work again
+// (per Apple's documented error responses) — the device unregistered,
+// reinstalled, or the token otherwise rotated out from under us. Anything
+// else (timeout, 5xx, TooManyRequests, a network/TLS error with no `reason`
+// at all) is treated as transient and must NOT prune the registration, or a
+// momentary APNs hiccup would permanently stop notifying a perfectly live
+// device.
+const PERMANENTLY_INVALID_REASONS = new Set(["BadDeviceToken", "Unregistered"]);
+
+function isPermanentlyInvalid(result: { status?: number; reason?: string }): boolean {
+  if (result.reason && PERMANENTLY_INVALID_REASONS.has(result.reason)) return true;
+  // Apple always returns 410 for "Unregistered" specifically (a token that
+  // was valid but the app/pass was removed) — checked independently of
+  // `reason` in case the body didn't parse as JSON for some reason, since a
+  // dead token due to uninstall is exactly the case this whole fix targets.
+  if (result.status === 410) return true;
+  return false;
+}
+
 export async function pushApplePassUpdate(passId: string, pushTokens: string[]) {
   if (pushTokens.length === 0) {
     console.info("[wallet:apple] no push tokens for", passId);
@@ -305,11 +325,37 @@ export async function pushApplePassUpdate(passId: string, pushTokens: string[]) 
     const topic = process.env.APPLE_PASS_TYPE_IDENTIFIER!;
     const results = await Promise.all(pushTokens.map((token) => sendApplePush(token, topic)));
 
+    const deadTokens: string[] = [];
     results.forEach((result, i) => {
       if (!result.ok) {
-        console.error("[wallet:apple] push failed for token", pushTokens[i], result.error);
+        console.error("[wallet:apple] push failed for token", pushTokens[i], result.status, result.reason ?? result.error);
+        if (isPermanentlyInvalid(result)) {
+          deadTokens.push(pushTokens[i]);
+        }
       }
     });
+
+    // A customer who reinstalls the pass (or whose token silently rotates)
+    // otherwise leaves a permanently-dead row in apple_device_registrations
+    // that nothing ever prunes — every future push to that registration
+    // fails forever, invisible to the merchant. This is the specific,
+    // narrow cleanup: only rows APNs itself told us are dead, matched by
+    // the exact token that failed, scoped to this pass. Best-effort — a
+    // failed delete here must not turn an otherwise-successful push report
+    // into an error.
+    if (deadTokens.length > 0) {
+      try {
+        const admin = createAdminClient();
+        await admin
+          .from("apple_device_registrations")
+          .delete()
+          .eq("serial_number", passId)
+          .in("push_token", deadTokens);
+        console.info("[wallet:apple] pruned dead device registrations", passId, deadTokens.length);
+      } catch (err) {
+        console.error("[wallet:apple] failed to prune dead device registrations", passId, err);
+      }
+    }
 
     return { ok: results.every((r) => r.ok), stub: false };
   } catch (err) {
