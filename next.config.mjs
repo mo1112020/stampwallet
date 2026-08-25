@@ -50,6 +50,35 @@ const nextConfig = {
       },
     ];
   },
+  // Baseline security headers flagged missing by a Lighthouse audit. A
+  // Content-Security-Policy is deliberately NOT included here — Google Tag
+  // Manager injects scripts from arbitrary origins at runtime, so a CSP
+  // strict enough to matter would need per-request nonces threaded through
+  // every inline script (the consent-default Script in app/layout.tsx
+  // included) and needs its own dedicated pass, not a drive-by addition.
+  // HSTS preload is also omitted — it's a one-way door (browsers refuse
+  // plain HTTP for this domain and its subdomains essentially permanently
+  // once submitted to the preload list), so that's a decision for the site
+  // owner to opt into explicitly, not something to enable silently here.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // camera=(self) — the staff Scanner PWA (app/[locale]/scan-app) uses
+          // getUserMedia for QR/barcode scanning; everything else stays denied.
+          {
+            key: "Permissions-Policy",
+            value: "camera=(self), microphone=(), geolocation=(), payment=()",
+          },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+        ],
+      },
+    ];
+  },
   // Without this, Turbopack walks up looking for a lockfile and can land on an unrelated
   // one outside this repo (e.g. a parent folder's package-lock.json), which then silently
   // scopes module resolution/watching to the wrong directory tree. Pinning it to this

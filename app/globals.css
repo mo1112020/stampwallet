@@ -59,8 +59,12 @@
   --primary-foreground: #fdf6ea;
   --white: #fdf8ee;
   --ink: #241a12;
-  --muted: #7d6b52;
-  --muted-foreground: #7d6b52;
+  /* #6b5940, not the original #7d6b52 — the lighter value read at 4.26:1
+     against --surface, just under WCAG AA's 4.5:1 floor for body text
+     (flagged by Lighthouse). This keeps the same warm-brown hue, just dark
+     enough to clear AA on both --surface and --surface-2. */
+  --muted: #6b5940;
+  --muted-foreground: #6b5940;
   --line: #cbb489;
   --line-strong: #a88c5c;
   --background: #ead9bd;

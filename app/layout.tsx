@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import Script from "next/script";
+import { headers } from "next/headers";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { defaultLocale, isRtl, locales, type AppLocale } from "@/i18n/config";
 
 function appUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "https://walletos.online";
@@ -77,13 +79,26 @@ const cairo = Cairo({
   display: "swap",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // This layout is shared across every locale (it's the parent of
+  // app/[locale]), so it can't read a `locale` route param directly — it
+  // reads the x-locale header proxy.ts sets on every request instead, same
+  // approach app/not-found.tsx already uses. Nested layouts already set
+  // lang/dir on a wrapping div (app/[locale]/layout.tsx); this additionally
+  // sets it on the actual <html> element, since that's what Lighthouse's
+  // accessibility audit (and screen readers before hydration) checks.
+  const headerList = await headers();
+  const rawLocale = headerList.get("x-locale");
+  const locale = (locales as readonly string[]).includes(rawLocale ?? "")
+    ? (rawLocale as AppLocale)
+    : defaultLocale;
+
   return (
-    <html suppressHydrationWarning>
+    <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"} suppressHydrationWarning>
       <body className={`antialiased ${cairo.variable}`} suppressHydrationWarning>
         {/* Google Consent Mode v2 default -- must run before GoogleAnalytics
             below initializes, so GA never writes analytics cookies until a
