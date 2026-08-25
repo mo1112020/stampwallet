@@ -144,6 +144,10 @@ export type Merchant = {
 export type NotificationPrefs = {
   reward_unlocked?: boolean;
   birthday?: boolean;
+  /** Merchant-authored override for the automated birthday message — may
+   * contain a literal `{name}` token (see lib/notifications/triggers.ts for
+   * substitution). Falls back to a built-in default when unset/blank. */
+  birthday_message?: string;
   expiring_reward?: boolean;
   inactive_customer?: boolean;
 };

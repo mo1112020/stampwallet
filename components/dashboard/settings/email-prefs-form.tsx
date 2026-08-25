@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "@/components/ui/toaster";
 import type { EmailPrefs } from "@/types";
@@ -12,6 +13,7 @@ export function EmailPrefsForm({ initialPrefs }: { initialPrefs: EmailPrefs }) {
   const tCommon = useTranslations("settings.notifications");
   const [prefs, setPrefs] = useState<EmailPrefs>(initialPrefs);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   async function save(next: EmailPrefs) {
     const previous = prefs;
@@ -23,7 +25,9 @@ export function EmailPrefsForm({ initialPrefs }: { initialPrefs: EmailPrefs }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email_prefs: next }),
       });
-      if (!res.ok) {
+      if (res.ok) {
+        router.refresh();
+      } else {
         setPrefs(previous);
         toast.error(tCommon("saveFailed"));
       }

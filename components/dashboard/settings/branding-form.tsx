@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export function BrandingForm({ merchant }: { merchant: Merchant }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   async function uploadLogo(file: File) {
     setUploading(true);
@@ -49,6 +51,13 @@ export function BrandingForm({ merchant }: { merchant: Merchant }) {
       });
       if (res.ok) {
         toast.success(t("saved"));
+        // Without this, every other already-visited dashboard route (topbar,
+        // notification previews, dashboard home) keeps showing the old logo
+        // from Next's client Router Cache (next.config.mjs's 30s staleTimes)
+        // until the visitor happens to leave and return past that window —
+        // effectively indefinitely if they never do. Every other settings
+        // form that mutates server-rendered data already does this.
+        router.refresh();
       } else {
         toast.error(t("saveFailed"));
       }

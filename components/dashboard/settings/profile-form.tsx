@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -28,6 +29,7 @@ export function ProfileForm({ merchant }: { merchant: Merchant }) {
   const [locale, setLocaleField] = useState<"en" | "ar">(merchant.locale_default);
   const [timezone, setTimezone] = useState(merchant.timezone);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +47,7 @@ export function ProfileForm({ merchant }: { merchant: Merchant }) {
       });
       if (res.ok) {
         toast.success(t("saved"));
+        router.refresh();
       } else {
         toast.error(t("saveFailed"));
       }

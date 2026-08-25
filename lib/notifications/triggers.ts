@@ -9,6 +9,16 @@ const INACTIVE_DEDUP_DAYS = 14;
 const EXPIRING_STALE_DAYS = 3;
 const EXPIRING_DEDUP_DAYS = 7;
 const BIRTHDAY_DEDUP_DAYS = 300;
+const DEFAULT_BIRTHDAY_MESSAGE = "🎂 Happy Birthday {name}! Enjoy a treat on us.";
+
+/** Substitutes the literal `{name}` token a merchant's custom message (or
+ * the default) may contain — including any single space directly before it,
+ * so a missing name collapses cleanly ("Happy Birthday!") instead of leaving
+ * a dangling double space ("Happy Birthday !"). */
+function renderBirthdayMessage(template: string, customerName: string | null): string {
+  const name = customerName?.trim();
+  return template.replace(/\s?\{name\}/g, name ? ` ${name}` : "").replace(/\s{2,}/g, " ").trim();
+}
 
 type PendingEvaluation = {
   merchant: Merchant;
@@ -54,7 +64,7 @@ async function evaluateOne(merchant: Merchant, program: LoyaltyProgram, row: Pen
         await triggerAutomatedNotification({
           trigger: "birthday",
           title: "Happy Birthday!",
-          message: `🎂 Happy Birthday${customer.name ? `, ${customer.name}` : ""}! Enjoy a treat on us.`,
+          message: renderBirthdayMessage(prefs.birthday_message?.trim() || DEFAULT_BIRTHDAY_MESSAGE, customer.name),
           target,
         });
         sent++;

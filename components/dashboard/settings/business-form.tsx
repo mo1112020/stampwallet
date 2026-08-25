@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Label, Select } from "@/components/ui/input";
@@ -13,6 +14,7 @@ export function BusinessForm({ merchant }: { merchant: Merchant }) {
   const t = useTranslations("settings.business");
   const [currency, setCurrency] = useState(merchant.currency ?? "");
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,6 +29,7 @@ export function BusinessForm({ merchant }: { merchant: Merchant }) {
       });
       if (res.ok) {
         toast.success(t("saved"));
+        router.refresh();
       } else {
         toast.error(t("saveFailed"));
       }

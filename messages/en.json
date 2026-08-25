@@ -857,7 +857,11 @@
         },
         "birthday": {
           "label": "Birthday rewards",
-          "description": "Send a birthday reward reminder"
+          "description": "Send a birthday reward reminder",
+          "messageLabel": "Custom birthday message",
+          "messagePlaceholder": "🎂 Happy Birthday {name}! Enjoy a treat on us.",
+          "messageHint": "Use {name} to insert the customer's name. Leave blank to use the default message.",
+          "saveMessage": "Save message"
         },
         "expiring_reward": {
           "label": "Expiring rewards",
