@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Zap, ZapOff } from "lucide-react";
+import { Settings, Zap, ZapOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { IScannerControls } from "@zxing/browser";
+import { isIOS } from "@/lib/scanner/platform";
 
 /** Fires a short vibration + synthesized beep on a successful decode — the
  * merchant is watching the customer's phone, not this screen, so an audible/
@@ -67,7 +68,12 @@ export function CameraScanner({
   // response — without this, a single presented code could trigger two
   // scan-and-award requests instead of one.
   const hasScannedRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
+  // Permission-denied gets its own state: a raw browser error string ("could
+  // not access the camera") leaves the person with no next step, and this is
+  // the single most common reason the scanner doesn't work for a
+  // just-installed staff account — it deserves real platform-specific
+  // instructions rather than generic error text.
+  const [error, setError] = useState<{ kind: "permission" | "other"; message?: string } | null>(null);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   // Briefly shows a "matched" state (green frame) before handing off to the
@@ -141,13 +147,24 @@ export function CameraScanner({
           }
         })
         .catch((err) => {
-          if (!cancelled) {
-            setError(
-              err instanceof Error
-                ? err.message
-                : "Could not access the camera. Check permissions and try again."
-            );
-          }
+          if (cancelled) return;
+          // NotAllowedError covers both an explicit deny and a site the
+          // browser silently blocked (e.g. previously denied) — either way
+          // the fix is the same "go allow camera access" flow, so both are
+          // treated as "permission" rather than trying to tell them apart.
+          const isPermissionError =
+            err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
+          setError(
+            isPermissionError
+              ? { kind: "permission" }
+              : {
+                  kind: "other",
+                  message:
+                    err instanceof Error
+                      ? err.message
+                      : "Could not access the camera. Check permissions and try again.",
+                }
+          );
         });
     });
 
@@ -175,10 +192,51 @@ export function CameraScanner({
       });
   }
 
+  if (error?.kind === "permission") {
+    // Same fix regardless of staff role (owner/admin/manager/staff all hit
+    // this identically) — camera permission is a per-browser/per-device
+    // setting, not something tied to the account. Steps differ by platform
+    // since iOS Safari and Android Chrome expose the toggle in different
+    // places, but a full page reload is the one retry that reliably
+    // re-triggers the permission prompt on every browser tested.
+    const steps = isIOS()
+      ? [t("cameraError.iosStep1"), t("cameraError.iosStep2"), t("cameraError.iosStep3")]
+      : [t("cameraError.androidStep1"), t("cameraError.androidStep2"), t("cameraError.androidStep3")];
+    return (
+      <div className="flex aspect-square w-full flex-col items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface-2)]">
+          <Settings className="h-6 w-6 text-[var(--muted)]" />
+        </div>
+        <p className="mt-4 text-sm font-semibold">{t("cameraError.title")}</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">{t("cameraError.body")}</p>
+        <ol className="mt-4 w-full space-y-2 text-start">
+          {steps.map((label, i) => (
+            <li
+              key={i}
+              className="flex items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2 text-sm"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface)] text-xs font-bold">
+                {i + 1}
+              </span>
+              {label}
+            </li>
+          ))}
+        </ol>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-5 h-11 w-full rounded-full bg-[var(--ink)] text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          {t("cameraError.tryAgain")}
+        </button>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-center text-sm text-[var(--muted)]">
-        {error}
+        {error.message}
       </div>
     );
   }
