@@ -3,7 +3,7 @@ import path from "path";
 import { Resvg } from "@resvg/resvg-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { toAppDomainStorageUrl } from "@/lib/supabase/publicAssetUrl";
-import { getStampGridColumns, getStampCellScale, solveStampGridCell, type StampCellScale } from "@/lib/stamp-grid";
+import { solveStampGridCell } from "@/lib/stamp-grid";
 import { STRIP_WIDTH_1X, STRIP_HEIGHT_1X } from "@/lib/wallet/stripDimensions";
 import { getStampIconDataUri } from "@/lib/wallet/stampIconAssets";
 import type { BackgroundImagePosition, PointsConfig, PointsProgress, StampConfig, StepsConfig, StepsProgress } from "@/types";
@@ -55,9 +55,6 @@ function rasterizeSvgWithText(svg: string): Buffer {
 // targets this canvas so Google's own scaling never crops it unpredictably.
 const CANVAS_WIDTH = 1032;
 const CANVAS_HEIGHT = 812;
-
-const CELL_PX: Record<StampCellScale, number> = { lg: 130, md: 100, sm: 82, xs: 64 };
-const GAP_PX: Record<StampCellScale, number> = { lg: 26, md: 20, sm: 16, xs: 12 };
 
 // Referenced (not inlined per-call) by iconGroupMarkup below — a shared
 // <filter> def embedded once per SVG document that uses it. feColorMatrix
@@ -245,22 +242,37 @@ export async function renderCoverHeroImage(
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-// Matches the actual proportions in components/dashboard/phone-mockup.tsx's
-// "Wallet card" live preview: a fixed-height cover image up top (with a dark
-// gradient for legibility), and the stamp grid directly beneath it on the
-// card's own primary-color background — not overlaid on the photo, and not
-// two separately-delivered images. Google Wallet has no field for either a
-// full-bleed background-with-overlaid-content layout (heroImage is always a
-// banner "under the data fields", not behind them — a platform constraint,
-// not a bug) or a native stamp grid — this composite is the closest
-// single-image equivalent the heroImage slot can hold.
-const COVER_HEIGHT_RATIO = 0.45;
+// Both platforms' heroImage/strip now share ONE composition: full-bleed
+// cover photo (or primary-color fallback) behind, progress content overlaid
+// directly on top — see renderAppleStripImage's comment for why Apple's
+// 123/144pt-tall strip has to be built this way. Google's canvas used to get
+// a DIFFERENT composition instead (a fixed-height cover band stacked above a
+// separate stamp-grid section on a solid card-color background, with a
+// gradient seam between them) on the theory that Google's heroImage slot —
+// "a banner under the data fields, not behind them" — couldn't hold an
+// overlay layout at all. That theory doesn't survive a straight comparison
+// with Apple's canvas, though: at 1032x812 Google's heroImage has MORE
+// vertical room relative to its own content than Apple's 375x144pt strip
+// does, not less, and Apple's version already proves the overlay
+// composition renders legibly in less space than Google has to work with.
+// The stacked design was inherited from before that comparison was made, not
+// a real platform constraint — and it had already drifted from the
+// dashboard's own live preview (components/dashboard/phone-mockup.tsx),
+// which shows every program type's progress overlaid directly on the cover
+// photo, not stacked beneath it. Unifying Google onto the same overlay
+// composition Apple and the live preview both already use makes what a
+// merchant designs the card to look like match what actually ships on
+// either platform, and the extra headroom here means the result reads as
+// MORE legible than Apple's tighter version, not less.
 
 /** Google Wallet has no native stamp-grid field, so for stamp-type programs
- * this single flattened image (cover photo on top, stamp grid directly
- * underneath — see COVER_HEIGHT_RATIO comment above) becomes the object's
- * heroImage. Grid layout uses the same column/scale rules and the same
- * Lucide icon as everywhere else (lib/stamp-grid.ts). */
+ * this single flattened image (cover photo full-bleed, stamp grid overlaid
+ * on top — see the composition-unification comment above) becomes the
+ * object's heroImage. Grid cell size is solved for the actual canvas via
+ * solveStampGridCell — the exact same formula (and, for a given stamp
+ * count, the exact same proportions) renderAppleStripImage uses for Apple's
+ * strip, so the two platforms' grids differ only by the canvas they're
+ * solved against, not by any separate sizing logic. */
 export async function renderStampCardHeroImage(params: {
   config: StampConfig;
   collected: number;
@@ -270,39 +282,21 @@ export async function renderStampCardHeroImage(params: {
   backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<Buffer> {
   const { config, collected, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
-  const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
-  const gridAreaHeight = CANVAS_HEIGHT - coverHeight;
 
-  const coverLayer = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, coverHeight, backgroundImagePosition);
-  // Fades the cover's bottom edge into the grid section's solid color —
-  // the same image-to-card transition the phone-mockup preview uses,
-  // avoiding a hard seam between the two sections of one flattened image.
-  const seamFadeHeight = Math.round(coverHeight * 0.25);
-  const seamFade = `
-    <defs>
-      <linearGradient id="seamFade" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${primaryColor}" stop-opacity="0" />
-        <stop offset="100%" stop-color="${primaryColor}" stop-opacity="1" />
-      </linearGradient>
-    </defs>
-    <rect x="0" y="${coverHeight - seamFadeHeight}" width="${CANVAS_WIDTH}" height="${seamFadeHeight}" fill="url(#seamFade)" />
-  `;
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundImagePosition);
 
   const required = Math.max(1, config.stamps_required);
-  const columns = getStampGridColumns(required);
-  const rows = Math.ceil(required / columns);
-  const scale = getStampCellScale(required);
-  const cell = CELL_PX[scale];
-  const gap = GAP_PX[scale];
+  // Google's brand guidelines call for ~20dp breathing room so content
+  // doesn't touch the image edges — 48px here is the same ~4-5% margin
+  // Apple's strip uses (18pt * STRIP_SCALE out of a 375pt-wide canvas),
+  // scaled to this canvas's own dimensions rather than copied verbatim.
+  const padding = 48;
+  const { columns, rows, cell, gap } = solveStampGridCell({ stampsRequired: required, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, padding });
 
   const gridWidth = columns * cell + (columns - 1) * gap;
   const gridHeight = rows * cell + (rows - 1) * gap;
   const startX = (CANVAS_WIDTH - gridWidth) / 2;
-  // Google's brand guidelines call for ~20dp breathing room so content
-  // doesn't touch the image edges — applied within the grid section only.
-  const padding = 40;
-  const availableHeight = gridAreaHeight - padding * 2;
-  const startY = coverHeight + padding + Math.max(0, (availableHeight - gridHeight) / 2);
+  const startY = (CANVAS_HEIGHT - gridHeight) / 2;
 
   const cells: string[] = [];
   for (let i = 0; i < required; i++) {
@@ -313,13 +307,14 @@ export async function renderStampCardHeroImage(params: {
     const filled = i < collected;
     const iconSize = cell * 0.6;
 
-    // Same legibility fix as renderAppleStripImage — a 0.45 group opacity
-    // over a photo made unfilled stamps nearly invisible.
+    // Same legibility fix as renderAppleStripImage — full opacity plus a
+    // dark scrim behind unfilled stamps, since they now sit directly on the
+    // (possibly busy) cover photo rather than a flat card-color area.
     cells.push(`
       <g>
         <circle cx="${x + cell / 2}" cy="${y + cell / 2}" r="${cell / 2}"
           fill="${filled ? secondaryColor : "rgba(0,0,0,0.35)"}"
-          stroke="${filled ? secondaryColor : "rgba(255,255,255,0.85)"}" stroke-width="3" />
+          stroke="${filled ? secondaryColor : "rgba(255,255,255,0.85)"}" stroke-width="${Math.max(1, cell * 0.05)}" />
         ${iconGroupMarkup(config.icon, x + (cell - iconSize) / 2, y + (cell - iconSize) / 2, iconSize, filled)}
       </g>
     `);
@@ -327,22 +322,22 @@ export async function renderStampCardHeroImage(params: {
 
   const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
     ${GRAYSCALE_FILTER_DEFS}
-    <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
-    ${coverLayer}
-    ${seamFade}
+    ${bg}
     ${cells.join("")}
   </svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
 
-/** Same cover-photo-on-top-of-content split as renderStampCardHeroImage,
- * for steps-type programs — previously steps/points programs got only the
- * plain cover photo (renderCoverHeroImage) with no progress visualization
- * at all, unlike stamp's grid; the dashboard's live preview (phone-mockup.tsx)
- * has always shown the milestone list, so the real card silently fell short
- * of what the merchant was shown while designing it. Capped at 6 visible
- * stages (Google's canvas has more vertical room than Apple's strip, so a
- * slightly higher cap than the dashboard preview's 4 is fine here). */
+/** Same full-bleed-overlay composition as renderStampCardHeroImage, for
+ * steps-type programs — previously steps/points programs got only the plain
+ * cover photo (renderCoverHeroImage) with no progress visualization at all,
+ * unlike stamp's grid; the dashboard's live preview (phone-mockup.tsx) has
+ * always shown the milestone list overlaid on the photo, so the real card
+ * silently fell short of what the merchant was shown while designing it.
+ * Capped at 6 visible stages vs. Apple's 3 (renderAppleStepsStrip) — that
+ * cap is deliberately platform-specific: it reflects the genuinely larger
+ * canvas Google's heroImage has to work with, not a difference in
+ * composition style (both platforms now use the same overlay layout). */
 export async function renderStepsCardHeroImage(params: {
   config: StepsConfig;
   progress: StepsProgress;
@@ -352,10 +347,8 @@ export async function renderStepsCardHeroImage(params: {
   backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<Buffer> {
   const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
-  const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
-  const contentHeight = CANVAS_HEIGHT - coverHeight;
 
-  const coverLayer = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, coverHeight, backgroundImagePosition);
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundImagePosition);
 
   const stages = [...config.stages].sort((a, b) => a.threshold - b.threshold);
   const currentIndex = (() => {
@@ -364,11 +357,11 @@ export async function renderStepsCardHeroImage(params: {
   })();
   const visible = stages.slice(0, 6);
 
-  const padding = 48;
-  const rowHeight = (contentHeight - padding * 2) / Math.max(1, visible.length);
+  const padding = 56;
+  const rowHeight = (CANVAS_HEIGHT - padding * 2) / Math.max(1, visible.length);
   const circleR = Math.min(18, rowHeight * 0.28);
   const rows = visible.map((stage, i) => {
-    const y = coverHeight + padding + rowHeight * i + rowHeight / 2;
+    const y = padding + rowHeight * i + rowHeight / 2;
     const done = i < currentIndex;
     const current = i === currentIndex;
     const opacity = done || current ? 1 : 0.5;
@@ -387,16 +380,20 @@ export async function renderStepsCardHeroImage(params: {
   });
 
   const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
-    ${coverLayer}
+    ${bg}
     ${rows.join("")}
   </svg>`;
   return rasterizeSvgWithText(svg);
 }
 
 /** Points equivalent of renderStepsCardHeroImage — big current-balance
- * number plus a progress bar toward the next reward, in the same
- * cover-photo-on-top-of-content layout. */
+ * number plus a progress bar toward the next reward, overlaid directly on
+ * the full-bleed cover photo (same composition-unification reasoning as
+ * renderStampCardHeroImage). The number+label group is centered around the
+ * canvas's vertical middle the same way renderApplePointsStrip centers its
+ * own number+label pair, with the progress bar (a Google-only element —
+ * confirmed absent on a real Apple card, see renderApplePointsStrip's
+ * comment) placed directly beneath it. */
 export async function renderPointsCardHeroImage(params: {
   config: PointsConfig;
   progress: PointsProgress;
@@ -406,10 +403,8 @@ export async function renderPointsCardHeroImage(params: {
   backgroundImagePosition?: BackgroundImagePosition;
 }): Promise<Buffer> {
   const { config, progress, primaryColor, secondaryColor, backgroundImageUrl, backgroundImagePosition } = params;
-  const coverHeight = Math.round(CANVAS_HEIGHT * COVER_HEIGHT_RATIO);
-  const contentHeight = CANVAS_HEIGHT - coverHeight;
 
-  const coverLayer = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, coverHeight, backgroundImagePosition);
+  const bg = await backgroundLayerSvg(backgroundImageUrl, primaryColor, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundImagePosition);
 
   const target = Math.max(1, config.points_per_reward);
   const current = Math.max(0, Math.min(target, progress.points));
@@ -418,14 +413,15 @@ export async function renderPointsCardHeroImage(params: {
   const barWidth = CANVAS_WIDTH - 96;
   const barHeight = 28;
   const barX = 48;
-  const barY = coverHeight + contentHeight * 0.62;
-  const numberY = coverHeight + contentHeight * 0.4;
+  const groupCenterY = CANVAS_HEIGHT / 2;
+  const numberY = groupCenterY - 50;
+  const labelY = numberY + 44;
+  const barY = labelY + 46;
 
   const svg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="${primaryColor}" />
-    ${coverLayer}
+    ${bg}
     <text x="${CANVAS_WIDTH / 2}" y="${numberY}" font-family="${FONT_FAMILY}" font-size="96" font-weight="700" fill="#ffffff" text-anchor="middle">${current}</text>
-    <text x="${CANVAS_WIDTH / 2}" y="${numberY + 44}" font-family="${FONT_FAMILY}" font-size="28" fill="#ffffff" opacity="0.75" text-anchor="middle">${escapeXml(config.points_label)} — ${target} to reward</text>
+    <text x="${CANVAS_WIDTH / 2}" y="${labelY}" font-family="${FONT_FAMILY}" font-size="28" fill="#ffffff" opacity="0.75" text-anchor="middle">${escapeXml(config.points_label)} — ${target} to reward</text>
     <rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" rx="${barHeight / 2}" fill="#ffffff" opacity="0.22" />
     <rect x="${barX}" y="${barY}" width="${Math.max(barHeight, barWidth * percent)}" height="${barHeight}" rx="${barHeight / 2}" fill="${secondaryColor}" />
   </svg>`;
@@ -442,14 +438,18 @@ export async function renderPointsCardHeroImage(params: {
 const STRIP_SCALE = 3; // generate at @3x, downsample for @2x/@1x
 
 /** Apple equivalent of renderStampCardHeroImage — same brand cover photo +
- * circular stamp grid look as the dashboard live preview and Google Wallet's
- * heroImage, but composited as one overlay (photo/color behind, grid on top)
- * rather than stacked top/bottom: at 123pt tall there isn't room to devote a
- * separate band to the cover photo AND keep the stamp circles legible, so
- * the photo becomes a full-bleed darkened backdrop instead. Grid cell size
- * is solved for the available space rather than using renderStampCardHeroImage's
- * fixed lg/md/sm/xs table, since that table was tuned for Google's much
- * taller canvas and would overflow or look tiny at this aspect ratio. */
+ * circular stamp grid overlay composition as the dashboard live preview and
+ * Google Wallet's heroImage (both platforms share this layout; see the
+ * composition-unification comment above renderStampCardHeroImage). This is
+ * also where that overlay composition was proven out first: at 123-144pt
+ * tall there's no room to devote a separate band to the cover photo AND keep
+ * the stamp circles legible, so the photo has always been a full-bleed
+ * darkened backdrop here — Google's heroImage later adopted the same
+ * approach once it became clear its own canvas has even more room to work
+ * with, not less. Grid cell size is solved for the actual available space
+ * via solveStampGridCell (lib/stamp-grid.ts) rather than a fixed size table
+ * — the same formula renderStampCardHeroImage now uses too, just solved
+ * against a different (much shorter, wider) canvas here. */
 export async function renderAppleStripImage(params: {
   config: StampConfig;
   collected: number;
