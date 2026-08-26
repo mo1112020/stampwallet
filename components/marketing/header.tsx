@@ -19,6 +19,7 @@ const links = [
   { path: "infrastructure", key: "infrastructure" as const },
   { path: "pricing", key: "pricing" as const },
   { path: "faq", key: "faq" as const },
+  { path: "blog", key: "blog" as const },
 ];
 
 export function MarketingHeader({ locale }: { locale: string }) {

@@ -1,0 +1,243 @@
+{
+  "version": "2.2.4",
+  "seed_keyword": "digital loyalty card app (WalletOS / walletos.online)",
+  "created_at": "2026-08-26",
+  "methodology_note": "SERP data collected via WebSearch (no DataForSEO connector available in this session). Because WebSearch returns an AI-summarized ~8-9 result set rather than a raw top-10 organic SERP, overlap scores below are a domain-overlap-weighted approximation, not exact URL-intersection counts. Where the same 2-3 keywords were independently searched, scores are grounded in observed shared domains; all other pairs use the skill's documented skip-rule (same head term + same intent + long-tail variant => assume score 4-6) or the cross-intent skip-rule (different intent category, no shared head term => assume 0-2). No hard keyword-volume data source was available; volume is qualitative (High/Medium/Low/Regional-only), not from Keyword Planner/DataForSEO. Confirm with GA4 Search Console data once the blog is live and indexed.",
+  "search_volume_disclaimer": "No paid keyword-volume tool (DataForSEO/Ahrefs/SEMrush/Keyword Planner) was connected this session. Volume tiers below are qualitative judgments from SERP crowding + query-pattern frequency observed across ~20 WebSearch queries, not measured numbers. Re-validate with GA4/Search Console once organic traffic exists.",
+  "competitors_confirmed": {
+    "global_wallet_pass_specialists": ["Stamp Me (stampme.com)", "Loopy Loyalty (loopyloyalty.com)", "BonusQR (bonusqr.com)", "PassKit (passkit.com)", "FaveCard (favecard.co)", "Loop.fans", "Cuppacard", "LoyaltyPass (loyaltypass.co)", "7stamp", "Stampit", "Kortpress", "TurboPush", "Restilla", "digiPunchCard", "GAWAPP", "PunchPass", "Preferred Patron", "Loylo", "Ruloyal", "myflexrewards", "StampClub", "WinStamp"],
+    "requested_but_needs_direct_verification": ["Loyverse (POS-first, loyalty is a bolt-on feature, not wallet-pass-first)", "Fivestars (US-focused, app-based not wallet-pass-first)", "Punchh (enterprise/franchise focus, not SMB self-serve)", "LoyaltyLion (Shopify/e-commerce focused, not brick-and-mortar wallet-pass)"],
+    "mena_regional_players": ["Resal / رسال (resal.me) -- Saudi, largest MENA loyalty/rewards platform, broader than wallet-pass", "Waya / وايا (trywaya.com) -- Saudi, cafe/small-store loyalty, has Arabic blog content", "Loltux (loltux.com) -- Saudi, cafes & restaurants digital loyalty", "OneCup (onecup.cc) -- Saudi, Apple/Google Wallet loyalty card, bilingual site", "btaqa.io -- Arabic loyalty-guide content site", "roaait.com (Vision IT) -- Saudi digital loyalty vendor"],
+    "key_finding": "None of the dominant EN-language wallet-pass specialists (Stamp Me, Loopy Loyalty, BonusQR, PassKit, FaveCard, LoyaltyPass) surfaced in any Arabic-language SERP tested. The Arabic SERP is owned by a different, thinner set of MENA-native players who are largely POS/loyalty generalists, not wallet-pass content specialists. This is WalletOS's clearest content whitespace."
+  },
+  "pillar": {
+    "title": "How Digital Loyalty Cards Work: The Merchant's Guide to Apple Wallet & Google Wallet Loyalty Programs",
+    "keyword": "how digital loyalty cards work (apple wallet / google wallet)",
+    "intent": "Informational (broad)",
+    "volume_tier": "Medium (head-term adjacent, but explainer framing avoids the most saturated \"app\"/\"software\" commercial queries)",
+    "template": "ultimate-guide",
+    "wordCount": 3200,
+    "url": "/en/blog/digital-loyalty-cards-guide",
+    "status": "planned",
+    "en_only_or_needs_ar": "Needs genuine Arabic treatment -- see cluster C1, not a literal translation of this page"
+  },
+  "clusters": [
+    {
+      "name": "Cluster A -- Loyalty Program Mechanics (Stamp / Points / Reward Journey)",
+      "rationale": "Maps 1:1 to WalletOS's three actual product types (stamp cards, point cards, reward journeys). Existing competitor content covers stamp-vs-points as a 2-way comparison; almost none frame it as a 3-way decision including tiered/steps programs, which is a genuine content + product-narrative gap and doubles as an implicit sales page.",
+      "posts": [
+        {
+          "id": "cluster-0-post-0",
+          "title": "Stamp Card vs Points Program vs Reward Journey: Which Loyalty Model Fits Your Business?",
+          "keyword": "stamp card vs points program for small business",
+          "intent": "Commercial (compare)",
+          "volume_tier": "Medium",
+          "template": "comparison",
+          "wordCount": 1600,
+          "url": "/en/blog/stamp-card-vs-points-vs-reward-journey",
+          "status": "planned",
+          "en_only_or_needs_ar": "Needs genuine Arabic treatment (see C2) -- do not machine-translate; Arabic search behavior consolidates this into a single broader \"نظام الولاء\" query rather than a head-to-head comparison phrase"
+        },
+        {
+          "id": "cluster-0-post-1",
+          "title": "What Is a Reward Journey? Tiered Loyalty Programs Explained (Bronze to VIP)",
+          "keyword": "tiered loyalty program steps stages",
+          "intent": "Informational (concept)",
+          "volume_tier": "Low-Medium",
+          "template": "explainer",
+          "wordCount": 1400,
+          "url": "/en/blog/reward-journey-tiered-loyalty-explained",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-only viable first; Arabic version is lower priority (thin/no evidence of Arabic search demand for \"tiered\"/\"steps\" loyalty as a distinct concept -- fold into C1 instead of a standalone AR post)"
+        },
+        {
+          "id": "cluster-0-post-2",
+          "title": "No App Required: How Apple Wallet & Google Wallet Loyalty Cards Actually Work",
+          "keyword": "apple wallet google wallet loyalty card no app",
+          "intent": "Informational (concept)",
+          "volume_tier": "Medium",
+          "template": "explainer",
+          "wordCount": 1400,
+          "url": "/en/blog/wallet-loyalty-cards-no-app-download",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-only viable first; the AR equivalent of this exact explainer is effectively delivered by pillar-adjacent C1, so do not duplicate"
+        }
+      ]
+    },
+    {
+      "name": "Cluster B -- Underserved Vertical Guides (car wash, pet grooming, clinic/pharmacy, independent hotel)",
+      "rationale": "Coffee shops, salons, gyms and barbershops are already saturated by Stamp Me / Loopy Loyalty / BonusQR / Barberly-style dedicated vertical pages (5-9 repeat competitor domains per query) -- not a realistic near-term target for a zero-authority domain, and largely already addressed at overview level by the existing /industries page. Car wash, pet grooming, clinic/pharmacy and independent hotel loyalty content is measurably thinner and more fragmented (2-4 competing domains, no single dominant incumbent), which is where a new domain has a real shot.",
+      "posts": [
+        {
+          "id": "cluster-1-post-0",
+          "title": "Car Wash Loyalty Program: Digital Stamp Cards Customers Actually Use",
+          "keyword": "car wash loyalty program app digital stamp card",
+          "intent": "Informational (how)",
+          "volume_tier": "Low-Medium",
+          "template": "how-to",
+          "wordCount": 1400,
+          "url": "/en/blog/car-wash-loyalty-program",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-only viable first; genuine GCC car-wash-culture angle (very common SMB category in MENA) makes a real Arabic version worth a Phase 2 slot, not literal translation"
+        },
+        {
+          "id": "cluster-1-post-1",
+          "title": "Pet Shop & Grooming Loyalty Card App: Simple Digital Punch Cards for Repeat Visits",
+          "keyword": "pet grooming shop loyalty card app",
+          "intent": "Informational (how)",
+          "volume_tier": "Low",
+          "template": "how-to",
+          "wordCount": 1300,
+          "url": "/en/blog/pet-grooming-loyalty-card",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-only viable; no evidence of meaningful Arabic search volume for this vertical yet -- do not prioritize AR version"
+        },
+        {
+          "id": "cluster-1-post-2",
+          "title": "Clinic & Pharmacy Customer Loyalty Programs: A Practical Guide for Independent Practices",
+          "keyword": "clinic pharmacy customer loyalty program app",
+          "intent": "Informational (how)",
+          "volume_tier": "Low",
+          "template": "how-to",
+          "wordCount": 1300,
+          "url": "/en/blog/clinic-pharmacy-loyalty-program",
+          "status": "planned",
+          "en_only_or_needs_ar": "Needs genuine Arabic treatment -- Arabic-language SERP test for gyms/clinics returned no dedicated vertical loyalty content at all (regulatory/general-business results only). This is a real whitespace but unconfirmed demand; treat as a demand-testing page, not a guaranteed-traffic page."
+        },
+        {
+          "id": "cluster-1-post-3",
+          "title": "Small Hotel & Guesthouse Guest Loyalty: Digital Punch Cards for Independent Properties",
+          "keyword": "independent hotel guest loyalty program app",
+          "intent": "Informational (how)",
+          "volume_tier": "Low",
+          "template": "how-to",
+          "wordCount": 1300,
+          "url": "/en/blog/independent-hotel-loyalty-program",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-only viable; competitive set here (Preferred Patron, Stash Hotel Rewards) is North-America-centric and PMS-integration-heavy -- differentiate on \"no PMS integration needed\" angle"
+        }
+      ]
+    },
+    {
+      "name": "Cluster C -- MENA / Bilingual Loyalty & Wallet Marketing",
+      "rationale": "The single clearest whitespace found: zero of the dominant EN wallet-pass specialists appear in Arabic SERPs. The Arabic-language competitive set (Resal, Waya, Loltux, OneCup, btaqa.io) are loyalty/POS generalists, not focused wallet-pass educational content. These posts must be genuinely authored in Arabic for GCC search behavior and business vocabulary, not translated from the English cluster A/B posts.",
+      "posts": [
+        {
+          "id": "cluster-2-post-0",
+          "title": "دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات: آبل ووليت وجوجل وولت",
+          "title_en_gloss": "The Digital Loyalty Card Guide for Saudi & UAE Merchants: Apple Wallet & Google Wallet",
+          "keyword": "بطاقة ولاء رقمية لمحفظة آبل وجوجل",
+          "intent": "Informational (concept)",
+          "volume_tier": "Regional-only, unconfirmed but real gap",
+          "template": "explainer",
+          "wordCount": 1700,
+          "url": "/ar/blog/digital-loyalty-card-guide-mena",
+          "status": "planned",
+          "en_only_or_needs_ar": "This IS the genuine Arabic treatment -- not a translation of the EN pillar. Written around GCC merchant vocabulary (\"بطاقة أختام\", \"محفظة رقمية\") and regional payment/retail context, cross-linked to the EN pillar via hreflang, not via a literal-translation content brief"
+        },
+        {
+          "id": "cluster-2-post-1",
+          "title": "الفرق بين بطاقة الأختام الرقمية ونظام نقاط الولاء: أيهما أنسب لمشروعك؟",
+          "title_en_gloss": "Digital Stamp Cards vs Points Programs: Which Fits Your Business?",
+          "keyword": "الفرق بين بطاقة الأختام ونظام النقاط",
+          "intent": "Commercial (compare)",
+          "volume_tier": "Regional-only, unconfirmed but real gap",
+          "template": "comparison",
+          "wordCount": 1400,
+          "url": "/ar/blog/stamp-vs-points-loyalty-arabic",
+          "status": "planned",
+          "en_only_or_needs_ar": "This IS the genuine Arabic treatment of cluster-0-post-0's topic -- Arabic query consolidates stamp-vs-points into one broader phrase rather than the EN head-to-head format; written natively, not translated"
+        },
+        {
+          "id": "cluster-2-post-2",
+          "title": "Apple & Google Wallet Push Notifications for GCC Merchants: The Highest-Open-Rate Channel You're Not Using",
+          "keyword": "wallet push notifications loyalty marketing GCC",
+          "intent": "Informational/Commercial hybrid",
+          "volume_tier": "Low (novel angle, no direct competitor overlap found)",
+          "template": "listicle",
+          "wordCount": 1500,
+          "url": "/en/blog/wallet-push-notifications-gcc-merchants",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-first (data/stat-driven format reads better in EN for a global proof-point angle: >85% open rate vs ~9% email), but a genuinely localized Arabic companion is worth a Phase 2 slot once GA4 shows real bilingual traffic split"
+        }
+      ]
+    }
+  ],
+  "links": [
+    { "from": "pillar", "to": "cluster-0-post-0", "type": "mandatory", "anchor": "stamp card vs points program vs reward journey" },
+    { "from": "cluster-0-post-0", "to": "pillar", "type": "mandatory", "anchor": "how digital loyalty cards work" },
+    { "from": "pillar", "to": "cluster-0-post-1", "type": "mandatory", "anchor": "reward journey / tiered loyalty programs" },
+    { "from": "cluster-0-post-1", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "pillar", "to": "cluster-0-post-2", "type": "mandatory", "anchor": "how Apple Wallet & Google Wallet loyalty cards work" },
+    { "from": "cluster-0-post-2", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "cluster-0-post-0", "to": "cluster-0-post-1", "type": "recommended", "anchor": "reward journey programs" },
+    { "from": "cluster-0-post-0", "to": "cluster-0-post-2", "type": "recommended", "anchor": "how wallet loyalty cards work" },
+    { "from": "cluster-0-post-1", "to": "cluster-0-post-0", "type": "recommended", "anchor": "stamp vs points vs reward journey" },
+    { "from": "cluster-0-post-1", "to": "cluster-0-post-2", "type": "recommended", "anchor": "wallet cards with no app download" },
+    { "from": "cluster-0-post-2", "to": "cluster-0-post-0", "type": "recommended", "anchor": "choosing a loyalty program type" },
+    { "from": "cluster-0-post-2", "to": "cluster-0-post-1", "type": "recommended", "anchor": "tiered reward journey" },
+
+    { "from": "pillar", "to": "cluster-1-post-0", "type": "mandatory", "anchor": "car wash loyalty program" },
+    { "from": "cluster-1-post-0", "to": "pillar", "type": "mandatory", "anchor": "how digital loyalty cards work" },
+    { "from": "pillar", "to": "cluster-1-post-1", "type": "mandatory", "anchor": "pet grooming loyalty card app" },
+    { "from": "cluster-1-post-1", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "pillar", "to": "cluster-1-post-2", "type": "mandatory", "anchor": "clinic & pharmacy loyalty program" },
+    { "from": "cluster-1-post-2", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "pillar", "to": "cluster-1-post-3", "type": "mandatory", "anchor": "independent hotel loyalty program" },
+    { "from": "cluster-1-post-3", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "cluster-1-post-0", "to": "cluster-1-post-1", "type": "recommended", "anchor": "pet grooming loyalty card" },
+    { "from": "cluster-1-post-0", "to": "cluster-1-post-2", "type": "recommended", "anchor": "clinic & pharmacy loyalty" },
+    { "from": "cluster-1-post-1", "to": "cluster-1-post-0", "type": "recommended", "anchor": "car wash loyalty program" },
+    { "from": "cluster-1-post-1", "to": "cluster-1-post-3", "type": "recommended", "anchor": "independent hotel loyalty" },
+    { "from": "cluster-1-post-2", "to": "cluster-1-post-3", "type": "recommended", "anchor": "hotel guest loyalty" },
+    { "from": "cluster-1-post-2", "to": "cluster-1-post-0", "type": "recommended", "anchor": "car wash loyalty program" },
+    { "from": "cluster-1-post-3", "to": "cluster-1-post-1", "type": "recommended", "anchor": "pet grooming loyalty" },
+    { "from": "cluster-1-post-3", "to": "cluster-1-post-2", "type": "recommended", "anchor": "clinic & pharmacy loyalty" },
+
+    { "from": "pillar", "to": "cluster-2-post-0", "type": "mandatory", "anchor": "بطاقة الولاء الرقمية (hreflang-paired Arabic guide)" },
+    { "from": "cluster-2-post-0", "to": "pillar", "type": "mandatory", "anchor": "how digital loyalty cards work (EN pillar via hreflang)" },
+    { "from": "pillar", "to": "cluster-2-post-1", "type": "mandatory", "anchor": "الفرق بين الأختام ونظام النقاط" },
+    { "from": "cluster-2-post-1", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "pillar", "to": "cluster-2-post-2", "type": "mandatory", "anchor": "wallet push notifications for GCC merchants" },
+    { "from": "cluster-2-post-2", "to": "pillar", "type": "mandatory", "anchor": "how digital loyalty cards work" },
+    { "from": "cluster-2-post-0", "to": "cluster-2-post-1", "type": "recommended", "anchor": "الفرق بين بطاقة الأختام ونظام النقاط" },
+    { "from": "cluster-2-post-1", "to": "cluster-2-post-0", "type": "recommended", "anchor": "دليل بطاقة الولاء الرقمية" },
+    { "from": "cluster-2-post-2", "to": "cluster-2-post-0", "type": "recommended", "anchor": "بطاقة الولاء الرقمية لتجار الخليج" },
+    { "from": "cluster-2-post-0", "to": "cluster-2-post-2", "type": "recommended", "anchor": "wallet push notifications" },
+
+    { "from": "cluster-0-post-0", "to": "cluster-2-post-1", "type": "optional", "anchor": "Arabic version of this comparison (hreflang)" },
+    { "from": "cluster-0-post-2", "to": "cluster-2-post-0", "type": "optional", "anchor": "Arabic version of this guide (hreflang)" },
+    { "from": "cluster-1-post-0", "to": "cluster-2-post-2", "type": "optional", "anchor": "wallet push notifications for GCC merchants" }
+  ],
+  "serp_matrix_representative_pairs": {
+    "note": "Domain-overlap-weighted approximation from ~20 WebSearch queries; not exact top-10 URL intersection. Representative boundary/spot-check pairs only -- full 40x40 pairwise matrix not computed (see methodology_note).",
+    "pairs": [
+      { "a": "digital loyalty card app", "b": "digital stamp card app", "score": 1, "action": "separate", "note": "Minimal exact-URL overlap despite topical closeness -- surprising but consistent across two independent searches" },
+      { "a": "digital loyalty card app", "b": "customer loyalty program software", "score": 3, "action": "interlink", "note": "loyaltypass.co / loop.fans appear in both; different SERP intents (app vs software/POS)" },
+      { "a": "stamp card vs points program", "b": "points vs stamps loyalty program", "score": 8, "action": "same post", "note": "Near-duplicate phrasing, same competitor set (bonusqr, stampme, preferredpatron, loyaltypass) -- merged into cluster-0-post-0" },
+      { "a": "apple wallet loyalty card", "b": "google wallet loyalty card", "score": 6, "action": "same cluster / same post", "note": "Heavy overlap (passkit, bonusqr, loyaltypass) -- folded into a single combined spoke (cluster-0-post-2) rather than two pages" },
+      { "a": "coffee shop loyalty app", "b": "salon loyalty program app", "score": 2, "action": "interlink", "note": "Both saturated by Stamp Me/Loopy Loyalty dedicated vertical pages -- confirms these verticals are deprioritized for a new domain, already covered at overview level by /industries" },
+      { "a": "car wash loyalty program app", "b": "pet grooming loyalty card app", "score": 1, "action": "separate", "note": "Different competitor sets (Loylo/Ruloyal/Rinsed vs RunLoyal/PointsCard/Perkstar) -- confirms distinct spokes within Cluster B, not a same-post merge" },
+      { "a": "wallet push notification marketing", "b": "apple wallet loyalty card", "score": 2, "action": "interlink", "note": "Distinct SERP (loyoly/coupontools/brevo/yotpo vs passkit/bonusqr) -- confirms Cluster C3 is a separate spoke, not folded into Cluster A" },
+      { "a": "بطاقة ولاء رقمية", "b": "digital loyalty card app", "score": 0, "action": "separate", "note": "Zero shared domains -- confirms Arabic and English clusters are entirely independent SERPs, not cannibalizing" },
+      { "a": "بطاقة ولاء رقمية للمقاهي", "b": "برنامج ولاء رقمي للمقاهي", "score": 7, "action": "same post", "note": "Arabic query variants consolidate more than English equivalents (resal.me/trywaya.com dominate both) -- supports fewer, broader Arabic posts rather than fragmenting into many near-duplicate AR pages" },
+      { "a": "loyverse alternative", "b": "fivestars alternative", "score": 5, "action": "same cluster", "note": "Both dominated by review-directory sites (capterra, g2, saashub, alternative.me) -- a genuine \"alternative\" cluster exists but is deprioritized: ranking against directory sites requires the brand to first be LISTED on those directories (Capterra/G2/SaaSHub), which isn't done yet. Flagged as Phase 2/3, not in first 5." }
+    ]
+  },
+  "cannibalization_check": {
+    "duplicate_primary_keywords_found": 0,
+    "notes": [
+      "Cluster A (EN) and Cluster C (AR) posts covering the same underlying concept (stamp-vs-points, wallet-card explainer) are NOT cannibalization: Google indexes /en/* and /ar/* as separate locale trees (next-intl), targeting entirely disjoint SERPs (confirmed 0 domain overlap in spot-check above). They should be hreflang-paired, not treated as duplicate content.",
+      "cluster-0-post-2 intentionally merges 'apple wallet loyalty card' + 'google wallet loyalty card' into one page (SERP overlap score 6) rather than publishing two near-identical pages that would compete with each other.",
+      "No two EN posts share a primary keyword; no two AR posts share a primary keyword."
+    ]
+  },
+  "scorecard": {
+    "coverage": 0.0,
+    "linkDensity": "3.0-4.0 per post (mandatory pillar link + 2-3 recommended sibling links)",
+    "orphanPages": 0,
+    "cannibalization": 0,
+    "contentGaps": 11,
+    "note": "Nothing written yet -- 0 blog infrastructure exists in the codebase today. Coverage is 0/11 pending a /blog route + content calendar."
+  }
+}

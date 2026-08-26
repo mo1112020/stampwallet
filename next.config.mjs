@@ -1,13 +1,21 @@
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
+import createMDX from "@next/mdx";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+const withMDX = createMDX({});
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Blog posts (content/blog/{locale}/{slug}.mdx, dynamically imported by
+  // app/[locale]/(marketing)/blog/[slug]/page.tsx) are the only current MDX
+  // use — mdxRs is the documented way to get @next/mdx working under
+  // Turbopack (this project's dev/build compiler; see the turbopack block
+  // below), since the default webpack-loader path doesn't apply there.
+  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
   // "standalone" powers the self-host Dockerfile (it produces a minimal server.js
   // bundle), but Vercel's own builder does its own file tracing/packaging and expects
   // the default output shape — with "standalone" set, it looks for
@@ -105,10 +113,13 @@ const nextConfig = {
     staleTimes: {
       dynamic: 30,
     },
+    // The documented way to get @next/mdx working under Turbopack — see the
+    // pageExtensions comment above.
+    mdxRs: true,
   },
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
+export default withSentryConfig(withNextIntl(withMDX(nextConfig)), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
 

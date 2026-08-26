@@ -1,0 +1,66 @@
+A customer finishes their coffee, taps their phone against your reader, and a stamp appears on a loyalty card they never had to download an app for. That card lives in Apple Wallet or Google Wallet — the same place they keep their boarding passes and event tickets — and it updates itself every time they come back.
+
+That's the entire pitch of a digital loyalty card. No plastic to print, laminate, or lose. No app to convince someone to install for a business they visit twice a month. Just a pass, added once, that quietly does its job from the lock screen.
+
+If you've only ever run a paper stamp card or a points spreadsheet, the mechanics aren't obvious from the outside. Here's exactly how it works, end to end.
+
+## What "digital loyalty card" actually means
+
+A digital loyalty card is a **wallet pass** — a small structured file (Apple calls it a `.pkpass`, Google calls it a Loyalty Object) that Apple Wallet or Google Wallet knows how to render natively. It's not a webpage saved to a home screen, and it's not a native app. It's a first-class citizen of the phone's own wallet app, sitting next to the customer's credit cards and transit tickets.
+
+That distinction matters because it's what makes the whole model work:
+
+- **No install friction.** Adding a pass to Apple Wallet or Google Wallet is a single tap — there's no App Store detour, no account creation screen, no permissions prompt beyond what the wallet app itself already has.
+- **No app to maintain.** You're not shipping iOS and Android builds, handling app-store review, or asking customers to update anything. The pass is just data; the wallet app is the interface.
+- **Lock-screen visibility for free.** A wallet pass can be configured to surface automatically when the customer is physically near your location (via the same technology that surfaces boarding passes when you arrive at the airport), and it can receive push updates that appear as real notifications — not an email that gets ignored.
+
+## How a customer actually gets the card
+
+The flow is the same regardless of which loyalty model you're running (stamp card, points, or a multi-stage reward journey):
+
+1. **The customer joins.** This can happen at checkout (you show a QR code or link), on your website, or through a sign-up flow you send after a purchase. They enter basic info — usually just a name and phone number — and hit "Add to Apple Wallet" or "Add to Google Wallet."
+2. **The pass is generated and installed.** The button doesn't link to a download — it triggers the wallet app itself to install a pass that's pre-filled with that customer's current progress (0 stamps, 0 points, whatever the starting state is).
+3. **The pass sits in their wallet**, visible whenever they open the app, and — if location is configured — surfaces on their lock screen when they're near your store.
+
+From the customer's side, that's the entire onboarding. No password, no app permissions screen, no "verify your email" step standing between them and their first stamp.
+
+## How the card updates without the customer doing anything
+
+This is the part that looks like magic if you're used to static plastic cards. When a customer makes a purchase, staff scan their pass (usually via a QR/barcode on the card itself, read by a phone camera or a handheld scanner). That scan hits your system, updates their progress, and pushes the change back down to the pass that's already sitting in the customer's wallet.
+
+Two different delivery mechanisms make that update actually show up on the customer's phone:
+
+- **Apple Wallet** uses Apple Push Notification service (APNs) with a background push — the phone quietly re-fetches the latest pass data in the background, no notification banner required, though you can also trigger a real lock-screen notification (e.g. "🎁 Your reward is ready!") using the pass's own change-message field.
+- **Google Wallet** works through the Google Wallet Objects API — your system calls Google directly to patch the object (the stamp count, the points balance, the reward status), and Google Wallet reflects the change the next time the customer's phone syncs.
+
+Either way, the customer never re-opens an app, never pulls to refresh, and never wonders if their stamp "went through." The card in their wallet is always the current state of their account.
+
+## Stamp cards, points, and reward journeys — three different mechanics, one delivery method
+
+"Digital loyalty card" is really an umbrella term for a few different reward structures, and the right one depends on your business:
+
+- **Stamp cards** are the simplest and the most familiar — buy 9, get the 10th free. They work best for high-frequency, low-price purchases (coffee, a car wash, a sandwich) where the reward threshold is reached in weeks, not months.
+- **Points programs** decouple the reward from a fixed visit count — points accumulate per dollar spent (or per visit) and get redeemed against a catalog of rewards. This suits businesses with variable ticket sizes, like salons or retail, where "10 visits" doesn't mean the same thing for every customer.
+- **Reward journeys** (sometimes called tiered or staged loyalty) go further — customers move through defined stages, each unlocking a different reward or status, rewarding *consistency* rather than a single fixed goal. Gyms and wellness businesses tend to fit this model well, since the real behavior being rewarded is showing up regularly, not just spending.
+
+All three run on the exact same wallet-pass infrastructure described above — the difference is entirely in what triggers a reward and what the card displays, not in how the pass gets onto the customer's phone or how it updates.
+
+## Why this beats an app or a paper card, mechanically
+
+The comparison isn't close, and it's worth being specific about why:
+
+**Versus a native app:** Loyalty apps have a real acquisition problem — asking a customer to download and register for an app for a business they visit occasionally has enormous drop-off. A wallet pass has none of that friction because it isn't a separate piece of software the customer has to decide to trust.
+
+**Versus a paper card:** Paper cards get lost, forgotten at home, or left in a drawer — and when they're lost, so is every stamp the customer earned. A wallet pass can't be physically misplaced (it's tied to the customer's phone and, on most setups, recoverable if they get a new device), and it removes the manual stamping/counting error that paper invites.
+
+**Versus a points database with no physical or digital card at all** (the "just look up my number" model): this works, but it's invisible — there's nothing reminding the customer you exist between visits. A wallet pass sitting in their phone, especially one that can surface via lock-screen proximity, is a standing reminder that a plain database entry never provides.
+
+## What this means if you're evaluating a loyalty platform
+
+If you're comparing loyalty tools, the wallet-pass question is one of the first things worth checking, because it changes what you're actually building for your customers:
+
+- Does it generate real Apple Wallet and Google Wallet passes, or does it just have a "mobile-friendly web card"? Those are very different customer experiences — a bookmarked webpage doesn't get lock-screen notifications or location-based surfacing.
+- Can it run more than one reward model? A platform that only does stamp cards will force every business type into the same mechanic, whether or not it fits.
+- How does staff redemption actually work at the till? A scan should take a couple of seconds, not require a customer to open an app and navigate to a screen.
+
+That's the model WalletOS is built around — stamp cards, points, and full reward journeys, all delivered as real Apple Wallet and Google Wallet passes, with a scan flow built for a busy counter rather than a back office. If you want to see what a pass looks like from the customer's side before setting anything up, the [features overview](/en/features/wallet) walks through it.

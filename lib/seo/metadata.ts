@@ -23,15 +23,25 @@ export function buildPageMetadata({
   path,
   title,
   description,
+  localePaths,
 }: {
   locale: string;
   /** Route path with no leading locale segment — "" for the homepage, "about", "features/wallet", etc. */
   path: string;
   title: string;
   description: string;
+  /** Per-locale path override for pages whose path differs by locale — blog
+   * posts, whose slug is authored per-language rather than translated 1:1
+   * (see content/blog/manifest.ts). Falls back to `path` for any locale not
+   * listed here, so pages with a shared path across all locales don't need
+   * this at all. */
+  localePaths?: Partial<Record<string, string>>;
 }): Metadata {
   const base = appUrl();
-  const urlFor = (l: string) => `${base}/${l}${path ? `/${path}` : ""}`;
+  const urlFor = (l: string) => {
+    const p = localePaths?.[l] ?? path;
+    return `${base}/${l}${p ? `/${p}` : ""}`;
+  };
   const canonical = urlFor(locale);
   const ogImage = `${base}${OG_IMAGE_PATH}`;
 

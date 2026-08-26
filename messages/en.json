@@ -39,6 +39,7 @@
       "infrastructure": "Infrastructure",
       "pricing": "Pricing",
       "faq": "FAQ",
+      "blog": "Blog",
       "closeMenu": "Close menu"
     },
     "footer": {
@@ -48,6 +49,7 @@
       "legal": "Legal",
       "start": "Start now",
       "support": "Support",
+      "blog": "Blog",
       "privacy": "Privacy",
       "terms": "Terms",
       "copyright": "© 2026 WalletOS. All rights reserved."
@@ -246,6 +248,14 @@
       "guideTitle": "Explore features",
       "guideBody": "See how programs, analytics, and wallet passes fit together before you reach out.",
       "guideCta": "See features"
+    },
+    "blog": {
+      "eyebrow": "Blog",
+      "title": "Loyalty, explained for merchants.",
+      "description": "How wallet-pass loyalty actually works, vertical-by-vertical guides, and what's changing in Apple Wallet and Google Wallet.",
+      "readMore": "Read more",
+      "backToBlog": "Back to Blog",
+      "empty": "New posts are on the way -- check back soon."
     }
   },
   "landing": {
