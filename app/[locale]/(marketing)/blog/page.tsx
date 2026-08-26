@@ -11,7 +11,7 @@ import { BookOpen } from "lucide-react";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "site.blog" });
-  return buildPageMetadata({ locale, path: "blog", title: t("title"), description: t("description") });
+  return buildPageMetadata({ locale, path: "blog", title: t("title"), description: t("description"), hasGeneratedImage: true });
 }
 
 export default async function BlogIndexPage({

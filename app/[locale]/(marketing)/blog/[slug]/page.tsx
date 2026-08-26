@@ -41,6 +41,7 @@ export async function generateMetadata({
     title: post.title,
     description: post.description,
     localePaths: counterpartPath(post),
+    hasGeneratedImage: true,
   });
 }
 

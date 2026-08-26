@@ -24,6 +24,7 @@ export function buildPageMetadata({
   title,
   description,
   localePaths,
+  hasGeneratedImage,
 }: {
   locale: string;
   /** Route path with no leading locale segment — "" for the homepage, "about", "features/wallet", etc. */
@@ -36,6 +37,12 @@ export function buildPageMetadata({
    * listed here, so pages with a shared path across all locales don't need
    * this at all. */
   localePaths?: Partial<Record<string, string>>;
+  /** True for routes with their own opengraph-image.tsx (blog index/posts —
+   * see lib/og/blog-card.tsx). Next merges file-convention images with
+   * whatever's set here rather than one replacing the other, so this omits
+   * the fallback logo image entirely to avoid a page shipping two og:image
+   * tags — the generated one first, the generic logo trailing behind it. */
+  hasGeneratedImage?: boolean;
 }): Metadata {
   const base = appUrl();
   const urlFor = (l: string) => {
@@ -62,13 +69,13 @@ export function buildPageMetadata({
       siteName: "WalletOS",
       locale: locale === "ar" ? "ar_AR" : "en_US",
       type: "website",
-      images: [{ url: ogImage, width: 900, height: 220, alt: "WalletOS" }],
+      ...(hasGeneratedImage ? {} : { images: [{ url: ogImage, width: 900, height: 220, alt: "WalletOS" }] }),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImage],
+      ...(hasGeneratedImage ? {} : { images: [ogImage] }),
     },
   };
 }
