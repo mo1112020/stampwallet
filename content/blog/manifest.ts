@@ -53,7 +53,7 @@ export const BLOG_POSTS: BlogPost[] = [
     locale: "ar",
     title: "دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات",
     description:
-      "كيف تعمل بطاقة الولاء الرقمية مع Apple Wallet وGoogle Wallet، ولماذا تناسب تجار الخليج تحديدًا — من الانضمام حتى استبدال المكافأة.",
+      "كيف تعمل بطاقة الولاء الرقمية مع Apple Wallet وGoogle Wallet، ولماذا تناسب تجار الخليج تحديدًا، من الانضمام حتى استبدال المكافأة.",
     date: "2026-08-26",
     cluster: "mena",
     counterpartSlug: "digital-loyalty-cards-guide",
