@@ -22,10 +22,11 @@ export type BlogPost = {
 
 /**
  * Registry of every published blog post — single source of truth for the
- * index listing, generateStaticParams, sitemap.ts, and hreflang pairing.
- * New posts from .company/departments/marketing/keyword-cluster-strategy.md
- * get added here as they're written; the route infrastructure itself
- * (app/[locale]/(marketing)/blog/**) doesn't change per post.
+ * index listing, sitemap.ts, and hreflang pairing. New posts from
+ * .company/departments/marketing/keyword-cluster-strategy.md get added here
+ * as they're written, plus one loader line in registry.ts; the route
+ * infrastructure itself (app/[locale]/(marketing)/blog/**) doesn't change
+ * per post.
  */
 export const BLOG_POSTS: BlogPost[] = [
   {
@@ -36,6 +37,26 @@ export const BLOG_POSTS: BlogPost[] = [
       "No app to download, no plastic to print. Here's exactly how a wallet-pass loyalty program works, from the customer's first tap to the reward they redeem.",
     date: "2026-08-26",
     cluster: "mechanics",
+    counterpartSlug: "digital-loyalty-card-guide-mena",
+  },
+  {
+    slug: "stamp-card-vs-points-vs-reward-journey",
+    locale: "en",
+    title: "Stamp Card vs Points Program vs Reward Journey: Which Loyalty Model Fits Your Business?",
+    description:
+      "The three loyalty models look similar but reward completely different behavior. Here's how to pick the one that actually fits your business.",
+    date: "2026-08-26",
+    cluster: "mechanics",
+  },
+  {
+    slug: "digital-loyalty-card-guide-mena",
+    locale: "ar",
+    title: "دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات",
+    description:
+      "كيف تعمل بطاقة الولاء الرقمية مع Apple Wallet وGoogle Wallet، ولماذا تناسب تجار الخليج تحديدًا — من الانضمام حتى استبدال المكافأة.",
+    date: "2026-08-26",
+    cluster: "mena",
+    counterpartSlug: "digital-loyalty-cards-guide",
   },
 ];
 
