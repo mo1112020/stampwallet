@@ -1,0 +1,55 @@
+A car wash is, mechanically, one of the best-fitted businesses for a stamp card loyalty program that exists. High frequency, low price, a purchase decision that happens on impulse when someone drives past a dirty windshield. And yet most car washes still run on nothing, or on a paper card that's already water-stained and half-lost in someone's glovebox.
+
+That gap is worth closing, and it's worth understanding exactly why the paper version keeps failing before replacing it.
+
+## Why car washes are a near-perfect fit for stamp cards
+
+Go back to what makes a stamp card work well in the first place: purchases that look roughly the same size, and a customer who visits often enough to actually fill the card. A car wash checks both boxes better than almost any other business type.
+
+- **Visit frequency is high.** Regular customers wash their car every one to three weeks. A 10-stamp card fills in a season, not a year, so the reward stays close enough to matter.
+- **Ticket size is naturally bucketed, not continuous.** Most car washes sell 3 to 5 fixed wash tiers (basic, premium, deluxe), not a continuous price range. That maps cleanly onto a stamp system: one stamp per wash, or a weighted stamp value per tier, without the "does a $3 item deserve the same stamp as a $30 item" problem that trips up stamp cards in businesses with genuinely variable spend.
+- **The decision to return is impulsive.** Nobody plans a car wash three weeks in advance. A visible reminder (a wallet pass on the lock screen, or a pass that surfaces automatically when the customer is near the location) works exactly on the kind of low-consideration, spur-of-the-moment decision a car wash purchase actually is.
+
+## Where the paper card specifically breaks down here
+
+Car washes have a version of the "lost paper card" problem that's worse than most retail businesses, for a simple physical reason: the card lives in a car, not a wallet.
+
+- It sits in a glovebox, cupholder, or console, exactly where things get sun-damaged, soaked, or buried under fast-food receipts.
+- At a self-serve or automated bay, there's often no staff member to hand a card back to, so a forgotten card just doesn't get stamped that visit, breaking the sequence.
+- A customer who washes a second car, a spouse's or a work vehicle, has to remember which car the card is even in.
+
+None of that is a training problem or a discipline problem. It's a structural mismatch between where the loyalty record lives (a piece of paper in a specific car) and where the customer actually is (walking up to a payment kiosk, sometimes without that specific car).
+
+A wallet pass fixes this by attaching the loyalty record to the person's phone, not to a vehicle. Whichever car they're driving, whichever bay they pull into, the pass is in their pocket.
+
+## How it actually runs at the wash
+
+The mechanics stay simple, and fit into how car washes already operate:
+
+1. **Enrollment happens at the pay station or entrance kiosk.** A QR code at checkout, or a code printed on the receipt, gets scanned once and the pass is added in seconds. No app, no account creation, nothing that slows down a line of cars.
+2. **A stamp gets awarded per visit**, either by staff scanning the pass at a manned bay, or automatically tied to the transaction at an unmanned pay terminal if the system integrates with it.
+3. **The pass updates immediately.** The next time the customer opens their wallet, or the next time the pass surfaces near the location, the new stamp count is already there. No syncing, no "let me check the app."
+
+For subscription or membership car washes (the unlimited-wash-per-month model), the loyalty layer usually shifts target: since the core wash itself is already "free" under the membership, the reward is better aimed at add-on services members already pay for separately, like interior detailing, tire shine, or vacuum credits. The same stamp or points mechanic works, it's just pointed at a different purchase.
+
+## Handling multiple wash tiers without overcomplicating it
+
+The one real design decision a car wash faces that a simple coffee shop doesn't: what to do about tiered pricing. A few approaches that work in practice:
+
+- **Flat stamp per visit, regardless of tier.** Simplest option. Works well if the price spread between tiers isn't huge, and rewards visit frequency over spend.
+- **Weighted stamps by tier**, e.g. the deluxe wash earns two stamps instead of one. Slightly more setup, but keeps the reward proportional to what was actually spent.
+- **A points model instead of stamps**, if the tier spread is wide enough that a flat stamp value starts to feel unfair either to the merchant (giving away too much on the cheap tier) or the customer (feeling shortchanged on the premium tier).
+
+There's no universally correct answer here. It depends on how far apart the actual prices are, which is exactly the kind of judgment call worth making once, upfront, rather than discovering it's wrong after a season of stamps.
+
+## Setting it up without slowing down the line
+
+The most common failure mode isn't the loyalty model, it's friction at the point of scan. A few things that keep it fast:
+
+- Put the enrollment QR somewhere a customer sees it while waiting, not somewhere they have to search for it: the payment kiosk, a sign at the entrance lane, or printed directly on the receipt.
+- Make sure staff can scan a pass in the same few seconds it takes to hand back a receipt today. If scanning adds a real delay to a line of cars, staff will stop doing it consistently, and the whole program quietly dies.
+- If the wash has both manned bays and a self-serve or automated option, decide upfront how stamps get awarded at each, so the answer isn't "it depends who's working."
+
+A car wash loyalty program that respects how fast the actual line moves is one that survives contact with a Saturday afternoon. One that adds friction gets skipped the first time there's a queue.
+
+WalletOS runs exactly this model, real Apple Wallet and Google Wallet passes, fast staff scanning, and support for both flat and tiered stamp/points structures, without needing a customer to download anything or a staff member to learn a new till workflow. If you're weighing stamp cards against points for a business with a few pricing tiers, the [stamp vs points comparison](/en/blog/stamp-card-vs-points-vs-reward-journey) walks through the tradeoff in more depth.

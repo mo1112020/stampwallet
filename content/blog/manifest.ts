@@ -47,6 +47,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "The three loyalty models look similar but reward completely different behavior. Here's how to pick the one that actually fits your business.",
     date: "2026-08-26",
     cluster: "mechanics",
+    counterpartSlug: "stamp-vs-points-loyalty-arabic",
   },
   {
     slug: "digital-loyalty-card-guide-mena",
@@ -57,6 +58,25 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-08-26",
     cluster: "mena",
     counterpartSlug: "digital-loyalty-cards-guide",
+  },
+  {
+    slug: "car-wash-loyalty-program",
+    locale: "en",
+    title: "Car Wash Loyalty Program: Digital Stamp Cards Customers Actually Use",
+    description:
+      "Car washes are one of the best-fitted businesses for a stamp card, and one of the worst-served by paper ones. Here's how to run it digitally.",
+    date: "2026-08-26",
+    cluster: "verticals",
+  },
+  {
+    slug: "stamp-vs-points-loyalty-arabic",
+    locale: "ar",
+    title: "الفرق بين بطاقة الأختام الرقمية ونظام نقاط الولاء",
+    description:
+      "ما الذي يستحق المكافأة فعلاً؟ الزيارة أم الإنفاق أم الاستمرارية. دليل عملي لاختيار نظام الولاء المناسب لنشاطك.",
+    date: "2026-08-26",
+    cluster: "mechanics",
+    counterpartSlug: "stamp-card-vs-points-vs-reward-journey",
   },
 ];
 
