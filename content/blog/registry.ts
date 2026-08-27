@@ -17,6 +17,10 @@ const POST_LOADERS: Record<string, () => Promise<{ default: ComponentType }>> = 
   "ar:stamp-vs-points-loyalty-arabic": () => import("./ar/stamp-vs-points-loyalty-arabic.mdx"),
   "en:wallet-loyalty-cards-no-app-download": () => import("./en/wallet-loyalty-cards-no-app-download.mdx"),
   "en:reward-journey-tiered-loyalty-explained": () => import("./en/reward-journey-tiered-loyalty-explained.mdx"),
+  "en:pet-grooming-loyalty-card": () => import("./en/pet-grooming-loyalty-card.mdx"),
+  "en:clinic-pharmacy-loyalty-program": () => import("./en/clinic-pharmacy-loyalty-program.mdx"),
+  "en:independent-hotel-loyalty-program": () => import("./en/independent-hotel-loyalty-program.mdx"),
+  "en:wallet-push-notifications-gcc-merchants": () => import("./en/wallet-push-notifications-gcc-merchants.mdx"),
 };
 
 export function loadPostBody(locale: string, slug: string) {

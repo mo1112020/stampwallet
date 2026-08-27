@@ -1,0 +1,48 @@
+Most merchants already have a marketing channel with a 70 to 90% open rate sitting unused, right next to their customers' boarding passes and payment cards. It's not email (average open rates hover around 15 to 20%, and a lot of that traffic is filtered before a human ever sees it). It's the wallet pass itself, and specifically the push notification it can trigger directly on a customer's lock screen.
+
+Here's why this channel works as well as it does, and how to actually use it without becoming the reason a customer removes your pass.
+
+## 1. Wallet notifications land on the lock screen, not in a folder
+
+Email has to survive a spam filter, an inbox someone rarely opens, and a subject line competing with dozens of other unread messages. A wallet pass notification appears directly on the lock screen, the same surface a customer checks dozens of times a day for texts and calls. There's no folder to get buried in and no separate app to open. That single structural difference is most of why open rates for wallet notifications consistently land far above email, often cited in the 85%+ range against roughly 9% for typical retail email campaigns.
+
+## 2. It's a channel your customer already opted into, on purpose
+
+A customer who adds your loyalty pass to their wallet took a deliberate action, they tapped "Add to Apple Wallet" or "Add to Google Wallet" specifically because they wanted your card. That's a stronger, more intentional opt-in than an email address collected at checkout almost as an afterthought. The notification permission comes bundled with that same decision, rather than requiring a separate consent screen most customers reflexively decline.
+
+## 3. It works especially well for GCC merchants specifically
+
+Two regional factors make this channel particularly strong across Saudi Arabia, the UAE, and the wider Gulf:
+
+- **iPhone penetration in the region is among the highest in the world**, which means Apple Wallet in particular reaches a large share of a typical GCC merchant's customer base without any adoption barrier, the app is already there, already used daily for boarding passes and payment cards.
+- **Mobile-first behavior is the norm, not the exception**, especially among younger, urban customers who make up a large share of retail and hospitality spend in major GCC cities. A channel that lives on the lock screen fits how this customer already interacts with their phone, rather than asking them to adopt a new habit.
+
+## 4. What it's actually good for sending
+
+Not every update deserves a push notification, and overusing this channel is the fastest way to get your pass removed. The updates worth sending:
+
+- **"Your reward is ready"** the moment a customer crosses the redemption threshold. This is the single highest-value notification a loyalty program can send, it's good news, directly relevant, and drives an immediate reason to return.
+- **A stamp or points update after a visit**, especially when it's close to a reward (e.g. "1 more visit until your free coffee"). This reinforces the habit loop right after the behavior that earned it.
+- **A time-sensitive offer tied to something the customer already cares about**, a birthday reward, a seasonal promotion, or a reminder before a points expiration if your program has one.
+
+## 5. What it's not good for, and why that restraint matters
+
+- **Generic promotional blasts** unrelated to the customer's actual loyalty status. A notification that reads like a mass advertisement rather than a personal update about their account is exactly the kind of message that gets a pass deleted.
+- **High-frequency sends.** A notification every few days trains a customer to ignore the channel entirely, or remove the pass outright. The lock-screen advantage this channel has only holds if customers trust that a notification means something worth their attention.
+- **Anything that could arrive at an inconvenient moment without urgency to justify it.** A reward-ready notification at 2am, or a promotional push during a customer's typical working hours with no time pressure behind it, spends trust for no real gain.
+
+The practical rule: send only when there's a genuine, specific reason tied to that customer's own activity or a real deadline, not on a marketing calendar's schedule.
+
+## 6. How the mechanics actually work
+
+The merchant's system doesn't send a notification directly to the customer's phone. Instead, it pushes an update to Apple's or Google's wallet servers (via Apple Push Notification service for `.pkpass` files, or the Google Wallet Objects API), which then delivers the update and, if configured, a visible notification to the customer's device. This is the same mechanism that updates a boarding pass gate number after a delay, or a concert ticket after a venue change, just carrying a loyalty update instead. No separate app, no SMS gateway, and no email service to manage, it rides on infrastructure Apple and Google already operate.
+
+## 7. Getting started without overengineering it
+
+A simple, sustainable starting point for most GCC merchants:
+
+1. Turn on the "reward ready" notification first. It's the highest-value, lowest-risk message, and gives an immediate sense of whether the channel is working before adding anything more.
+2. Add a near-threshold nudge ("1 more visit until your reward") once the reward-ready notification is running smoothly.
+3. Reserve anything promotional (a seasonal offer, a birthday reward) for genuinely occasional use, not a recurring campaign slot.
+
+WalletOS issues real Apple Wallet and Google Wallet passes with push updates built in, the same mechanism covered in the [digital loyalty card guide](/en/blog/digital-loyalty-cards-guide), so a reward-ready or near-threshold notification is available from day one without any separate messaging integration. If you're setting up a program for the GCC market specifically, [دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات](/ar/blog/digital-loyalty-card-guide-mena) covers the full regional guide in Arabic.

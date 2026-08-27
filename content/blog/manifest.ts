@@ -124,6 +124,42 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-08-27",
     cluster: "mechanics",
   },
+  {
+    slug: "pet-grooming-loyalty-card",
+    locale: "en",
+    title: "Pet Shop & Grooming Loyalty Card App: Simple Digital Punch Cards for Repeat Visits",
+    description:
+      "A pet groomer sees the same dog every few weeks. Here's how to reward that recurring relationship with a wallet pass instead of a lost paper card.",
+    date: "2026-08-27",
+    cluster: "verticals",
+  },
+  {
+    slug: "clinic-pharmacy-loyalty-program",
+    locale: "en",
+    title: "Clinic & Pharmacy Customer Loyalty Programs: A Practical Guide for Independent Practices",
+    description:
+      "Loyalty here means something different: what to reward, what to avoid, and how to run it without ever touching a clinical decision.",
+    date: "2026-08-27",
+    cluster: "verticals",
+  },
+  {
+    slug: "independent-hotel-loyalty-program",
+    locale: "en",
+    title: "Small Hotel & Guesthouse Guest Loyalty: Digital Punch Cards for Independent Properties",
+    description:
+      "No PMS integration required. Here's how an independent hotel turns a happy guest into a direct-booking repeat guest.",
+    date: "2026-08-27",
+    cluster: "verticals",
+  },
+  {
+    slug: "wallet-push-notifications-gcc-merchants",
+    locale: "en",
+    title: "Apple & Google Wallet Push Notifications for GCC Merchants: The Highest-Open-Rate Channel You're Not Using",
+    description:
+      "Lock-screen wallet notifications routinely beat email open rates by a wide margin. Here's how to use them well, and when not to.",
+    date: "2026-08-27",
+    cluster: "mena",
+  },
 ];
 
 export function getPost(locale: string, slug: string): BlogPost | undefined {
