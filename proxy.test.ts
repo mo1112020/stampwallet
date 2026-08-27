@@ -8,7 +8,11 @@ import { proxy } from "./proxy";
 
 function mockUser(user: { id: string } | null) {
   createServerClient.mockReturnValue({
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user } }) },
+    // proxy.ts calls getClaims(), not getUser() — see lib/supabase/server.ts
+    // for why. getClaims() resolves `data: null` for no session and
+    // `data: { claims, ... }` for a valid one; only truthy/falsy is ever
+    // checked in proxy.ts, so `user` doubles as the claims payload here.
+    auth: { getClaims: vi.fn().mockResolvedValue({ data: user ? { claims: user } : null }) },
   });
 }
 
@@ -26,7 +30,7 @@ describe("proxy.ts — Scanner PWA session-refresh coverage (P0-3)", () => {
     const res = await proxy(req("/en/scan-app"));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe("http://localhost/en/scan-app/login");
-    expect(createServerClient).toHaveBeenCalled(); // getUser() round trip actually ran
+    expect(createServerClient).toHaveBeenCalled(); // getClaims() round trip actually ran
   });
 
   it("lets an unauthenticated visitor reach /scan-app/login itself (no redirect loop)", async () => {
