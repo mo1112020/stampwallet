@@ -91,9 +91,25 @@ export default async function BlogPostPage({
     mainEntityOfPage: `${appUrl()}/${locale}/blog/${slug}`,
   };
 
+  const howToJsonLd = post.howTo
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: post.howTo.name,
+        step: post.howTo.steps.map((step) => ({
+          "@type": "HowToStep",
+          name: step.name,
+          text: step.text,
+        })),
+      }
+    : null;
+
   return (
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      {howToJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }} />
+      )}
       <section className="bg-[var(--surface)] px-6 pb-12 pt-32 md:pb-16 md:pt-36">
         <Reveal as="div" className="mx-auto max-w-3xl">
           <Link

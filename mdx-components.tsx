@@ -58,6 +58,23 @@ const components: MDXComponents = {
       {children}
     </code>
   ),
+  // Wrapped in its own overflow-x-auto container so a wide comparison table
+  // (e.g. stamp vs points vs reward journey) scrolls on its own instead of
+  // pushing the narrow article column wider on mobile.
+  table: ({ children }) => (
+    <div className="mt-6 overflow-x-auto">
+      <table className="w-full border-collapse text-start text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-[var(--surface-2)]">{children}</thead>,
+  th: ({ children }) => (
+    <th className="border-b-2 border-[var(--primary)] px-3 py-2 text-start font-bold text-[var(--ink)]">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border-b border-[var(--surface-3)] px-3 py-2 align-top text-[var(--ink)]">{children}</td>
+  ),
 };
 
 export function useMDXComponents(): MDXComponents {

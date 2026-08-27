@@ -136,7 +136,8 @@
       "b2Title": "Google Wallet",
       "b2Body": "Loyalty objects that update when progress changes.",
       "b3Title": "Shared design",
-      "b3Body": "One source of truth for what the pass shows on both platforms."
+      "b3Body": "One source of truth for what the pass shows on both platforms.",
+      "directAnswer": "To issue an Apple Wallet pass, a merchant signs a .pkpass file with their brand colors, reward copy, and a QR code; the customer adds it with one tap and it updates automatically after every scan, no login required. Google Wallet works the same way through a Loyalty Object that updates live on the customer's phone."
     },
     "featuresPrograms": {
       "eyebrow": "Programs",
@@ -212,6 +213,7 @@
       "proPrice": "$79/mo",
       "proDesc": "Higher limits for growing multi-program businesses",
       "proCta": "Get started",
+      "atAGlance": "The Free plan includes 1 active program for up to 100 customers, no credit card required. Starter (from $29/mo) raises that to 3 programs and 1,000 customers with custom branding and card expiration. Pro (from $79/mo) supports 20 programs and 10,000 customers.",
       "note": "Prices shown in USD. Quarterly and yearly billing save you money, pick a cycle above. Sign up free, upgrade anytime from your dashboard.",
       "compareTitle": "Compare all plans",
       "compare": {

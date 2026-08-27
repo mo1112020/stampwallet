@@ -58,7 +58,11 @@ export default async function PricingPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <section className="px-6 pb-16 pt-32 md:pb-24 md:pt-36">
         <PricingPlans locale={locale} priceIds={priceIds} />
-        <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[var(--muted)]">{t("note")}</p>
+        {/* Self-contained, quotable plan-limits sentence — the per-tier card
+            copy above is deliberately short for layout, so it has nothing an
+            LLM can lift verbatim to answer "what does the Free plan include". */}
+        <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-[var(--ink)]">{t("atAGlance")}</p>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-[var(--muted)]">{t("note")}</p>
         <PricingComparisonTable t={t} />
       </section>
     </main>

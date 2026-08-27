@@ -53,6 +53,12 @@ export default async function FeaturesWalletPage({
             <IconCard key={b.title} icon={b.icon} title={b.title} body={b.body} />
           ))}
         </div>
+        {/* Self-contained, quotable answer for "how do I issue an Apple/Google
+            Wallet pass" — the cards above are deliberately short feature labels,
+            not full sentences an LLM could lift as a direct answer. */}
+        <p className="mx-auto mt-10 max-w-3xl text-center text-base leading-relaxed text-[var(--ink)]">
+          {t("directAnswer")}
+        </p>
       </section>
       <CtaBand
         title={t("title")}

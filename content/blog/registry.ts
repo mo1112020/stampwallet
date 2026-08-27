@@ -15,6 +15,7 @@ const POST_LOADERS: Record<string, () => Promise<{ default: ComponentType }>> = 
   "ar:digital-loyalty-card-guide-mena": () => import("./ar/digital-loyalty-card-guide-mena.mdx"),
   "en:car-wash-loyalty-program": () => import("./en/car-wash-loyalty-program.mdx"),
   "ar:stamp-vs-points-loyalty-arabic": () => import("./ar/stamp-vs-points-loyalty-arabic.mdx"),
+  "en:wallet-loyalty-cards-no-app-download": () => import("./en/wallet-loyalty-cards-no-app-download.mdx"),
 };
 
 export function loadPostBody(locale: string, slug: string) {

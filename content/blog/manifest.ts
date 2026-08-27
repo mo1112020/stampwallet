@@ -18,6 +18,17 @@ export type BlogPost = {
    * no live counterpart yet, so alternates just point back to itself.
    */
   counterpartSlug?: string;
+  /**
+   * Optional HowTo structured-data steps, for posts that are genuinely a
+   * numbered procedure (not every post — a comparison/explainer post has
+   * nothing real to put here). Mirrors the post's own numbered-list content
+   * rather than being independently authored, so it can't drift from what
+   * a reader actually sees.
+   */
+  howTo?: {
+    name: string;
+    steps: { name: string; text: string }[];
+  };
 };
 
 /**
@@ -67,6 +78,23 @@ export const BLOG_POSTS: BlogPost[] = [
       "Car washes are one of the best-fitted businesses for a stamp card, and one of the worst-served by paper ones. Here's how to run it digitally.",
     date: "2026-08-26",
     cluster: "verticals",
+    howTo: {
+      name: "How to run a car wash loyalty program with a wallet pass",
+      steps: [
+        {
+          name: "Enroll at the pay station or entrance kiosk",
+          text: "A QR code at checkout, or a code printed on the receipt, gets scanned once and the pass is added in seconds. No app, no account creation, nothing that slows down a line of cars.",
+        },
+        {
+          name: "Award a stamp per visit",
+          text: "Either by staff scanning the pass at a manned bay, or automatically tied to the transaction at an unmanned pay terminal if the system integrates with it.",
+        },
+        {
+          name: "The pass updates immediately",
+          text: "The next time the customer opens their wallet, or the next time the pass surfaces near the location, the new stamp count is already there. No syncing required.",
+        },
+      ],
+    },
   },
   {
     slug: "stamp-vs-points-loyalty-arabic",
@@ -77,6 +105,15 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-08-26",
     cluster: "mechanics",
     counterpartSlug: "stamp-card-vs-points-vs-reward-journey",
+  },
+  {
+    slug: "wallet-loyalty-cards-no-app-download",
+    locale: "en",
+    title: "No App Required: How Apple Wallet & Google Wallet Loyalty Cards Actually Work",
+    description:
+      "No account, no install, no password. Here's exactly how a wallet pass gets onto a customer's phone and keeps itself updated after that.",
+    date: "2026-08-27",
+    cluster: "mechanics",
   },
 ];
 

@@ -15,6 +15,14 @@
 - FAQ -> https://www.walletos.online/en/faq: Common questions, answered
 - Support -> https://www.walletos.online/en/support: How to reach us
 
+## Blog
+- How Digital Loyalty Cards Work -> https://www.walletos.online/en/blog/digital-loyalty-cards-guide: How a wallet-pass loyalty program works, from the customer's first tap to redeeming a reward
+- Stamp Card vs Points Program vs Reward Journey -> https://www.walletos.online/en/blog/stamp-card-vs-points-vs-reward-journey: How the three loyalty models differ and which fits a given business
+- No App Required: How Wallet Loyalty Cards Work -> https://www.walletos.online/en/blog/wallet-loyalty-cards-no-app-download: How a pass gets onto a customer's phone and updates itself, with no app install on either side
+- Car Wash Loyalty Program -> https://www.walletos.online/en/blog/car-wash-loyalty-program: Why car washes fit a stamp card model well and how to run one digitally
+- دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات -> https://www.walletos.online/ar/blog/digital-loyalty-card-guide-mena: Arabic guide to how digital loyalty cards work for Saudi and UAE merchants
+- الفرق بين بطاقة الأختام ونظام نقاط الولاء -> https://www.walletos.online/ar/blog/stamp-vs-points-loyalty-arabic: Arabic guide to choosing between a stamp card and a points program
+
 ## Key facts
 - No app download required — cards live natively in Apple Wallet and Google Wallet
 - Signup to a live enrollment QR code in under two minutes

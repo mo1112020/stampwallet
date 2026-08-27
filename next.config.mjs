@@ -5,7 +5,11 @@ import createMDX from "@next/mdx";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
-const withMDX = createMDX({});
+// mdxType: "gfm" turns on GitHub-flavored markdown parsing (tables, strikethrough,
+// task lists, autolinks) in the Rust mdx compiler — off by default, which silently
+// left a markdown table in blog content rendering as a plain paragraph instead of
+// an actual <table>. See node_modules/@next/mdx/mdx-rs-loader.js for the option map.
+const withMDX = createMDX({ options: { mdxType: "gfm" } });
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
