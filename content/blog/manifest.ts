@@ -115,6 +115,15 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-08-27",
     cluster: "mechanics",
   },
+  {
+    slug: "reward-journey-tiered-loyalty-explained",
+    locale: "en",
+    title: "What Is a Reward Journey? Tiered Loyalty Programs Explained (Bronze to VIP)",
+    description:
+      "Not every loyalty program should reward a single purchase. Here's how staged, tiered loyalty works and which businesses actually benefit from it.",
+    date: "2026-08-27",
+    cluster: "mechanics",
+  },
 ];
 
 export function getPost(locale: string, slug: string): BlogPost | undefined {
