@@ -78,6 +78,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "Car washes are one of the best-fitted businesses for a stamp card, and one of the worst-served by paper ones. Here's how to run it digitally.",
     date: "2026-08-26",
     cluster: "verticals",
+    counterpartSlug: "car-wash-loyalty-arabic",
     howTo: {
       name: "How to run a car wash loyalty program with a wallet pass",
       steps: [
@@ -150,6 +151,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "No PMS integration required. Here's how an independent hotel turns a happy guest into a direct-booking repeat guest.",
     date: "2026-08-27",
     cluster: "verticals",
+    counterpartSlug: "independent-hotel-loyalty-arabic",
   },
   {
     slug: "wallet-push-notifications-gcc-merchants",
@@ -159,6 +161,66 @@ export const BLOG_POSTS: BlogPost[] = [
       "Lock-screen wallet notifications routinely beat email open rates by a wide margin. Here's how to use them well, and when not to.",
     date: "2026-08-27",
     cluster: "mena",
+  },
+  {
+    slug: "whatsapp-business-wallet-loyalty-gcc",
+    locale: "en",
+    title: "WhatsApp Business + Apple Wallet: A Loyalty Marketing Combo for GCC Merchants",
+    description:
+      "No integration required. Here's how to use WhatsApp Business and a wallet-pass loyalty card together, and where the line between them belongs.",
+    date: "2026-08-27",
+    cluster: "mena",
+    counterpartSlug: "whatsapp-wallet-loyalty-arabic",
+  },
+  {
+    slug: "whatsapp-wallet-loyalty-arabic",
+    locale: "ar",
+    title: "واتساب بزنس ومحفظة آبل وجوجل: كيف تجمع بين القناتين لزيادة تكرار الزيارة",
+    description:
+      "بدون أي تكامل برمجي. كيف تستخدم واتساب بزنس وبطاقة المحفظة الرقمية معًا، وأين يقف الخط الفاصل بينهما.",
+    date: "2026-08-27",
+    cluster: "mena",
+    counterpartSlug: "whatsapp-business-wallet-loyalty-gcc",
+  },
+  {
+    slug: "ramadan-eid-loyalty-wallet-campaigns",
+    locale: "en",
+    title: "Ramadan & Eid Loyalty Campaigns: The Wallet Push Notification Playbook for GCC Merchants",
+    description:
+      "Six practical ways to use wallet push notifications through Ramadan and Eid, and three timing mistakes worth avoiding.",
+    date: "2026-08-27",
+    cluster: "mena",
+    counterpartSlug: "ramadan-eid-loyalty-arabic",
+  },
+  {
+    slug: "ramadan-eid-loyalty-arabic",
+    locale: "ar",
+    title: "أفكار حملات ولاء العملاء لرمضان والعيد عبر محفظة آبل وجوجل",
+    description:
+      "ست طرق عملية لاستخدام إشعارات المحفظة الرقمية خلال رمضان والعيد، وثلاثة أخطاء توقيت يستحق تجنبها.",
+    date: "2026-08-27",
+    cluster: "mena",
+    counterpartSlug: "ramadan-eid-loyalty-wallet-campaigns",
+  },
+  {
+    slug: "car-wash-loyalty-arabic",
+    locale: "ar",
+    title: "برنامج ولاء غسيل السيارات: بطاقة أختام رقمية بدون تطبيق",
+    description:
+      "لماذا تناسب مغاسل السيارات بطاقة الأختام أكثر من أي نشاط آخر تقريبًا، وكيف تديرها رقميًا دون إبطاء الطابور.",
+    date: "2026-08-27",
+    cluster: "verticals",
+    counterpartSlug: "car-wash-loyalty-program",
+  },
+  {
+    slug: "independent-hotel-loyalty-arabic",
+    locale: "ar",
+    title: "برامج ولاء الفنادق المستقلة والنزل الصغيرة: كيف تنافس السلاسل العالمية",
+    description:
+      "بدون تكامل مع نظام PMS. كيف يحوّل فندق مستقل نزيلاً راضيًا إلى نزيل يحجز مباشرة في المرة القادمة.",
+    date: "2026-08-27",
+    cluster: "verticals",
+    counterpartSlug: "independent-hotel-loyalty-program",
   },
 ];
 

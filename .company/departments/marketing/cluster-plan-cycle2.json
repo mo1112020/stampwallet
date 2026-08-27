@@ -1,0 +1,228 @@
+{
+  "version": "2.2.4",
+  "cycle": 2,
+  "extends": ".company/departments/marketing/cluster-plan.json (cycle 1 -- all 11 posts + pillar are live as of 2026-08-27; do not re-publish, do not overwrite that file)",
+  "seed_keyword": "digital loyalty card app (WalletOS / walletos.online) -- cycle 2: integrations, MENA seasonal, second-wave bilingual verticals",
+  "created_at": "2026-08-27",
+  "methodology_note": "Same WebSearch-based domain-overlap approximation used in cycle 1 (no DataForSEO/Ahrefs/GSC connector available; GA4 not yet flowing -- site has been publishing for ~1-2 days). ~25 WebSearch queries (EN + AR) run this cycle, focused on: (a) re-verifying the cycle-1 'unconfirmed demand' flags on clinic/pharmacy and independent-hotel, (b) genuinely new territory (POS/Foodics integration, WhatsApp Business combo, paper-vs-digital comparison, bakery, food truck, Ramadan/Eid seasonal), (c) second-wave Arabic companions for already-live English verticals now that the AR pillar and AR stamp-vs-points posts are live and can anchor more AR spokes. Volume remains qualitative (High/Medium/Low/Regional-only/Seasonal) -- re-validate against GA4/Search Console once real query data exists.",
+  "search_volume_disclaimer": "No paid keyword-volume tool was connected this session, same as cycle 1. Volume tiers are qualitative judgments from SERP crowding + query-pattern frequency across this cycle's WebSearch queries.",
+  "pillar_reference": {
+    "title": "How Digital Loyalty Cards Work: The Merchant's Guide to Apple Wallet & Google Wallet Loyalty Programs",
+    "url": "/en/blog/digital-loyalty-cards-guide",
+    "status": "written",
+    "note": "Not re-created this cycle. Cycle 2 adds two NEW clusters (D, E) that link into this existing pillar, per hub-and-spoke rules (pillar links to every spoke; every spoke links to pillar). This brings the pillar's total cluster count to 5 (A, B, C from cycle 1 + D, E from cycle 2) -- the MAXIMUM allowed by the skill's 2-5-clusters-per-pillar constraint. Total posts under this pillar after cycle 2: 1 pillar + 18 spokes = 19, approaching the 21-post ceiling. Any cycle 3 additions should either consolidate an existing cluster or be scoped as a second, distinct pillar (e.g., a dedicated 'Integrations' or 'MENA Retail Calendar' pillar) rather than adding a 6th cluster here."
+  },
+  "competitor_landscape_update": {
+    "new_wallet_pass_specialists_confirmed_this_cycle": [
+      "Niqati / نقاطي (niqati.com) -- Saudi loyalty-points-in-wallet specialist, bilingual templates, trusted by cafes/salons/restaurants/retail -- direct competitor, not previously identified in cycle 1",
+      "lyl (lyl-platform.com) -- Kuwait-focused digital loyalty cards for Apple/Google Wallet",
+      "WalletThat (walletthat.com), Be Loyal (beloyal.io), digitalloyalty.com -- additional global wallet-pass-card generators surfacing in 2026 SERPs, not previously logged",
+      "Aumet (aumet.com) -- Arabic pharmacy-management platform with a dedicated loyalty-in-pharmacies content piece; not a wallet-pass specialist, but confirms real Arabic-language interest in the pharmacy-loyalty topic (see clinic/pharmacy re-check below)"
+    ],
+    "implication": "The wallet-pass-specialist competitive set keeps growing (cycle 1 found ~14 EN + 6 MENA players; this cycle adds 4-5 more, including a second confirmed Saudi-native specialist). This reinforces, not weakens, cycle 1's core finding: head-term and saturated-vertical content (coffee shop, salon, gym, barbershop, bakery, food truck) is not a realistic near-term target for a zero-authority domain. It also means the whitespace clock is ticking on the MENA/bilingual advantage -- Niqati in particular is bilingual and growing, so cycle 2 prioritizes locking in more Arabic-native ground now rather than later."
+  },
+  "revalidation_of_cycle1_unconfirmed_flags": {
+    "clinic_pharmacy": {
+      "cycle1_flag": "Needs genuine AR treatment, but unconfirmed demand -- Arabic SERP test returned no dedicated loyalty content, just general business/regulatory results.",
+      "cycle2_finding": "Re-tested with a more specific query (برنامج ولاء العيادات والصيدليات الرقمي). Result: Aumet (aumet.com) now has a dedicated Arabic article on pharmacy loyalty programs -- so there IS real Arabic-language interest in the concept -- but it is pharmacy-management-software content (inventory/POS/CRM), not wallet-pass/customer-facing loyalty-card content. No wallet-pass specialist (EN or AR) has published anything for this vertical. Verdict: the whitespace still holds and is arguably slightly more confirmed than cycle 1 believed (real search interest exists), but it is NOT included as one of this cycle's 7 firm recommendations -- it remains a lower-confidence demand-test, now a stronger one. Recommended treatment: hold as a cycle-3 candidate once GA4/GSC data exists for the already-live EN clinic-pharmacy post; if that post shows any organic impressions, greenlight the AR companion immediately.",
+      "verdict": "Whitespace confirmed to still hold; upgraded from 'unconfirmed' to 'watch-list, likely real' -- not yet promoted to firm recommendation."
+    },
+    "independent_hotel": {
+      "cycle1_flag": "English-only; competitive set (Preferred Patron, Stash Hotel Rewards) is North-America-centric.",
+      "cycle2_finding": "Re-tested in Arabic (برنامج ولاء الفنادق الصغيرة الرقمي). Result: found a dedicated Arabic article (thehotelieroffice.com/ar) titled specifically 'Loyalty Programs for Independent Hotels: How to Compete with Global Chains,' plus btaqa.io's general wallet-pass guide surfacing on the same query. This is a real, confirmed Arabic-language content signal that did not clearly exist in cycle 1's research. Verdict: promote to a firm recommendation this cycle -- native AR companion to the already-live EN independent-hotel post.",
+      "verdict": "Upgraded to firm recommendation (cluster E, post E3)."
+    }
+  },
+  "clusters": [
+    {
+      "name": "Cluster D -- Integrations & Modern Channels",
+      "rationale": "Genuinely new territory not touched in cycle 1: how WalletOS's wallet-pass loyalty layer sits alongside tools GCC merchants already use (POS systems, WhatsApp Business). SERP-tested and confirmed to be an entirely different competitor set from the wallet-pass specialists (Stamp Me/Loopy/BonusQR/etc. do not appear at all) -- these are POS-vendor domains (foodics.com, help.foodics.com) and messaging/CRM vendors (usetada.com, spoonity.com, clickatell.com), meaning zero head-to-head competition with the incumbents that dominate every other query tested across both cycles. Foodics specifically is the dominant POS platform in Saudi/UAE F&B and retail, making this a genuinely GCC-relevant integration angle rather than a generic global one.",
+      "posts": [
+        {
+          "id": "cluster-3-post-0",
+          "title": "Digital Wallet Loyalty Cards + Your POS: Do You Need Foodics Integration or a Standalone System?",
+          "keyword": "wallet loyalty card POS integration Foodics",
+          "intent": "Informational (concept) / Commercial (evaluate) hybrid",
+          "volume_tier": "Low-Medium, GCC-regional (Foodics is the dominant F&B/retail POS in Saudi & UAE)",
+          "template": "explainer",
+          "wordCount": 1500,
+          "url": "/en/blog/wallet-loyalty-pos-integration-foodics",
+          "status": "planned",
+          "en_only_or_needs_ar": "English-first; this is a merchant-decision/technical-integration piece, and GCC SMB owners researching POS integrations skew toward English-language technical content even when their customer-facing content is Arabic. Arabic version is a Phase 3 candidate once demand is confirmed."
+        },
+        {
+          "id": "cluster-3-post-1",
+          "title": "WhatsApp Business + Apple Wallet: A Loyalty Marketing Combo for GCC Merchants",
+          "keyword": "whatsapp business loyalty program wallet pass",
+          "intent": "Informational (how)",
+          "volume_tier": "Low-Medium (novel angle; WhatsApp is the dominant business-messaging channel in MENA, but 'WhatsApp + wallet pass' as a combined angle has no direct competitor content)",
+          "template": "how-to",
+          "wordCount": 1500,
+          "url": "/en/blog/whatsapp-business-wallet-loyalty-gcc",
+          "status": "planned",
+          "en_only_or_needs_ar": "Needs genuine Arabic treatment (see cluster-3-post-2) -- do not translate; the Arabic-language content ecosystem around WhatsApp Business + loyalty in Saudi Arabia (watily.com, revest.sa, wazen.sa) is more developed than the English equivalent, so the AR post should be written natively, not derived from this EN draft"
+        },
+        {
+          "id": "cluster-3-post-2",
+          "title": "واتساب بزنس ومحفظة آبل وجوجل: كيف تجمع بين القناتين لزيادة تكرار الزيارة",
+          "title_en_gloss": "WhatsApp Business + Apple/Google Wallet: Combining Both Channels to Increase Repeat Visits",
+          "keyword": "واتساب بزنس برنامج ولاء العملاء",
+          "intent": "Informational (how)",
+          "volume_tier": "Regional-only, real confirmed interest (watily.com, revest.sa, wazen.sa all publish Saudi-market loyalty content referencing WhatsApp Business)",
+          "template": "how-to",
+          "wordCount": 1400,
+          "url": "/ar/blog/whatsapp-wallet-loyalty-arabic",
+          "status": "planned",
+          "en_only_or_needs_ar": "This IS the genuine Arabic treatment of cluster-3-post-1 -- written natively for the Saudi WhatsApp-Business-for-SME content ecosystem, not translated"
+        }
+      ]
+    },
+    {
+      "name": "Cluster E -- MENA Second Wave: Seasonal & Vertical Arabic Expansion",
+      "rationale": "Builds directly on cycle 1's strongest finding (zero EN wallet-pass specialist presence in Arabic SERPs) now that the AR pillar and AR stamp-vs-points posts are live to anchor more spokes. Two moves: (1) a genuinely novel MENA-specific seasonal angle -- Ramadan/Eid loyalty campaigns via wallet push notifications -- that NO wallet-pass specialist (EN or AR) has published, only generic marketing-agency blogs (capillarytech, netcore, zigpoll) with no wallet-pass mechanics; and (2) native Arabic companions for two already-live EN vertical posts (car wash, independent hotel) where this cycle's re-testing found confirmed real Arabic-language demand signal that either didn't exist or wasn't visible in cycle 1.",
+      "posts": [
+        {
+          "id": "cluster-4-post-0",
+          "title": "Ramadan & Eid Loyalty Campaigns: The Wallet Push Notification Playbook for GCC Merchants",
+          "keyword": "ramadan eid loyalty campaign wallet push notifications",
+          "intent": "Informational (list)",
+          "volume_tier": "Medium, seasonal spike (searched heavily in the weeks before Ramadan; publishing now gives ~6 months of indexing runway before the 2027 season)",
+          "template": "listicle",
+          "wordCount": 1600,
+          "url": "/en/blog/ramadan-eid-loyalty-wallet-campaigns",
+          "status": "planned",
+          "en_only_or_needs_ar": "Needs genuine Arabic treatment (see cluster-4-post-1) -- the Arabic-language Ramadan-marketing content ecosystem (matrix.sa, walaa.com.sa, watily.com, trywaya.com) is substantially richer than the English one, so the AR version should be written natively with its own examples, not translated from this EN draft"
+        },
+        {
+          "id": "cluster-4-post-1",
+          "title": "أفكار حملات ولاء العملاء لرمضان والعيد عبر محفظة آبل وجوجل",
+          "title_en_gloss": "Ramadan & Eid Customer Loyalty Campaign Ideas via Apple & Google Wallet",
+          "keyword": "حملة ولاء العملاء رمضان",
+          "intent": "Informational (list)",
+          "volume_tier": "Regional-only, seasonal, real confirmed interest (matrix.sa, walaa.com.sa, watily.com, trywaya.com all publish Ramadan-loyalty content)",
+          "template": "listicle",
+          "wordCount": 1500,
+          "url": "/ar/blog/ramadan-eid-loyalty-arabic",
+          "status": "planned",
+          "en_only_or_needs_ar": "This IS the genuine Arabic treatment of cluster-4-post-0 -- no wallet-pass specialist (EN or AR) currently covers Ramadan/Eid seasonal wallet-push campaigns, making this native Arabic version the single most novel content angle found across both research cycles"
+        },
+        {
+          "id": "cluster-4-post-2",
+          "title": "برنامج ولاء غسيل السيارات: بطاقة أختام رقمية بدون تطبيق",
+          "title_en_gloss": "Car Wash Loyalty Program: Digital Stamp Cards Without an App",
+          "keyword": "برنامج ولاء غسيل السيارات بطاقة رقمية",
+          "intent": "Informational (how)",
+          "volume_tier": "Regional-only, confirmed real demand this cycle (Waya/trywaya.com published a Riyadh car-wash case study; Niqati offers bilingual EN/AR templates for this vertical)",
+          "template": "how-to",
+          "wordCount": 1300,
+          "url": "/ar/blog/car-wash-loyalty-arabic",
+          "status": "planned",
+          "en_only_or_needs_ar": "This IS the genuine Arabic companion to the already-live EN car-wash post (cycle-1-cluster-1-post-0) -- flagged in cycle 1 as a good Phase 2 candidate given how common car washes are as a GCC SMB category; this cycle's research confirms real Arabic search-and-content signal now exists. Written natively, hreflang-paired to the EN post, not translated."
+        },
+        {
+          "id": "cluster-4-post-3",
+          "title": "برامج ولاء الفنادق المستقلة والنزل الصغيرة: كيف تنافس السلاسل العالمية",
+          "title_en_gloss": "Loyalty Programs for Independent Hotels & Small Guesthouses: How to Compete with Global Chains",
+          "keyword": "برنامج ولاء الفنادق الصغيرة المستقلة",
+          "intent": "Informational (how)",
+          "volume_tier": "Regional-only, newly confirmed this cycle (thehotelieroffice.com/ar has a directly on-topic Arabic article; this signal was not clearly present in cycle 1's research)",
+          "template": "how-to",
+          "wordCount": 1300,
+          "url": "/ar/blog/independent-hotel-loyalty-arabic",
+          "status": "planned",
+          "en_only_or_needs_ar": "This IS the genuine Arabic companion to the already-live EN independent-hotel post (cycle-1-cluster-1-post-3) -- promoted from 'unconfirmed' in cycle 1 to a firm recommendation this cycle based on the newly found thehotelieroffice.com/ar signal. Written natively (GCC independent-hospitality vocabulary), hreflang-paired to the EN post."
+        }
+      ]
+    }
+  ],
+  "deprioritized_this_cycle": {
+    "note": "Genuinely new territory that was tested and found NOT to be a realistic near-term opportunity -- documented so this ground isn't re-tested in cycle 3 without new evidence.",
+    "items": [
+      { "keyword": "bakery loyalty program app / digital stamp card", "finding": "Saturated identically to coffee shop/salon/gym/barbershop from cycle 1 -- Stamp Me, 7stamp, FaveCard, LoyaltyPass, and StampClub ALL have dedicated bakery vertical pages. Same competitor set, same saturation pattern. Not re-targeted." },
+      { "keyword": "food truck loyalty program app", "finding": "Same saturation pattern -- Stamp Me, Loopy Loyalty, LoyaltyPass, Yollty, StampCard, FaveCard, and UPrinting all have dedicated food-truck content. Not re-targeted." },
+      { "keyword": "digital loyalty card vs paper punch card", "finding": "Superficially looked like a fresh comparison angle, but the SERP is owned by the exact same 5-6 wallet-pass specialists that dominate the head term (Stamp Me, loop.fans, BonusQR, Tapsy, Cuppacard, FaveCard) -- this is not new whitespace, it's the same saturated competitive set wearing a comparison framing. Not worth a dedicated post for a zero-authority domain; the 'no app download' angle is already covered by the live cluster-0-post-2 explainer." },
+      { "keyword": "customer retention cost vs acquisition cost ROI", "finding": "Extremely broad, dominated by major loyalty/CRM platforms with high domain authority (LoyaltyLion, Yotpo, Mailchimp, Optimove, Forbes). Same category of risk cycle 1 flagged for head terms -- not realistic for a brand-new domain and not MENA-differentiated." },
+      { "keyword": "generic POS system + loyalty integration (Square/Lightspeed/Clover/Toast)", "finding": "SERP is US-centric and dominated by POS vendors with no GCC relevance (goftx.com, toki, nrsplus, szzcs, loyally.ai). The Foodics-specific angle (cluster-3-post-0) captures the same integration concept with genuine GCC relevance and a much thinner, non-overlapping competitor set -- kept the specific version, dropped the generic one." }
+    ]
+  },
+  "links": [
+    { "from": "pillar", "to": "cluster-3-post-0", "type": "mandatory", "anchor": "wallet loyalty card POS integration" },
+    { "from": "cluster-3-post-0", "to": "pillar", "type": "mandatory", "anchor": "how digital loyalty cards work" },
+    { "from": "pillar", "to": "cluster-3-post-1", "type": "mandatory", "anchor": "WhatsApp Business + wallet loyalty marketing" },
+    { "from": "cluster-3-post-1", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide" },
+    { "from": "pillar", "to": "cluster-3-post-2", "type": "mandatory", "anchor": "واتساب بزنس ومحفظة الولاء الرقمية" },
+    { "from": "cluster-3-post-2", "to": "pillar", "type": "mandatory", "anchor": "digital loyalty card guide (hreflang)" },
+
+    { "from": "cluster-3-post-0", "to": "cluster-3-post-1", "type": "recommended", "anchor": "WhatsApp Business + wallet loyalty combo" },
+    { "from": "cluster-3-post-0", "to": "cluster-3-post-2", "type": "recommended", "anchor": "واتساب بزنس ومحفظة الولاء" },
+    { "from": "cluster-3-post-1", "to": "cluster-3-post-0", "type": "recommended", "anchor": "Foodics POS integration" },
+    { "from": "cluster-3-post-1", "to": "cluster-3-post-2", "type": "recommended", "anchor": "النسخة العربية من هذا الدليل" },
+    { "from": "cluster-3-post-2", "to": "cluster-3-post-0", "type": "recommended", "anchor": "تكامل مع نظام نقاط البيع Foodics" },
+    { "from": "cluster-3-post-2", "to": "cluster-3-post-1", "type": "recommended", "anchor": "WhatsApp Business wallet loyalty (English)" },
+
+    { "from": "pillar", "to": "cluster-4-post-0", "type": "mandatory", "anchor": "Ramadan & Eid wallet loyalty campaigns" },
+    { "from": "cluster-4-post-0", "to": "pillar", "type": "mandatory", "anchor": "how digital loyalty cards work" },
+    { "from": "pillar", "to": "cluster-4-post-1", "type": "mandatory", "anchor": "حملات ولاء رمضان والعيد" },
+    { "from": "cluster-4-post-1", "to": "pillar", "type": "mandatory", "anchor": "دليل بطاقة الولاء الرقمية (hreflang)" },
+    { "from": "pillar", "to": "cluster-4-post-2", "type": "mandatory", "anchor": "برنامج ولاء غسيل السيارات (عربي)" },
+    { "from": "cluster-4-post-2", "to": "pillar", "type": "mandatory", "anchor": "دليل بطاقة الولاء الرقمية" },
+    { "from": "pillar", "to": "cluster-4-post-3", "type": "mandatory", "anchor": "برامج ولاء الفنادق المستقلة" },
+    { "from": "cluster-4-post-3", "to": "pillar", "type": "mandatory", "anchor": "دليل بطاقة الولاء الرقمية" },
+
+    { "from": "cluster-4-post-0", "to": "cluster-4-post-1", "type": "recommended", "anchor": "النسخة العربية من دليل حملات رمضان" },
+    { "from": "cluster-4-post-0", "to": "cluster-4-post-2", "type": "recommended", "anchor": "car wash loyalty (Arabic)" },
+    { "from": "cluster-4-post-1", "to": "cluster-4-post-0", "type": "recommended", "anchor": "Ramadan & Eid wallet playbook (English)" },
+    { "from": "cluster-4-post-1", "to": "cluster-4-post-3", "type": "recommended", "anchor": "برامج ولاء الفنادق المستقلة" },
+    { "from": "cluster-4-post-2", "to": "cluster-4-post-3", "type": "recommended", "anchor": "برامج ولاء الفنادق المستقلة" },
+    { "from": "cluster-4-post-2", "to": "cluster-4-post-0", "type": "recommended", "anchor": "Ramadan wallet campaigns" },
+    { "from": "cluster-4-post-3", "to": "cluster-4-post-1", "type": "recommended", "anchor": "حملات ولاء رمضان والعيد" },
+    { "from": "cluster-4-post-3", "to": "cluster-4-post-2", "type": "recommended", "anchor": "برنامج ولاء غسيل السيارات" },
+
+    { "from": "cluster-4-post-0", "to": "cycle1-cluster-2-post-2", "type": "optional", "anchor": "wallet push notifications for GCC merchants (mechanics deep-dive)", "note": "cross-cluster bridge to the already-live EN wallet-push-notifications post" },
+    { "from": "cycle1-cluster-2-post-2", "to": "cluster-4-post-0", "type": "optional", "anchor": "Ramadan & Eid wallet loyalty campaigns" },
+
+    { "from": "cluster-3-post-0", "to": "cycle1-cluster-0-post-2", "type": "optional", "anchor": "how Apple Wallet & Google Wallet loyalty cards work (no app download)" },
+
+    { "from": "cluster-4-post-2", "to": "cycle1-cluster-1-post-0", "type": "optional", "anchor": "Car Wash Loyalty Program (English version, hreflang)" },
+    { "from": "cycle1-cluster-1-post-0", "to": "cluster-4-post-2", "type": "optional", "anchor": "برنامج ولاء غسيل السيارات (النسخة العربية)" },
+
+    { "from": "cluster-4-post-3", "to": "cycle1-cluster-1-post-3", "type": "optional", "anchor": "Independent Hotel Loyalty Program (English version, hreflang)" },
+    { "from": "cycle1-cluster-1-post-3", "to": "cluster-4-post-3", "type": "optional", "anchor": "برامج ولاء الفنادق المستقلة (النسخة العربية)" },
+
+    { "from": "cluster-3-post-2", "to": "cycle1-cluster-2-post-0", "type": "optional", "anchor": "دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات" },
+    { "from": "cluster-4-post-1", "to": "cycle1-cluster-2-post-0", "type": "optional", "anchor": "دليل بطاقة الولاء الرقمية لتجار السعودية والإمارات" }
+  ],
+  "serp_matrix_representative_pairs": {
+    "note": "Domain-overlap-weighted approximation from ~25 WebSearch queries this cycle (EN + AR). Representative boundary/spot-check pairs only, same methodology as cycle 1.",
+    "pairs": [
+      { "a": "digital loyalty card app", "b": "wallet loyalty card POS integration Foodics", "score": 0, "action": "separate / new cluster", "note": "Zero overlap -- Foodics query is dominated entirely by foodics.com, help.foodics.com, developers.foodics.com, LoyaPro, Nugttah; none of the wallet-pass specialists (Stamp Me, Loopy, BonusQR, Niqati) appear. Confirms genuinely new competitive territory." },
+      { "a": "digital loyalty card app", "b": "whatsapp business loyalty program wallet pass", "score": 1, "action": "separate / new cluster", "note": "Distinct SERP (usetada.com, spoonity.com, clickatell.com, zixflow.com) -- confirms Cluster D is not a re-hash of the pillar/mechanics cluster." },
+      { "a": "wallet push notification marketing", "b": "ramadan eid loyalty campaign wallet push notifications", "score": 3, "action": "interlink (not same post)", "note": "Moderate overlap -- yotpo.com and generic wallet-marketing content appear in both, but the Ramadan-specific query surfaces a distinct set (capillarytech, netcore, zigpoll) with no wallet-pass specialist presence at all. Same underlying mechanic, different seasonal intent and content format (evergreen mechanics explainer vs seasonal campaign playbook) -- justifies a separate post, heavily interlinked to the already-live wallet-push-notifications post." },
+      { "a": "ramadan eid loyalty campaign wallet push notifications", "b": "حملة ولاء العملاء رمضان", "score": 0, "action": "separate", "note": "Zero shared domains -- consistent with cycle 1's finding that EN/AR SERPs are functionally independent. Confirms the EN/AR Ramadan pair is a genuine hreflang pairing, not cannibalization." },
+      { "a": "whatsapp business loyalty program wallet pass", "b": "واتساب بزنس برنامج ولاء العملاء", "score": 0, "action": "separate", "note": "Zero overlap; EN result set is global messaging/CRM vendors (usetada, spoonity, clickatell), AR result set is Saudi-market SME content (watily.com, revest.sa, wazen.sa) -- entirely different, non-cannibalizing SERPs." },
+      { "a": "بطاقة ولاء رقمية للمقاهي", "b": "برنامج ولاء غسيل السيارات بطاقة رقمية", "score": 1, "action": "separate", "note": "Different Arabic vertical competitor sets (Waya/trywaya.com dominates car-wash-specific query; broader cafe-loyalty query dominated by Resal/Waya/Niqati generally) -- confirms car-wash AR deserves its own spoke, consistent with cycle 1's EN car-wash-vs-pet-grooming separation finding." },
+      { "a": "car wash loyalty program app digital stamp card", "b": "برنامج ولاء غسيل السيارات بطاقة رقمية", "score": 0, "action": "separate (hreflang pair, not cannibalization)", "note": "Zero domain overlap between the already-live EN car-wash post's target query and the new AR companion's target query -- same non-cannibalization pattern confirmed in cycle 1 for other EN/AR pairs." },
+      { "a": "independent hotel guest loyalty program app", "b": "برنامج ولاء الفنادق الصغيرة المستقلة", "score": 0, "action": "separate (hreflang pair, not cannibalization)", "note": "EN query still dominated by North-America-centric hotel-loyalty players (Preferred Patron, Stash Hotel Rewards); AR query surfaces a wholly different, GCC-native result (thehotelieroffice.com/ar). Confirms genuine, non-overlapping Arabic demand." },
+      { "a": "bakery loyalty program app digital stamp card", "b": "coffee shop loyalty app", "score": 7, "action": "same saturation tier (both deprioritized)", "note": "Same 5 dominant competitors (Stamp Me, 7stamp/LoyaltyPass-style specialists, FaveCard, StampClub) own both queries -- confirms bakery belongs in the same 'saturated, not a near-term target' bucket as cycle 1's coffee shop/salon/gym/barbershop finding, not a new opportunity." },
+      { "a": "digital loyalty card vs paper punch card", "b": "digital loyalty card app", "score": 6, "action": "same cluster (deprioritized, not new whitespace)", "note": "The 'vs paper' comparison framing is owned by the identical specialist set that owns the head term (Stamp Me, loop.fans, BonusQR, Cuppacard, FaveCard) -- looked like a new angle but SERP data shows it is not new competitive territory." }
+    ]
+  },
+  "cannibalization_check": {
+    "duplicate_primary_keywords_found": 0,
+    "checked_against": "all 11 cycle-1 posts + pillar, plus the 7 new cycle-2 posts (18 total keywords)",
+    "notes": [
+      "No new post shares a primary keyword with any cycle-1 post or with any other cycle-2 post.",
+      "cluster-4-post-2 (برنامج ولاء غسيل السيارات بطاقة رقمية) and cycle1-cluster-1-post-0 (car wash loyalty program app digital stamp card) target the same underlying vertical but are confirmed 0-overlap SERPs (EN vs AR) -- hreflang-paired, not cannibalizing, same pattern validated in cycle 1.",
+      "cluster-4-post-3 (برنامج ولاء الفنادق الصغيرة المستقلة) and cycle1-cluster-1-post-3 (independent hotel guest loyalty program app) -- same pattern, confirmed 0-overlap, hreflang pair.",
+      "cluster-3-post-1 (EN) and cluster-3-post-2 (AR) WhatsApp posts, and cluster-4-post-0 (EN) and cluster-4-post-1 (AR) Ramadan posts are genuine native-language pairs, not translations, per this cycle's own EN/AR SERP spot-checks (both scored 0 overlap)."
+    ]
+  },
+  "scorecard": {
+    "coverage": "0/7 written (0%) -- cycle 2 is a planning pass only, no content has been drafted yet",
+    "linkDensity": "3.0-3.3 incoming links per new post (1 mandatory pillar link + 2 recommended sibling links within cluster)",
+    "orphanPages": 0,
+    "cannibalization": 0,
+    "contentGaps": 7,
+    "note": "Combined with cycle 1 (11/11 written), the pillar's total planned footprint after cycle 2 is 18 spokes + 1 pillar = 19 posts, 7 of which (37%) are newly planned and not yet written."
+  }
+}

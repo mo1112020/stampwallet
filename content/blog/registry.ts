@@ -21,6 +21,12 @@ const POST_LOADERS: Record<string, () => Promise<{ default: ComponentType }>> = 
   "en:clinic-pharmacy-loyalty-program": () => import("./en/clinic-pharmacy-loyalty-program.mdx"),
   "en:independent-hotel-loyalty-program": () => import("./en/independent-hotel-loyalty-program.mdx"),
   "en:wallet-push-notifications-gcc-merchants": () => import("./en/wallet-push-notifications-gcc-merchants.mdx"),
+  "en:whatsapp-business-wallet-loyalty-gcc": () => import("./en/whatsapp-business-wallet-loyalty-gcc.mdx"),
+  "ar:whatsapp-wallet-loyalty-arabic": () => import("./ar/whatsapp-wallet-loyalty-arabic.mdx"),
+  "en:ramadan-eid-loyalty-wallet-campaigns": () => import("./en/ramadan-eid-loyalty-wallet-campaigns.mdx"),
+  "ar:ramadan-eid-loyalty-arabic": () => import("./ar/ramadan-eid-loyalty-arabic.mdx"),
+  "ar:car-wash-loyalty-arabic": () => import("./ar/car-wash-loyalty-arabic.mdx"),
+  "ar:independent-hotel-loyalty-arabic": () => import("./ar/independent-hotel-loyalty-arabic.mdx"),
 };
 
 export function loadPostBody(locale: string, slug: string) {
