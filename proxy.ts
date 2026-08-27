@@ -137,9 +137,13 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the JWT locally (WebCrypto, against a cached JWKS)
+  // instead of round-tripping to the Auth server the way getUser() did —
+  // see lib/supabase/server.ts's getAuthUser() for the full reasoning. Only
+  // truthy/falsy matters below (no field of `user` is read), so swapping
+  // the shape from a User object to a claims object needed no other changes.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims ?? null;
 
   if (isDashboard && !user) {
     const locale = pathname.split("/")[1] || defaultLocale;

@@ -34,8 +34,8 @@ export const createClient = cache(async () => {
           // Called from a Server Component, which can't write cookies on its
           // own — proxy.ts (Next.js 16's renamed middleware; see
           // node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md)
-          // runs getUser() and persists the refreshed session cookie back to
-          // the response for every path under isDashboard/isAuth/isScanApp.
+          // runs getClaims() and persists the refreshed session cookie back
+          // to the response for every path under isDashboard/isAuth/isScanApp.
           // Routes outside that set skip the Supabase round trip entirely
           // and won't get a session refresh here either — that's fine for
           // logged-out marketing/public pages, but any new authenticated
@@ -49,15 +49,25 @@ export const createClient = cache(async () => {
 
 /**
  * `supabase.auth.getUser()` re-validates the JWT against the Supabase Auth
- * server on every call (that's why it's used over getSession() — it's the
- * secure choice). That's a real network round trip, so calling it once per
- * component instead of once per request is a meaningful chunk of "why does
- * navigating the dashboard take seconds". cache() dedupes it per request.
+ * server on every single call — a real network round trip, and doing that
+ * once per component (even cache()'d per request) instead of once per
+ * *navigation* was a meaningful chunk of "why does the dashboard take
+ * seconds to load". This project's Auth server uses an asymmetric (ES256)
+ * signing key (see /.well-known/jwks.json), which is exactly the case
+ * `getClaims()` is for: it verifies the JWT's signature locally via the
+ * WebCrypto API against a module-cached JWKS instead of asking the Auth
+ * server to do it, so in the common case (JWKS already cached, token not
+ * near expiry) this resolves with zero network calls instead of one. It
+ * still transparently refreshes-and-persists an expiring session the same
+ * way getUser() did (see the cookie `setAll` catch above), and it's just as
+ * trustworthy as getUser() — unlike getSession(), which returns whatever
+ * the cookie says without verifying it was actually signed by Supabase.
+ * Only `sub`/`email` are pulled out here because that's all any call site
+ * in this codebase reads off the old User object.
  */
 export const getAuthUser = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  const { data } = await supabase.auth.getClaims();
+  if (!data) return null;
+  return { id: data.claims.sub, email: data.claims.email };
 });
