@@ -68,7 +68,11 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
 
   const [stage, setStage] = useState<Stage>("scanning");
   const [lookup, setLookup] = useState<LookupResult | null>(null);
-  const [amount, setAmount] = useState(1);
+  // Kept as the raw string the input shows rather than a number, so the
+  // field can sit empty mid-edit (e.g. backspacing "1" to type "5")
+  // instead of a Number("") || 1 fallback snapping it back to "1" before
+  // the next keystroke lands.
+  const [amount, setAmount] = useState("1");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -170,7 +174,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
     setLookup(null);
     setOutcome(null);
     setErrorMessage(null);
-    setAmount(1);
+    setAmount("1");
     clearSearch();
   }
 
@@ -201,7 +205,7 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
       body: JSON.stringify({
         pass_id: lookup.pass_id,
         action,
-        amount: action === "award" ? amount : undefined,
+        amount: action === "award" ? Math.max(1, parseInt(amount, 10) || 1) : undefined,
       }),
     });
     if (!res) return;
@@ -392,7 +396,8 @@ export function ScanFlow({ dark = false }: { dark?: boolean }) {
                   type="number"
                   min={1}
                   value={amount}
-                  onChange={(e) => setAmount(Math.max(1, Number(e.target.value) || 1))}
+                  onChange={(e) => setAmount(e.target.value)}
+                  onBlur={() => setAmount(String(Math.max(1, parseInt(amount, 10) || 1)))}
                 />
               </div>
             )}
