@@ -46,6 +46,14 @@ export default async function HomePage({
             className="mx-auto aspect-[283/500] w-[78vw] max-w-[340px] shrink-0 lg:mx-0 lg:aspect-auto lg:h-[460px] lg:w-[260px] lg:max-w-none"
           >
             <div className="relative h-full w-full overflow-hidden border-2 border-[var(--ink)] bg-[var(--white)]">
+              {/* React 19 hoists <link> tags rendered anywhere in the tree
+                  into <head> — this tells the browser to fetch the poster
+                  (the hero's actual LCP paint target) at high priority
+                  instead of at the default priority a <video> poster gets,
+                  which is what was showing up as a slow/non-discoverable
+                  LCP in Lighthouse. `fetchPriority` isn't a typed prop on
+                  <video> itself, only on <img>/<link>/<script>. */}
+              <link rel="preload" as="image" href="/videos/loyalty-hero-poster.jpg" fetchPriority="high" />
               <video
                 className="absolute inset-0 h-full w-full object-cover"
                 autoPlay
@@ -54,10 +62,6 @@ export default async function HomePage({
                 playsInline
                 preload="metadata"
                 aria-hidden="true"
-                // Gives the browser an immediately-paintable frame instead of
-                // nothing until the video's own data streams in and decodes —
-                // this is the hero's LCP candidate, so that gap is exactly
-                // what shows up as a slow/non-discoverable LCP in Lighthouse.
                 poster="/videos/loyalty-hero-poster.jpg"
               >
                 <source src="/videos/loyalty-hero.webm" type="video/webm" />

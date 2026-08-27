@@ -1,10 +1,25 @@
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { defaultLocale, isRtl, locales, type AppLocale } from "@/i18n/config";
 import en from "@/messages/en.json";
 import ar from "@/messages/ar.json";
 import { NotFoundView } from "@/components/marketing/not-found-view";
 
 const MESSAGES = { en, ar } as const;
+
+async function resolveLocale(): Promise<AppLocale> {
+  const headerList = await headers();
+  const rawLocale = headerList.get("x-locale");
+  return (locales as readonly string[]).includes(rawLocale ?? "") ? (rawLocale as AppLocale) : defaultLocale;
+}
+
+// Otherwise every unmatched URL renders with the root layout's generic
+// "WalletOS" <title> (its template default), making 404s indistinguishable
+// from real pages in browser tabs and crawl/log reports.
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveLocale();
+  return { title: MESSAGES[locale].notFoundPage.title };
+}
 
 /**
  * Next.js renders THIS file (not app/[locale]/not-found.tsx) for any URL
@@ -15,11 +30,7 @@ const MESSAGES = { en, ar } as const;
  * every request (the URL's first path segment, defaulted to defaultLocale).
  */
 export default async function RootNotFound() {
-  const headerList = await headers();
-  const rawLocale = headerList.get("x-locale");
-  const locale = (locales as readonly string[]).includes(rawLocale ?? "")
-    ? (rawLocale as AppLocale)
-    : defaultLocale;
+  const locale = await resolveLocale();
   const t = MESSAGES[locale].notFoundPage;
 
   // app/layout.tsx (the root layout) already renders <html>/<body> around

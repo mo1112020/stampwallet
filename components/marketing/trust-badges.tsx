@@ -25,12 +25,26 @@ export function TrustBadges({
     <div className={cn("flex flex-wrap items-center gap-x-6 gap-y-3", className)}>
       <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/Apple_Wallet_icon.svg" alt="" aria-hidden="true" className="h-4 w-auto" />
+        <img
+          src="/images/Apple_Wallet_icon.svg"
+          alt=""
+          aria-hidden="true"
+          width={21}
+          height={16}
+          className="h-4 w-auto"
+        />
         {appleLabel}
       </span>
       <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ink)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/Google_Wallet_icon.svg" alt="" aria-hidden="true" className="h-4 w-auto" />
+        <img
+          src="/images/Google_Wallet_icon.svg"
+          alt=""
+          aria-hidden="true"
+          width={19}
+          height={16}
+          className="h-4 w-auto"
+        />
         {googleLabel}
       </span>
       {capabilities.map(({ icon: Icon, label }) => (

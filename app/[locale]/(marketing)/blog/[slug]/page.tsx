@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Reveal } from "@/components/motion/reveal";
 import { CtaBand } from "@/components/marketing/cta-band";
-import { buildPageMetadata } from "@/lib/seo/metadata";
+import { buildPageMetadata, appUrl } from "@/lib/seo/metadata";
 import { locales } from "@/i18n/config";
 import { BLOG_POSTS, getPost, type BlogPost } from "@/content/blog/manifest";
 import { loadPostBody } from "@/content/blog/registry";
@@ -17,13 +17,18 @@ import { loadPostBody } from "@/content/blog/registry";
 // for the same reason; this route matches that instead of fighting it.
 
 /** This post's slug in the other locale, if a genuine (not machine-translated)
- * counterpart has been published — see BlogPost.counterpartSlug. */
-function counterpartPath(post: BlogPost): Partial<Record<string, string>> | undefined {
-  if (!post.counterpartSlug) return undefined;
+ * counterpart has been published — see BlogPost.counterpartSlug. Always
+ * returns an object (possibly empty), never undefined: blog slugs are
+ * per-locale content regardless of whether a counterpart exists yet, so
+ * buildPageMetadata must restrict hreflang alternates to locales listed
+ * here rather than falling back to this post's own slug for a locale with
+ * no equivalent page. */
+function counterpartPath(post: BlogPost): Partial<Record<string, string>> {
+  if (!post.counterpartSlug) return {};
   const otherLocale = locales.find((l) => l !== post.locale);
-  if (!otherLocale) return undefined;
+  if (!otherLocale) return {};
   const counterpart = BLOG_POSTS.find((p) => p.locale === otherLocale && p.slug === post.counterpartSlug);
-  if (!counterpart) return undefined;
+  if (!counterpart) return {};
   return { [otherLocale]: `blog/${counterpart.slug}` };
 }
 
@@ -76,11 +81,14 @@ export default async function BlogPostPage({
     "@type": "BlogPosting",
     headline: post.title,
     description: post.description,
+    // No dateModified: posts are static MDX with no edit-tracking, so a
+    // fabricated value equal to datePublished would just look right by
+    // accident today and silently mislead the day a post is actually edited.
     datePublished: post.date,
-    dateModified: post.date,
+    image: `${appUrl()}/${locale}/blog/${slug}/opengraph-image`,
     author: { "@type": "Organization", name: "WalletOS" },
     publisher: { "@type": "Organization", name: "WalletOS" },
-    mainEntityOfPage: `${process.env.NEXT_PUBLIC_APP_URL || "https://walletos.online"}/${locale}/blog/${slug}`,
+    mainEntityOfPage: `${appUrl()}/${locale}/blog/${slug}`,
   };
 
   return (

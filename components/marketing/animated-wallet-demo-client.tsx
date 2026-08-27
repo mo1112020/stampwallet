@@ -38,6 +38,10 @@ export function AnimatedWalletDemoClient({
 }) {
   const badgeSrc = platform === "apple" ? "/images/Apple_Wallet_icon.svg" : "/images/Google_Wallet_icon.svg";
   const badgeLabel = platform === "apple" ? "Apple Wallet" : "Google Wallet";
+  // Intrinsic width at the rendered h-3.5 (14px) height, from each SVG's own
+  // viewBox aspect ratio — explicit width/height lets the browser reserve
+  // layout space before the image loads instead of shifting content in.
+  const badgeWidth = platform === "apple" ? 19 : 16;
 
   const reduced = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -138,7 +142,7 @@ export function AnimatedWalletDemoClient({
         <div className="px-2.5">
           <div className="mb-2 flex items-center gap-1.5 px-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={badgeSrc} alt="" aria-hidden="true" className="h-3.5 w-auto" />
+            <img src={badgeSrc} alt="" aria-hidden="true" width={badgeWidth} height={14} className="h-3.5 w-auto" />
             <span className="text-[9px] font-medium text-[var(--muted)]">{badgeLabel}</span>
           </div>
           <div className="overflow-hidden rounded-2xl text-white shadow-lg" style={{ backgroundColor: primaryColor }}>

@@ -1,10 +1,22 @@
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { defaultLocale, locales, type AppLocale } from "@/i18n/config";
 import en from "@/messages/en.json";
 import ar from "@/messages/ar.json";
 import { NotFoundView } from "@/components/marketing/not-found-view";
 
 const MESSAGES = { en, ar } as const;
+
+async function resolveLocale(): Promise<AppLocale> {
+  const headerList = await headers();
+  const rawLocale = headerList.get("x-locale");
+  return (locales as readonly string[]).includes(rawLocale ?? "") ? (rawLocale as AppLocale) : defaultLocale;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveLocale();
+  return { title: MESSAGES[locale].notFoundPage.title };
+}
 
 /**
  * Fires for notFound() called explicitly from within an already-matched
@@ -15,11 +27,7 @@ const MESSAGES = { en, ar } as const;
  * `params` and that context isn't guaranteed to be populated here.
  */
 export default async function LocaleNotFound() {
-  const headerList = await headers();
-  const rawLocale = headerList.get("x-locale");
-  const locale = (locales as readonly string[]).includes(rawLocale ?? "")
-    ? (rawLocale as AppLocale)
-    : defaultLocale;
+  const locale = await resolveLocale();
   const t = MESSAGES[locale].notFoundPage;
 
   return (

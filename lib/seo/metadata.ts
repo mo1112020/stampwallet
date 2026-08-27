@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { locales, defaultLocale } from "@/i18n/config";
 
-function appUrl() {
+export function appUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "https://walletos.online";
 }
 
@@ -52,14 +52,25 @@ export function buildPageMetadata({
   const canonical = urlFor(locale);
   const ogImage = `${base}${OG_IMAGE_PATH}`;
 
+  // localePaths being passed at all (even as {}) means this route's path is
+  // authored per-locale rather than shared verbatim across locales (blog
+  // posts) — restrict alternates to locales we actually have a real path
+  // for, instead of falsely reusing this locale's own path for a locale
+  // with no equivalent page (which previously produced hreflang alternates
+  // pointing at 404s for posts with no published counterpart yet).
+  const alternateLocales = localePaths
+    ? locales.filter((l) => l === locale || localePaths[l] !== undefined)
+    : locales;
+  const defaultAlternateLocale = alternateLocales.includes(defaultLocale) ? defaultLocale : locale;
+
   return {
     title,
     description,
     alternates: {
       canonical,
       languages: {
-        ...Object.fromEntries(locales.map((l) => [l, urlFor(l)])),
-        "x-default": urlFor(defaultLocale),
+        ...Object.fromEntries(alternateLocales.map((l) => [l, urlFor(l)])),
+        "x-default": urlFor(defaultAlternateLocale),
       },
     },
     openGraph: {

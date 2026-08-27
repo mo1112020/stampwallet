@@ -24,12 +24,15 @@ const ROUTES = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://walletos.online";
-  const lastModified = new Date();
 
+  // No lastModified here — these routes have no real content-change
+  // tracking, and stamping every static route with "now" on every request
+  // makes the signal meaningless (everything looks perpetually just-changed,
+  // which crawlers increasingly discount). Blog posts below use their real
+  // publish date instead.
   const staticEntries = ROUTES.flatMap((route) =>
     locales.map((locale) => ({
       url: `${appUrl}/${locale}${route ? `/${route}` : ""}`,
-      lastModified,
     }))
   );
 
