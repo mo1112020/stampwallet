@@ -44,6 +44,51 @@
 }
 
 /* ============================================================
+   Auth "Counter" theme — warm paper & amber
+   Scoped to .authwarm (applied at the login/signup/forgot-password/
+   reset-password page root). Namespaced --aw-* rather than reusing
+   the generic --primary/--ink/etc. names: unlike .ws-stamp this
+   theme isn't meant to reskin the shared Input/Button/Card
+   primitives (those are pill-shaped; this design's fields and CTAs
+   are small-radius rectangles), so it drives a bespoke set of
+   auth-only components instead of the generic ones.
+   ============================================================ */
+.authwarm {
+  --aw-bg: #f9f4ea;
+  --aw-input-bg: #fffdf9;
+  --aw-input-bg-disabled: #f3ecdf;
+  --aw-ink: #3c2c20;
+  --aw-label: #5c4c3f;
+  --aw-muted: #7a6a5c;
+  --aw-muted-2: #8a7565;
+  --aw-placeholder: #a9977f;
+  --aw-line: #ddd0bd;
+  --aw-line-soft: #e5dac8;
+  --aw-accent: #a5652a;
+  --aw-accent-soft: rgba(165, 101, 42, 0.15);
+  --aw-danger: #a8402f;
+  --aw-danger-soft: rgba(168, 64, 47, 0.12);
+  --aw-panel-bg: #3c2c20;
+  --aw-panel-ink: #f9f4ea;
+  --aw-panel-muted: #bfa88c;
+  --aw-panel-accent: #e8c99a;
+  --aw-panel-line: #55402f;
+  --aw-panel-step: #6d5744;
+  --aw-shadow: 0 2px 4px rgba(60, 44, 32, 0.07), 0 18px 50px rgba(60, 44, 32, 0.1);
+  font-family: "Instrument Sans", Helvetica, sans-serif;
+  background: var(--aw-bg);
+  color: var(--aw-ink);
+}
+
+.authwarm h1,
+.authwarm h2,
+.authwarm .aw-serif {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
    "Stamp & Verdict" world — marketing site redesign
    Scoped to .ws-stamp (applied at the marketing route-group root)
    so the dashboard/scan-app keep the existing product-UI tokens

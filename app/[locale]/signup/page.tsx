@@ -4,16 +4,21 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { AuthLocaleSelect } from "@/components/auth/auth-ui";
+import { Logo } from "@/components/brand/logo";
 import {
-  AuthLocaleSelect,
-  AuthOrDivider,
-  AuthSocialButtons,
-} from "@/components/auth/auth-ui";
-import { Input, Label } from "@/components/ui/input";
+  AuthWarmButton,
+  AuthWarmFieldError,
+  AuthWarmInput,
+  AuthWarmLabel,
+  AuthWarmOrDivider,
+  AuthWarmShell,
+  AuthWarmSocialButtons,
+} from "@/components/auth/auth-warm";
 import { mapAuthErrorKey } from "@/lib/auth/error-messages";
 import { checkAuthRateLimit } from "@/lib/auth/rate-limit-check";
+import { oauthOrigin } from "@/lib/auth/oauth-redirect";
 
 export default function SignupPage() {
   const t = useTranslations("auth");
@@ -27,6 +32,8 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<"email" | "google" | "apple" | null>(null);
+
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,7 +91,7 @@ export default function SignupPage() {
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/dashboard/onboarding`,
+        redirectTo: `${oauthOrigin()}/auth/callback?next=/${locale}/dashboard/onboarding`,
       },
     });
     if (err) {
@@ -94,40 +101,45 @@ export default function SignupPage() {
     }
   }
 
+  const busy = loading !== null;
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--surface)] px-4 py-10">
-      <div className="absolute end-4 top-4 md:end-6 md:top-6">
-        <AuthLocaleSelect locale={locale} />
+    <AuthWarmShell brandVariant="signup">
+      <div className="flex items-center justify-between">
+        <Logo className="h-6" />
+        <AuthLocaleSelect
+          locale={locale}
+          triggerClassName="w-auto rounded-full border border-[var(--aw-line)] bg-[var(--aw-input-bg)] px-3.5 py-1.5 text-[13px] text-[var(--aw-ink)] hover:border-[var(--aw-accent)]"
+        />
       </div>
 
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary)]">
-        <span className="font-brand text-xs text-white">SW</span>
-      </div>
+      <div className="flex flex-1 flex-col justify-center gap-6">
+        <div className="flex flex-col gap-2.5">
+          <h1 className="text-[38px] leading-[1.05] sm:text-[46px]">{t("signupTitle")}</h1>
+          <p className="text-[15px] leading-relaxed text-[var(--aw-muted)]">{t("signUpSubtitle")}</p>
+        </div>
 
-      <h1 className="mb-6 text-center text-3xl font-bold tracking-tight text-[var(--ink)] md:text-4xl">
-        {t("signUp")}
-      </h1>
-
-      <div className="w-full max-w-[380px] rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-6 md:p-7">
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="firstName">{t("firstName")}</Label>
-              <Input
+              <AuthWarmLabel htmlFor="firstName">{t("firstName")}</AuthWarmLabel>
+              <AuthWarmInput
                 id="firstName"
                 required
                 autoComplete="given-name"
+                disabled={loading === "email"}
                 placeholder={t("firstName")}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor="lastName">{t("lastName")}</Label>
-              <Input
+              <AuthWarmLabel htmlFor="lastName">{t("lastName")}</AuthWarmLabel>
+              <AuthWarmInput
                 id="lastName"
                 required
                 autoComplete="family-name"
+                disabled={loading === "email"}
                 placeholder={t("lastName")}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -135,75 +147,75 @@ export default function SignupPage() {
             </div>
           </div>
           <div>
-            <Label htmlFor="email">{t("email")}</Label>
-            <Input
+            <AuthWarmLabel htmlFor="email">{t("email")}</AuthWarmLabel>
+            <AuthWarmInput
               id="email"
               type="email"
               required
               autoComplete="email"
+              disabled={loading === "email"}
               placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div>
-            <Label htmlFor="password">{t("password")}</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder={t("passwordPlaceholder")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <AuthWarmLabel htmlFor="password">{t("password")}</AuthWarmLabel>
+              <AuthWarmInput
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                disabled={loading === "email"}
+                placeholder={t("passwordPlaceholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <AuthWarmLabel htmlFor="confirmPassword">{t("confirmPassword")}</AuthWarmLabel>
+              <AuthWarmInput
+                id="confirmPassword"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                invalid={mismatch}
+                disabled={loading === "email"}
+                placeholder={t("confirmPasswordPlaceholder")}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {mismatch && <AuthWarmFieldError>{t("passwordMismatch")}</AuthWarmFieldError>}
+            </div>
           </div>
-          <div>
-            <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder={t("confirmPasswordPlaceholder")}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
-          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading !== null}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
-          >
-            {loading === "email" && <Loader2 className="h-4 w-4 animate-spin" />}
+
+          {error && <p className="text-sm text-[var(--aw-danger)]">{error}</p>}
+
+          <AuthWarmButton type="submit" disabled={busy} loading={loading === "email"}>
             {t("continue")}
-          </button>
+          </AuthWarmButton>
+          <p className="text-[12px] leading-relaxed text-[var(--aw-muted-2)]">{t("signupLegal")}</p>
         </form>
 
-        <div className="my-4">
-          <AuthOrDivider />
-        </div>
+        <AuthWarmOrDivider />
 
-        <AuthSocialButtons
-          disabled={loading !== null}
+        <AuthWarmSocialButtons
+          disabled={busy}
           loadingProvider={loading === "google" || loading === "apple" ? loading : null}
           onGoogle={() => oauth("google")}
           onApple={() => oauth("apple")}
         />
 
-        <p className="mt-5 text-center text-sm text-[var(--muted)]">
+        <p className="text-[14px] text-[var(--aw-muted)]">
           {t("haveAccount")}{" "}
-          <Link
-            href={`/${locale}/login?form=1`}
-            className="font-medium text-[var(--primary)] hover:underline"
-          >
+          <Link href={`/${locale}/login`} className="text-[var(--aw-ink)] underline underline-offset-[3px]">
             {t("signIn")}
           </Link>
         </p>
       </div>
-    </main>
+    </AuthWarmShell>
   );
 }

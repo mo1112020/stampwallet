@@ -4,10 +4,13 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { AuthLocaleSelect } from "@/components/auth/auth-ui";
-import { Input, Label } from "@/components/ui/input";
+import {
+  AuthWarmButton,
+  AuthWarmCardShell,
+  AuthWarmInput,
+  AuthWarmLabel,
+} from "@/components/auth/auth-warm";
 import { checkAuthRateLimit } from "@/lib/auth/rate-limit-check";
 
 export default function ForgotPasswordPage() {
@@ -44,51 +47,46 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--surface)] px-4 py-10">
-      <div className="absolute end-4 top-4 md:end-6 md:top-6">
-        <AuthLocaleSelect locale={locale} />
-      </div>
-
-      <h1 className="mb-6 text-center text-3xl font-bold tracking-tight text-[var(--ink)] md:text-4xl">
-        {sent ? t("resetLinkSentTitle") : t("forgotPasswordTitle")}
-      </h1>
-
-      <div className="w-full max-w-[380px] rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-6 md:p-7">
-        {sent ? (
-          <p className="text-center text-sm text-[var(--muted)]">{t("resetLinkSentBody")}</p>
-        ) : (
-          <form onSubmit={onSubmit} className="space-y-4">
-            <p className="text-sm text-[var(--muted)]">{t("forgotPasswordBody")}</p>
-            <div>
-              <Label htmlFor="email">{t("email")}</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                placeholder={t("emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-            <button
-              type="submit"
+    <AuthWarmCardShell locale={locale}>
+      {sent ? (
+        <div className="flex flex-col gap-4">
+          <h1 className="text-[32px] leading-[1.1]">{t("resetLinkSentTitle")}</h1>
+          <p className="text-[15px] leading-relaxed text-[var(--aw-muted)]">{t("resetLinkSentBody")}</p>
+        </div>
+      ) : (
+        <form onSubmit={onSubmit} className="flex flex-col gap-5">
+          <Link href={`/${locale}/login`} className="text-[14px] text-[var(--aw-muted)]">
+            &larr; {t("backToLogin")}
+          </Link>
+          <h1 className="text-[32px] leading-[1.1]">{t("forgotPasswordTitle")}</h1>
+          <p className="text-[15px] leading-relaxed text-[var(--aw-muted)]">{t("forgotPasswordBody")}</p>
+          <div>
+            <AuthWarmLabel htmlFor="email">{t("email")}</AuthWarmLabel>
+            <AuthWarmInput
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
               disabled={loading}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] text-[14px] font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t("sendResetLink")}
-            </button>
-          </form>
-        )}
+              placeholder={t("emailPlaceholder")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-sm text-[var(--aw-danger)]">{error}</p>}
+          <AuthWarmButton type="submit" disabled={loading} loading={loading}>
+            {t("sendResetLink")}
+          </AuthWarmButton>
+        </form>
+      )}
 
-        <p className="mt-5 text-center text-sm text-[var(--muted)]">
-          <Link href={`/${locale}/login?form=1`} className="font-medium text-[var(--primary)] hover:underline">
+      {sent && (
+        <p className="mt-6 text-[14px] text-[var(--aw-muted)]">
+          <Link href={`/${locale}/login`} className="text-[var(--aw-ink)] underline underline-offset-[3px]">
             {t("backToLogin")}
           </Link>
         </p>
-      </div>
-    </main>
+      )}
+    </AuthWarmCardShell>
   );
 }
