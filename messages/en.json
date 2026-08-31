@@ -1142,7 +1142,10 @@
     "noCustomers": "No customers yet.",
     "noResults": "No customers match your search.",
     "loading": "Loading…",
-    "noAccess": "You don't have access to customers."
+    "noAccess": "You don't have access to customers.",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "pageLabel": "Page {page}"
   },
   "billingBlur": {
     "hiddenMessage": "{count, plural, one {# more customer hidden} other {# more customers hidden}} — your account is on the Free plan.",

@@ -32,27 +32,36 @@ export type CustomerListItem = {
   hasGoogle: boolean;
 };
 
-export type CustomerListStats = { totalCustomers: number; totalCards: number; totalScans: number };
+export type CustomerListStats = { totalCustomers: number };
 
 export type CustomerListFilters = {
   search?: string;
   filterProgramId?: string;
   filter?: "birthday_month" | null;
+  page?: number;
 };
+
+export const CUSTOMERS_PAGE_SIZE = 50;
 
 /** Merchant-wide customer directory (all programs). Search + optional program/birthday-month filter. */
 export async function listAllCustomers(
   session: SessionContext,
-  { search, filterProgramId, filter }: CustomerListFilters
-): Promise<{ customers: CustomerListItem[]; stats: CustomerListStats }> {
+  { search, filterProgramId, filter, page = 0 }: CustomerListFilters
+): Promise<{ customers: CustomerListItem[]; stats: CustomerListStats; page: number; hasMore: boolean }> {
+  // program/birthday filters are applied in JS below, so those cases still need a
+  // wide fetch; everything else (the common path, and DB-side search) paginates.
+  const jsPostFiltered = filter === "birthday_month" || Boolean(filterProgramId);
+  const from = Math.max(0, page) * CUSTOMERS_PAGE_SIZE;
+
   let query = session.supabase
     .from("customers")
     .select(
       "id, name, phone, email, birthday, created_at, customer_progress(id, program_id, pass_id, google_object_id, loyalty_programs(name))"
     )
     .eq("merchant_id", session.merchantId)
-    .order("created_at", { ascending: false })
-    .limit(200);
+    .order("created_at", { ascending: false });
+
+  query = jsPostFiltered ? query.limit(200) : query.range(from, from + CUSTOMERS_PAGE_SIZE - 1);
 
   if (search) {
     query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
@@ -113,17 +122,17 @@ export async function listAllCustomers(
     hasGoogle: r.customer_progress.some((cp) => cp.google_object_id),
   }));
 
-  const [{ count: totalCustomers }, { count: totalCards }, { count: totalScans }] = await Promise.all([
-    session.supabase.from("customers").select("*", { count: "exact", head: true }).eq("merchant_id", session.merchantId),
-    session.supabase
-      .from("customer_progress")
-      .select("*, loyalty_programs!inner(merchant_id)", { count: "exact", head: true })
-      .eq("loyalty_programs.merchant_id", session.merchantId),
-    session.supabase.from("scan_events").select("*", { count: "exact", head: true }).eq("scanned_by", session.merchantId),
-  ]);
+  // Only the total-customers count remains — it drives pagination and the soft
+  // paywall math. The card/scan totals shown on this page were duplicates of the
+  // dashboard/analytics KPIs and each cost a full count(*) (scan_events by
+  // scanned_by is unindexed); dropped here, still shown on those pages.
+  const { count: totalCustomers } = await session.supabase
+    .from("customers")
+    .select("*", { count: "exact", head: true })
+    .eq("merchant_id", session.merchantId);
 
-  return {
-    customers,
-    stats: { totalCustomers: totalCustomers ?? 0, totalCards: totalCards ?? 0, totalScans: totalScans ?? 0 },
-  };
+  const total = totalCustomers ?? 0;
+  const hasMore = !jsPostFiltered && from + CUSTOMERS_PAGE_SIZE < total;
+
+  return { customers, stats: { totalCustomers: total }, page: Math.max(0, page), hasMore };
 }

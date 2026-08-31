@@ -26,6 +26,7 @@ export function CustomersToolbar({ programs }: { programs: { id: string; name: s
 
   function pushParams(next: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("page"); // any search/filter change resets pagination to the first page
     for (const [key, value] of Object.entries(next)) {
       if (value) params.set(key, value);
       else params.delete(key);

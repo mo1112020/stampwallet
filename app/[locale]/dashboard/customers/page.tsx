@@ -3,7 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Users } from "lucide-react";
 import { getSessionOrNull } from "@/lib/api";
 import { roleHasCapability } from "@/lib/auth/permissions";
-import { listAllCustomers } from "@/lib/customers/queries";
+import Link from "next/link";
+import { listAllCustomers, CUSTOMERS_PAGE_SIZE } from "@/lib/customers/queries";
 import { hasActiveAccess } from "@/lib/billing/access";
 import { PLAN_LIMITS } from "@/lib/billing/plans";
 import { Card } from "@/components/ui/card";
@@ -26,7 +27,7 @@ export default async function CustomersPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; filter?: string; filter_program_id?: string }>;
+  searchParams: Promise<{ q?: string; filter?: string; filter_program_id?: string; page?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -51,11 +52,22 @@ export default async function CustomersPage({
   const filterProgramId = sp.filter_program_id || undefined;
   const filter = sp.filter === "birthday_month" ? "birthday_month" : null;
   const hasActiveQuery = Boolean(search) || filter === "birthday_month" || Boolean(filterProgramId);
+  const requestedPage = Math.max(0, Number.parseInt(sp.page ?? "0", 10) || 0);
 
-  const [{ customers, stats }, { data: programs }] = await Promise.all([
-    listAllCustomers(session, { search, filterProgramId, filter }),
+  const [{ customers, stats, page, hasMore }, { data: programs }] = await Promise.all([
+    listAllCustomers(session, { search, filterProgramId, filter, page: requestedPage }),
     session.supabase.from("loyalty_programs").select("id, name").eq("merchant_id", session.merchantId).order("name"),
   ]);
+
+  const pageQuery = (p: number) => {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    if (filter) params.set("filter", filter);
+    if (filterProgramId) params.set("filter_program_id", filterProgramId);
+    if (p > 0) params.set("page", String(p));
+    const qs = params.toString();
+    return qs ? `?${qs}` : "";
+  };
 
   // Soft paywall: once billing enforcement has actually moved this account
   // onto the Free plan (not merely "plan is free" — see
@@ -64,7 +76,7 @@ export default async function CustomersPage({
   // resubscribing to bring the rest back.
   const billingCapped = !hasActiveAccess(session.merchant.subscription_status) && Boolean(session.merchant.billing_enforced_at);
   const customerCap = PLAN_LIMITS.free.maxActiveCustomers ?? Infinity;
-  const hiddenCount = billingCapped ? Math.max(0, customers.length - customerCap) : 0;
+  const hiddenCount = billingCapped ? Math.max(0, stats.totalCustomers - customerCap) : 0;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -75,8 +87,6 @@ export default async function CustomersPage({
 
       <StaggerGroup className="mt-6 grid gap-4 sm:grid-cols-3">
         <StatTile label={t("totalCustomers")} value={stats.totalCustomers} />
-        <StatTile label={t("cardsInstalled")} value={stats.totalCards} />
-        <StatTile label={t("transactions")} value={stats.totalScans} />
       </StaggerGroup>
 
       <CustomersToolbar programs={programs ?? []} />
@@ -105,7 +115,7 @@ export default async function CustomersPage({
                   <tr
                     key={c.id}
                     className={
-                      billingCapped && i >= customerCap
+                      billingCapped && page * CUSTOMERS_PAGE_SIZE + i >= customerCap
                         ? "select-none blur-sm transition-colors"
                         : "transition-colors hover:bg-[var(--surface-2)]"
                     }
@@ -166,6 +176,32 @@ export default async function CustomersPage({
           </Card>
         )}
         {hiddenCount > 0 && <BillingBlurBanner hiddenCount={hiddenCount} pricingUrl={`/${locale}/pricing`} />}
+
+        {!hasActiveQuery && (page > 0 || hasMore) && (
+          <nav className="mt-4 flex items-center justify-between text-sm">
+            {page > 0 ? (
+              <Link
+                href={pageQuery(page - 1)}
+                className="rounded-full border border-[var(--line)] px-4 py-2 font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)]"
+              >
+                {t("prevPage")}
+              </Link>
+            ) : (
+              <span />
+            )}
+            <span className="text-[var(--muted)]">{t("pageLabel", { page: page + 1 })}</span>
+            {hasMore ? (
+              <Link
+                href={pageQuery(page + 1)}
+                className="rounded-full border border-[var(--line)] px-4 py-2 font-semibold text-[var(--ink)] transition-colors hover:bg-[var(--surface-2)]"
+              >
+                {t("nextPage")}
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )}
       </div>
     </div>
   );
