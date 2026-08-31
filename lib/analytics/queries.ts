@@ -77,11 +77,37 @@ function pickProgramIds(programs: ProgramLite[], programId?: string): string[] {
   return filtered.map((p) => p.id);
 }
 
+export type ProgressLite = { id: string; customer_id: string; program_id: string };
+
+/**
+ * The `customer_progress` slice every analytics function needs, fetched ONCE
+ * per request. Previously getAnalyticsOverview + getScansTrend each ran this
+ * query independently — and the dashboard home calls getAnalyticsOverview
+ * twice (current + previous range), so a single home render issued this same
+ * query 2–3 times. Pass the result into the functions below to dedupe it.
+ * Scope it to the merchant's whole program set (not a single range) so one
+ * fetch serves every call in the render.
+ */
+export async function getProgressRows(
+  supabase: SupabaseClient,
+  programs: ProgramLite[],
+  programId?: string
+): Promise<ProgressLite[]> {
+  const programIds = pickProgramIds(programs, programId);
+  if (programIds.length === 0) return [];
+  const { data } = await supabase
+    .from("customer_progress")
+    .select("id, customer_id, program_id")
+    .in("program_id", programIds);
+  return data ?? [];
+}
+
 export async function getAnalyticsOverview(
   supabase: SupabaseClient,
   merchant: Merchant,
   filters: AnalyticsFilters,
-  programs: ProgramLite[]
+  programs: ProgramLite[],
+  progressRowsPrefetched?: ProgressLite[]
 ): Promise<AnalyticsOverview> {
   const programIds = pickProgramIds(programs, filters.programId);
   const rewardValueByProgram = new Map(
@@ -105,11 +131,19 @@ export async function getAnalyticsOverview(
     };
   }
 
-  const { data: progressRows } = await supabase
-    .from("customer_progress")
-    .select("id, customer_id, program_id")
-    .in("program_id", programIds);
-  const progress = progressRows ?? [];
+  // Use the prefetched set when the caller deduped it; otherwise fetch (and
+  // filter to this call's programIds, which the shared fetch does not).
+  let progress: ProgressLite[];
+  if (progressRowsPrefetched) {
+    const idSet = new Set(programIds);
+    progress = progressRowsPrefetched.filter((p) => idSet.has(p.program_id));
+  } else {
+    const { data: progressRows } = await supabase
+      .from("customer_progress")
+      .select("id, customer_id, program_id")
+      .in("program_id", programIds);
+    progress = progressRows ?? [];
+  }
   const progressIds = progress.map((p) => p.id);
   const totalCards = progress.length;
   const totalCustomers = new Set(progress.map((p) => p.customer_id)).size;
@@ -203,16 +237,23 @@ export async function getScansTrend(
   supabase: SupabaseClient,
   merchant: Merchant,
   filters: AnalyticsFilters,
-  programs: ProgramLite[]
+  programs: ProgramLite[],
+  progressRowsPrefetched?: ProgressLite[]
 ): Promise<TrendPoint[]> {
   const programIds = pickProgramIds(programs, filters.programId);
   if (programIds.length === 0) return [];
 
-  const { data: progressRows } = await supabase
-    .from("customer_progress")
-    .select("id")
-    .in("program_id", programIds);
-  const progressIds = (progressRows ?? []).map((p) => p.id);
+  let progressIds: string[];
+  if (progressRowsPrefetched) {
+    const idSet = new Set(programIds);
+    progressIds = progressRowsPrefetched.filter((p) => idSet.has(p.program_id)).map((p) => p.id);
+  } else {
+    const { data: progressRows } = await supabase
+      .from("customer_progress")
+      .select("id")
+      .in("program_id", programIds);
+    progressIds = (progressRows ?? []).map((p) => p.id);
+  }
   if (progressIds.length === 0) return [];
 
   const [{ data: scanRows }, { data: redemptionRows }] = await Promise.all([

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PlusCircle, QrCode, BarChart3, Settings2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { getSessionOrNull } from "@/lib/api";
-import { getAnalyticsOverview, getRecentActivity, resolveDateRange, type AnalyticsOverview } from "@/lib/analytics/queries";
+import { getAnalyticsOverview, getRecentActivity, getProgressRows, resolveDateRange, type AnalyticsOverview } from "@/lib/analytics/queries";
 import { ActivityFeed } from "@/components/dashboard/analytics/activity-feed";
 import { EmptyPhoneMockup } from "@/components/dashboard/phone-mockup";
 import { Card } from "@/components/ui/card";
@@ -112,9 +112,14 @@ export default async function DashboardHome({
   const activeProgramCount = programs?.filter((p) => p.is_active).length ?? 0;
   const programsLite = programs ?? [];
 
+  // Fetch the customer_progress slice ONCE and feed it to both overview calls
+  // (current + previous range) — the set is range-independent, so re-fetching
+  // it per call was a redundant round trip on the home render's critical path.
+  const progressRows = await getProgressRows(supabase, programsLite);
+
   const [overview, previousOverview, activity] = await Promise.all([
-    getAnalyticsOverview(supabase, merchant, currentRange, programsLite),
-    getAnalyticsOverview(supabase, merchant, previousRange, programsLite),
+    getAnalyticsOverview(supabase, merchant, currentRange, programsLite, progressRows),
+    getAnalyticsOverview(supabase, merchant, previousRange, programsLite, progressRows),
     getRecentActivity(supabase, merchant, { limit: 6 }, programsLite),
   ]);
 

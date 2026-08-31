@@ -6,6 +6,7 @@ import {
   getAnalyticsOverview,
   getRecentActivity,
   getScansTrend,
+  getProgressRows,
   resolveDateRange,
 } from "@/lib/analytics/queries";
 import { AnalyticsFilters } from "@/components/dashboard/analytics/filters";
@@ -51,9 +52,13 @@ export default async function AnalyticsPage({
     .order("name");
   const programsLite = programs ?? [];
 
+  // One customer_progress fetch shared by overview + trend (both used it
+  // independently before), scoped to the selected program filter.
+  const progressRows = await getProgressRows(session.supabase, programsLite, sp.program_id);
+
   const [overview, trend, activity] = await Promise.all([
-    getAnalyticsOverview(session.supabase, session.merchant, filters, programsLite),
-    getScansTrend(session.supabase, session.merchant, filters, programsLite),
+    getAnalyticsOverview(session.supabase, session.merchant, filters, programsLite, progressRows),
+    getScansTrend(session.supabase, session.merchant, filters, programsLite, progressRows),
     getRecentActivity(session.supabase, session.merchant, { programId: sp.program_id }, programsLite),
   ]);
 
